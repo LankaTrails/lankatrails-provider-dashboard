@@ -30,7 +30,7 @@ const ProviderDashboard = () => {
   const [formOpen, setFormOpen] = useState(false);
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
 
   const initialCat = searchParams.get('category') || 'all';
   const [selectedCategory, setSelectedCategory] = useState<string>(initialCat);
@@ -216,7 +216,7 @@ const ProviderDashboard = () => {
         {/* Dashboard Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Provider Dashboard</h1>
-          <p className="text-gray-600">Welcome {user?.name.split(' ')[0]}! Manage your services and connect with travelers.</p>
+          <p className="text-gray-600">Welcome {(user?.name && user.name.split(' ')[0]) || 'Provider'}! Manage your services and connect with travelers.</p>
         </div>
 
         {/* Stats Cards */}
