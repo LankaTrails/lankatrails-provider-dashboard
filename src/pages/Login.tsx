@@ -7,7 +7,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Eye, EyeOff, LogIn } from 'lucide-react';
 import { motion } from 'framer-motion';
 import Header from '@/components/Header';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/hooks/useAuth';
 
 const Login = () => {
   const { login } = useAuth();

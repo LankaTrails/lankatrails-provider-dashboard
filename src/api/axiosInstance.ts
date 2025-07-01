@@ -1,74 +1,75 @@
 import axios from 'axios';
+import { jwtDecode } from 'jwt-decode';
+import store from '../store';
+import { refreshToken, logoutUser } from '@/store/authSlice';
 
-let refreshTokenPromise: Promise<any> | null = null;
+let accessToken: string | null = null;
+let isRefreshing = false;
+let failedQueue: any[] = [];
+
+const processQueue = (error: any, token: string | null = null) => {
+  failedQueue.forEach(prom => {
+    if (error) {
+      prom.reject(error);
+    } else {
+      prom.resolve(token);
+    }
+  });
+  failedQueue = [];
+};
 
 const api = axios.create({
-  baseURL: 'http://localhost:8080/api',
-  withCredentials: true,
-  timeout: 10000, // Add timeout (10 seconds)
-  headers: {
-    'Content-Type': 'application/json',
-    'Accept': 'application/json',
-    'Client-Type': 'web',
-  }
+  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:8080/api',
+  withCredentials: true,  // Important: send cookies!
 });
 
-const apiLogger = {
-  request: (config: any) => {
-    if (process.env.NODE_ENV !== 'production') {
-      console.log(`[API] ${config.method?.toUpperCase()} ${config.url}`, {
-        data: config.data,
-        params: config.params
-      });
+// Set access token (used by authSlice)
+export const setAccessToken = (token: string | null) => {
+  accessToken = token;
+};
+
+// Attach token to requests
+api.interceptors.request.use(
+  async (config) => {
+    if (accessToken) {
+      const decoded: any = jwtDecode(accessToken);
+      const isExpired = Date.now() >= decoded.exp * 1000;
+
+      if (isExpired) {
+        console.warn('[API] Access token expired, attempting refresh...');
+        if (!isRefreshing) {
+          isRefreshing = true;
+          try {
+            const newToken = await store.dispatch(refreshToken()).unwrap();
+            setAccessToken(newToken);
+            processQueue(null, newToken);
+          } catch (err) {
+            processQueue(err, null);
+            store.dispatch(logoutUser());
+            throw err;
+          } finally {
+            isRefreshing = false;
+          }
+        }
+
+        return new Promise((resolve, reject) => {
+          failedQueue.push({
+            resolve: (token: string) => {
+              config.headers.Authorization = `Bearer ${token}`;
+              resolve(config);
+            },
+            reject: (err: any) => {
+              reject(err);
+            }
+          });
+        });
+      } else {
+        config.headers.Authorization = `Bearer ${accessToken}`;
+      }
     }
     return config;
   },
-  response: (response: any) => {
-    if (process.env.NODE_ENV !== 'production') {
-      console.log(`[API] ${response.status} ${response.config.method?.toUpperCase()} ${response.config.url}`, {
-        data: response.data
-      });
-    }
-    return response;
-  },
-  error: (error: any) => {
-    console.error(`[API Error] ${error.response?.status || 'Network Error'} ${error.config?.method?.toUpperCase() || ''} ${error.config?.url || ''}`, {
-      message: error.message,
-      response: error.response?.data
-    });
-    return Promise.reject(error);
-  }
-};
-
-api.interceptors.request.use(
-  config => apiLogger.request(config),
-  error => apiLogger.error(error)
-);
-
-api.interceptors.response.use(
-  response => apiLogger.response(response),
-  async error => {
-    const originalRequest = error.config;
-    if (error.response?.status === 401 && !originalRequest?._retry) {
-      originalRequest._retry = true;
-      if (!refreshTokenPromise) {
-        refreshTokenPromise = api.post('/auth/refresh-token')
-          .finally(() => { refreshTokenPromise = null; });
-      }
-
-      try {
-        await refreshTokenPromise;
-        return api(originalRequest);
-      } catch (refreshError) {
-        if (typeof window !== 'undefined') {
-          window.dispatchEvent(new Event('forceLogout'));
-        }
-        return Promise.reject(refreshError);
-      }
-    }
-
-    return apiLogger.error(error);
-  }
+  (error) => Promise.reject(error)
 );
 
 export default api;

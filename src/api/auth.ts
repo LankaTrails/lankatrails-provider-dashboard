@@ -1,26 +1,14 @@
-// src/api/auth.ts
-import api from "./axiosInstance";
+import api from './axiosInstance';
+import type { User } from '@/types/authTypes';
 
-export interface LoginApiResponse {
-  id: number;
-  email: string;
-  role: String;
-  jwtToken: string;
-  refreshToken: string;
-  emailVerified: boolean;
-}
+export const loginProvider = (email: string, password: string) =>
+  api.post('/auth/login', { email, password });
 
-export async function loginProvider(email: string, password: string): Promise<LoginApiResponse> {
-  const res = await api.post<{ data: LoginApiResponse }>("/auth/login", { email, password });
-  return res.data.data;
-}
+export const logoutProvider = () =>
+  api.post('/auth/logout');
 
+export const fetchLoggedUser = () =>
+  api.get<{ data: User }>('/auth/logged-user').then(res => res.data.data);
 
-export async function getLoggedUser(): Promise<LoginApiResponse> {
-  const res = await api.get<{ data: LoginApiResponse }>("/auth/logged-user");
-  return res.data.data;
-}
-
-export async function logoutProvider(): Promise<void> {
-  await api.post("/auth/logout");
-}
+export const refreshToken = () =>
+  api.post('/auth/refresh-token');

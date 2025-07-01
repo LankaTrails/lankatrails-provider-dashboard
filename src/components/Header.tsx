@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Menu, X, LogOut } from "lucide-react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
-import { useAuth } from "@/contexts/AuthContext";
+import { useAuth } from "@/hooks/useAuth";
 
 const Header = () => {
   const { user, logout } = useAuth();
@@ -22,15 +22,16 @@ const Header = () => {
       <div className="container mx-auto px-4 py-4">
         <div className="flex items-center justify-between">
           {/* Logo */}
-          <Link to="/" className="flex items-center space-x-2">
-            <img src="/logo.png" alt="LankaTrails" className="w-8 h-8" />
-            <span className="text-2xl font-bold text-primary-500">
-              LankaTrails
+          <Link to="/" className="flex items-center">
+            <img src="/logo.png" alt="LankaTrails" className="w-10 h-10" />
+            <span className="text-2xl ml-0 font-bold text-primary-500">
+              Lanka
+              <span className="text-2xl font-bold text-[#ff6600]">Trails</span>
             </span>
           </Link>
 
           {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center space-x-8">
+          {/* <nav className="hidden md:flex items-center space-x-8">
             <Link
               to="/destinations"
               className="text-gray-700 hover:text-primary-500 transition-colors"
@@ -55,7 +56,7 @@ const Header = () => {
             >
               About
             </Link>
-          </nav>
+          </nav> */}
 
           {/* Desktop User / Auth */}
           <div className="hidden md:flex items-center space-x-4">
@@ -66,12 +67,12 @@ const Header = () => {
                   className="flex items-center space-x-2 hover:opacity-80"
                 >
                   <img
-                    src={user.avatar}
+                    src={user.logoUrl || "/default-avatar.png"}
                     alt="avatar"
                     className="w-8 h-8 rounded-full object-cover border"
                   />
                   <span className="font-medium text-gray-700 hidden lg:inline">
-                    {(user?.name && user.name.split(" ")[0]) || "Provider"}
+                    {(user?.businessName && user.businessName || "Provider")}
                   </span>
                 </button>
                 <Button
