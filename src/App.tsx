@@ -6,7 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { Provider as ReduxProvider } from "react-redux";
 import store from "@/store";
 import { useAuth } from "@/hooks/useAuth";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 import Index from "./pages/Index";
 import Profile from "./pages/Profile";
@@ -34,11 +34,22 @@ const App = () => {
 };
 
 const AppRoutes = () => {
-  const { restoreSession } = useAuth();
+  const { isAuthenticated, isLoading, restoreSession } = useAuth();
+  const [initialized, setInitialized] = useState(false);
 
   useEffect(() => {
-    restoreSession();
-  }, []);
+    if (!initialized) {
+      restoreSession().finally(() => setInitialized(true));
+    }
+  }, [initialized, restoreSession]);
+
+  if (!initialized || isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        Loading...
+      </div>
+    )
+  }
 
   return (
     <Routes>
@@ -58,6 +69,5 @@ const AppRoutes = () => {
     </Routes>
   );
 };
-
 
 export default App;

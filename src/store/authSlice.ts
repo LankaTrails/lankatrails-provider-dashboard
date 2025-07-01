@@ -1,4 +1,5 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+import type { PayloadAction } from '@reduxjs/toolkit';
 import api, { setAccessToken } from '@/api/axiosInstance';
 
 interface ProviderUser {
@@ -6,9 +7,9 @@ interface ProviderUser {
   email: string;
   role: string;
   emailVerified: boolean;
-  businessName: string;
-  businessDescription: string;
-  logoUrl: string | null;
+  businessName?: string;
+  businessDescription?: string;
+  logoUrl?: string | null;
 }
 
 interface AuthState {
@@ -60,8 +61,25 @@ export const fetchProfile = createAsyncThunk(
     try {
       const res = await api.get('/auth/logged-user');
       return res.data.data as ProviderUser;
-    } catch (err: any) {
+    } catch {
       return rejectWithValue('Failed to fetch profile');
+    }
+  }
+);
+
+export const restoreSession = createAsyncThunk(
+  'auth/restoreSession',
+  async (_, { dispatch, rejectWithValue }) => {
+    try {
+      // Only attempt refresh if we don't already have a valid token
+      const newToken = await dispatch(refreshToken()).unwrap();
+      if (!newToken) throw new Error('No token received');
+
+      const profile = await dispatch(fetchProfile()).unwrap();
+      return profile;
+    } catch (error) {
+      await dispatch(logoutUser());
+      return rejectWithValue('Session restoration failed');
     }
   }
 );
@@ -69,25 +87,40 @@ export const fetchProfile = createAsyncThunk(
 export const logoutUser = createAsyncThunk('auth/logout', async () => {
   try {
     await api.post('/auth/logout');
-  } catch {}
+  } catch { }
   setAccessToken(null);
 });
 
 const authSlice = createSlice({
   name: 'auth',
   initialState,
-  reducers: {},
+  reducers: {
+    sessionExpired: (state) => {
+      state.isAuthenticated = false;
+      state.user = null;
+      state.error = 'Session expired';
+    }, 
+    setAuthState: (state, action: PayloadAction<{ isAuthenticated: boolean; user: ProviderUser | null }>) => {
+      state.isAuthenticated = action.payload.isAuthenticated;
+      state.user = action.payload.user;
+    },
+  },
   extraReducers: builder => {
     builder
-      .addCase(login.pending, state => { state.isLoading = true; state.error = null; })
+      .addCase(login.pending, state => { 
+        state.isLoading = true; 
+        state.error = null; 
+      })
       .addCase(login.fulfilled, (state, action) => {
         state.isAuthenticated = true;
         state.user = action.payload;
         state.isLoading = false;
+        state.error = null;
       })
       .addCase(login.rejected, (state, action) => {
         state.isLoading = false;
         state.error = action.payload as string;
+        state.isAuthenticated = false;
       })
       .addCase(fetchProfile.fulfilled, (state, action) => {
         state.isAuthenticated = true;
@@ -100,8 +133,26 @@ const authSlice = createSlice({
       .addCase(logoutUser.fulfilled, state => {
         state.isAuthenticated = false;
         state.user = null;
+        state.error = null;
+      })
+      .addCase(restoreSession.fulfilled, (state, action) => {
+        state.isAuthenticated = true;
+        state.user = action.payload;
+        state.isLoading = false;
+        state.error = null;
+      })
+      .addCase(restoreSession.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(restoreSession.rejected, (state) => {
+        state.isAuthenticated = false;
+        state.user = null;
+        state.isLoading = false;
+        state.error = 'Session restoration failed';
       });
   }
 });
 
+export const { sessionExpired, setAuthState } = authSlice.actions;
 export default authSlice.reducer;
