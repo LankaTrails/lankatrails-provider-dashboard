@@ -34,7 +34,7 @@ const App = () => {
 };
 
 const AppRoutes = () => {
-  const { isAuthenticated, isLoading, restoreSession } = useAuth();
+  const { isLoading, restoreSession } = useAuth();
   const [initialized, setInitialized] = useState(false);
 
   useEffect(() => {

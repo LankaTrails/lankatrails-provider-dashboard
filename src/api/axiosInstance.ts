@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { jwtDecode } from 'jwt-decode';
 import store from '../store';
-import { refreshToken, logoutUser } from '@/store/authSlice';
+import { refreshToken } from '@/store/authSlice';
 import { sessionExpired } from '@/store/authSlice';
 
 let accessToken: string | null = null;
