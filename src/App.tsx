@@ -10,6 +10,8 @@ import { AuthProvider } from './contexts/AuthContext';
 import Login from "./pages/Login";
 import Register from './pages/Register';
 import ProviderDashboard from './pages/ProviderDashboard';
+import ServiceEdit from './pages/ServiceEdit';
+import ServiceView from './pages/ServiceView';
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -27,6 +29,8 @@ const App = () => (
           <Route path="/register" element={<Register />} />
 
           <Route path="/provider-dashboard" element={<ProviderDashboard />} />
+          <Route path="/services/:id/edit" element={<ServiceEdit />} />
+          <Route path="/services/:id" element={<ServiceView />} />
           <Route path="/profile" element={<Profile />} />
           
           <Route path="*" element={<NotFound />} />

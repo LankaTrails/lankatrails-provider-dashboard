@@ -43,17 +43,7 @@ const Header = () => {
           <div className="hidden md:flex items-center space-x-4">
             {showUser ? (
               <>
-                <button
-                  onClick={() => navigate('/profile')}
-                  className="flex items-center space-x-2 hover:opacity-80"
-                >
-                  <img
-                    src={user.avatar}
-                    alt="avatar"
-                    className="w-8 h-8 rounded-full object-cover border"
-                  />
-                  <span className="font-medium text-gray-700 hidden lg:inline">{user.name.split(' ')[0]}</span>
-                </button>
+
                 <Button
                   size="sm"
                   variant="outline"
