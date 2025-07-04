@@ -11,8 +11,10 @@ import { useEffect, useState } from "react";
 import Index from "./pages/Index";
 import Profile from "./pages/Profile";
 import Login from "./pages/Login";
-import Register from "./pages/Register";
-import ProviderDashboard from "./pages/ProviderDashboard";
+import Register from './pages/Register';
+import ProviderDashboard from './pages/ProviderDashboard';
+import ServiceEdit from './pages/ServiceEdit';
+import ServiceView from './pages/ServiceView';
 import NotFound from "./pages/NotFound";
 import ProtectedRoute from "./components/ProtectedRoutes";
 
@@ -50,8 +52,19 @@ const AppRoutes = () => {
       </div>
     )
   }
-
-  return (
+          <Route path="/provider-dashboard" element={<ProviderDashboard />} />
+          <Route path="/services/:id/edit" element={<ServiceEdit />} />
+          <Route path="/services/:id" element={<ServiceView />} />
+          <Route path="/profile" element={<Profile />} />
+          
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </BrowserRouter>
+    </TooltipProvider>
+  </QueryClientProvider>
+  </AuthProvider>
+);
+return (
     <Routes>
       <Route path="/" element={<Index />} />
       <Route path="/login" element={<Login />} />
