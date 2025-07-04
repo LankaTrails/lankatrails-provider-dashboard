@@ -7,24 +7,23 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Eye, EyeOff, LogIn } from 'lucide-react';
 import { motion } from 'framer-motion';
 import Header from '@/components/Header';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/hooks/useAuth';
 
 const Login = () => {
   const { login } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const navigate = useNavigate();
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Normally authenticate with backend.
-    const dummyUser = {
-      name: 'Gayashan Rathnayaka',
-      email: 'gayashan@example.com',
-      avatar: 'https://i.pravatar.cc/150?img=56',
-      location: 'Colombo, Sri Lanka',
-    };
-    login(dummyUser);
-    navigate('/provider-dashboard');
+    try {
+      await login(email, password);
+      navigate('/provider-dashboard');
+    } catch (err: any) {
+      alert(err.message || 'Login failed');
+    }
   };
 
   return (
@@ -51,7 +50,7 @@ const Login = () => {
                 </div>
               </motion.div>
               <motion.h1 
-                className="text-4xl md:text-5xl font-extrabold text-white mb-2 [text-shadow:_2px_2px_4px_rgb(0_0_0_/_40%)]"
+                className="text-4xl md:text-5xl font-extrabold text-white mb-2 [text-shadow:2px_2px_4px_rgb(0_0_0/_40%)]"
                 initial={{ opacity: 0, y: -20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: 0.2 }}
@@ -59,7 +58,7 @@ const Login = () => {
                 Provider Portal
               </motion.h1>
               <motion.p 
-                className="text-lg text-gray-200 [text-shadow:_1px_1px_2px_rgb(0_0_0_/_40%)]"
+                className="text-lg text-gray-200 [text-shadow:1px_1px_2px_rgb(0_0_0/_40%)]"
                 initial={{ opacity: 0, y: -20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: 0.4 }}
@@ -85,6 +84,8 @@ const Login = () => {
                       placeholder="your.business@example.com"
                       required
                       className="bg-white/70 h-11"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
                     />
                   </div>
 
@@ -97,6 +98,8 @@ const Login = () => {
                         placeholder="Enter your password"
                         required
                         className="bg-white/70 h-11 pr-10"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
                       />
                       <button
                         type="button"
@@ -106,16 +109,6 @@ const Login = () => {
                         {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                       </button>
                     </div>
-                  </div>
-
-                  <div className="flex items-center justify-between text-sm">
-                    <div className="flex items-center space-x-2">
-                      <input type="checkbox" id="remember" className="rounded border-gray-400" />
-                      <Label htmlFor="remember" className="font-normal">Remember me</Label>
-                    </div>
-                    <Link to="/forgot-password" className="font-medium text-primary-600 hover:text-primary-700">
-                      Forgot password?
-                    </Link>
                   </div>
 
                   <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>

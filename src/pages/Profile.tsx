@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import Header from '@/components/Header';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/hooks/useAuth';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Edit, MapPin, ArrowLeft, Briefcase, Clock } from 'lucide-react';
@@ -9,13 +9,13 @@ import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, Dialog
 import { Link } from 'react-router-dom';
 
 const Profile = () => {
-  const { user, updateUser } = useAuth();
+  const { user } = useAuth();
   const [editOpen, setEditOpen] = useState(false);
   const [form, setForm] = useState({
-    name: user?.name || '',
+    name: user?.businessName || '',
     email: user?.email || '',
-    location: user?.location || '',
-    avatar: user?.avatar || ''
+    location: user?.role || '',
+    avatar: user?.logoUrl || ''
   });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -23,7 +23,7 @@ const Profile = () => {
   };
 
   const handleSave = () => {
-    updateUser(form);
+    // updateUser(form);
     setEditOpen(false);
   };
 
@@ -74,13 +74,13 @@ const Profile = () => {
         <Card className="p-6 md:p-8 lg:p-10 shadow-xl mb-10 relative overflow-visible">
           <div className="flex flex-col md:flex-row md:items-end md:space-x-6">
             <div className="-mt-24 w-36 h-36 md:w-40 md:h-40 rounded-full overflow-hidden border-4 border-white shadow-lg">
-              <img src={user.avatar} alt="avatar" className="w-full h-full object-cover" />
+              <img src={user.logoUrl || "/default-avatar.png"} alt="avatar" className="w-full h-full object-cover" />
             </div>
             <div className="mt-4 md:mt-0 space-y-1 flex-1">
-              <h2 className="text-3xl font-extrabold">{user.name}</h2>
+              <h2 className="text-3xl font-extrabold">{user.businessName || "Provider"}</h2>
               <div className="flex items-center gap-2 text-gray-600">
                 <MapPin className="w-4 h-4" />
-                <span>{user.location || 'Sri Lanka'}</span>
+                <span>{user.role || 'Sri Lanka'}</span>
               </div>
               <p className="text-gray-600">{user.email}</p>
               <div className="grid grid-cols-3 gap-8 text-center mt-6">
@@ -159,14 +159,14 @@ const Profile = () => {
           <div className="space-y-6">
             <Card className="overflow-hidden shadow-lg">
               <img
-                src={user.avatar}
+                src={user.logoUrl || "/default-avatar.png"}
                 alt="avatar"
                 className="w-full h-56 object-cover"
               />
               <CardContent className="p-4 text-center space-y-1">
-                <h2 className="text-2xl font-bold">{user.name}</h2>
+                <h2 className="text-2xl font-bold">{user.businessName}</h2>
                 <p className="text-gray-500">{user.email}</p>
-                {user.location && <p className="text-sm text-gray-600">{user.location}</p>}
+                {user.role && <p className="text-sm text-gray-600">{user.role}</p>}
               </CardContent>
             </Card>
 
