@@ -5,7 +5,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import Header from '@/components/Header';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth } from '@/contexts/AuthContext';
 import CalendarView from '@/components/CalendarView';
 import AnalyticsCharts from '@/components/AnalyticsCharts';
 import ReviewList from '@/components/ReviewList';
@@ -31,7 +31,7 @@ const ProviderDashboard = () => {
   const [formOpen, setFormOpen] = useState(false);
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
 
   const initialCat = searchParams.get('category') || 'activity';
   const [selectedCategory, setSelectedCategory] = useState<string>(initialCat);
@@ -52,7 +52,7 @@ const ProviderDashboard = () => {
     },
     {
       title: 'Revenue',
-      value: '$3,450',
+      value: '3,450',
       change: '+18%',
       icon: <DollarSign className="w-8 h-8 text-white/90" />
     },
@@ -77,7 +77,7 @@ const ProviderDashboard = () => {
       service: "Sigiriya Rock Climb Guide",
       date: "2024-01-15",
       status: "confirmed",
-      amount: "$85"
+      amount: "85"
     },
     {
       id: 2,
@@ -85,7 +85,7 @@ const ProviderDashboard = () => {
       service: "Cultural Triangle Tour",
       date: "2024-01-18",
       status: "pending",
-      amount: "$150"
+      amount: "150"
     },
     {
       id: 3,
@@ -93,7 +93,7 @@ const ProviderDashboard = () => {
       service: "Wildlife Safari - Yala",
       date: "2024-01-20",
       status: "completed",
-      amount: "$120"
+      amount: "120"
     }
   ];
 
@@ -105,7 +105,7 @@ const ProviderDashboard = () => {
       title: "Sigiriya Rock Climb Guide",
       type: "Tour Guide",
       category: "tour-guides",
-      price: "$85/day",
+      price: "85/day",
       bookings: "12 this month",
       rating: 4.9,
       status: "active"
@@ -115,7 +115,7 @@ const ProviderDashboard = () => {
       title: "Cultural Triangle Tour",
       type: "Tour Package",
       category: "tour-guides",
-      price: "$150/person",
+      price: "150/person",
       bookings: "8 this month",
       rating: 4.7,
       status: "active"
@@ -125,7 +125,7 @@ const ProviderDashboard = () => {
       title: "Wildlife Safari - Yala",
       type: "Activity",
       category: "activity",
-      price: "$120/person",
+      price: "120/person",
       bookings: "15 this month",
       rating: 4.8,
       status: "active"
@@ -135,7 +135,7 @@ const ProviderDashboard = () => {
       title: "Airport Transfers",
       type: "Private / Shuttle / Limo",
       category: "transportation",
-      price: "$30 - $100",
+      price: "30 - 100",
       bookings: "10 this month",
       rating: 4.6,
       status: "active"
@@ -145,7 +145,7 @@ const ProviderDashboard = () => {
       title: "Car Rentals",
       type: "Self-drive / Luxury / 4x4",
       category: "transportation",
-      price: "$40+/day",
+      price: "40+/day",
       bookings: "7 this month",
       rating: 4.5,
       status: "active"
@@ -155,7 +155,7 @@ const ProviderDashboard = () => {
       title: "Public Transport Guidance",
       type: "Metro / Bus Passes",
       category: "transportation",
-      price: "$10 pass",
+      price: "10 pass",
       bookings: "3 this month",
       rating: 4.4,
       status: "active"
@@ -165,7 +165,7 @@ const ProviderDashboard = () => {
       title: "Specialty Transport",
       type: "Bike / Tuk-tuk / Yacht",
       category: "transportation",
-      price: "$15+",
+      price: "15+",
       bookings: "5 this month",
       rating: 4.7,
       status: "active"
@@ -175,7 +175,7 @@ const ProviderDashboard = () => {
       title: "Long-Distance Travel",
       type: "Intercity Bus / Train / Flight",
       category: "transportation",
-      price: "$30 - $200",
+      price: "30 - 200",
       bookings: "4 this month",
       rating: 4.3,
       status: "active"
@@ -229,11 +229,11 @@ const ProviderDashboard = () => {
               onClick={() => navigate('/profile')}
               className="items-center text-center pb-0 cursor-pointer hover:bg-gray-50 transition-colors">
               <img
-                src={user?.logoUrl || '/default-avatar.png'}
+                src={user?.avatar}
                 alt="avatar"
                 className="w-24 h-24 rounded-full object-cover border-4 border-white -mt-12 mx-auto shadow-md"
               />
-              <CardTitle className="mt-2 text-xl">{user?.businessName}</CardTitle>
+              <CardTitle className="mt-2 text-xl">{user?.name}</CardTitle>
               <CardDescription className="text-gray-500">Service Categories</CardDescription>
             </CardHeader>
             <CardContent className="pt-0">
@@ -276,7 +276,7 @@ const ProviderDashboard = () => {
         {/* Dashboard Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Provider Dashboard</h1>
-          <p className="text-gray-600">Welcome {(user?.businessName && user.businessName) || 'Provider'}! Manage your services and connect with travelers.</p>
+          <p className="text-gray-600">Welcome {user?.name.split(' ')[0]}! Manage your services and connect with travelers.</p>
         </div>
 
         {/* Stats Cards */}
