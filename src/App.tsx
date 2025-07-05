@@ -11,14 +11,15 @@ import { useEffect, useState } from "react";
 import Index from "./pages/Index";
 import Profile from "./pages/Profile";
 import Login from "./pages/Login";
-import Register from './pages/Register';
-import ProviderDashboard from './pages/ProviderDashboard';
-import ServiceEdit from './pages/ServiceEdit';
-import ServiceView from './pages/ServiceView';
+import Register from "./pages/Register";
+import ProviderDashboard from "./pages/ProviderDashboard";
+import ServiceEdit from "./pages/ServiceEdit";
+import ServiceView from "./pages/ServiceView";
 import NotFound from "./pages/NotFound";
 import ProtectedRoute from "./components/ProtectedRoutes";
 
 const queryClient = new QueryClient();
+
 const App = () => {
   return (
     <ReduxProvider store={store}>
@@ -50,21 +51,10 @@ const AppRoutes = () => {
       <div className="flex items-center justify-center min-h-screen">
         Loading...
       </div>
-    )
+    );
   }
-          <Route path="/provider-dashboard" element={<ProviderDashboard />} />
-          <Route path="/services/:id/edit" element={<ServiceEdit />} />
-          <Route path="/services/:id" element={<ServiceView />} />
-          <Route path="/profile" element={<Profile />} />
-          
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
-  </AuthProvider>
-);
-return (
+
+  return (
     <Routes>
       <Route path="/" element={<Index />} />
       <Route path="/login" element={<Login />} />
@@ -77,7 +67,30 @@ return (
           </ProtectedRoute>
         }
       />
-      <Route path="/profile" element={<Profile />} />
+      <Route
+        path="/services/:id/edit"
+        element={
+          <ProtectedRoute>
+            <ServiceEdit />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/services/:id"
+        element={
+          <ProtectedRoute>
+            <ServiceView />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/profile"
+        element={
+          <ProtectedRoute>
+            <Profile />
+          </ProtectedRoute>
+        }
+      />
       <Route path="*" element={<NotFound />} />
     </Routes>
   );
