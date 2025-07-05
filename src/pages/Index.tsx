@@ -5,16 +5,15 @@ import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { Link } from 'react-router-dom';
 import { 
-  MapPin, 
   Calendar, 
   Users, 
   MessageSquare, 
   Star,
-  Camera,
-  Compass,
   Heart
 } from 'lucide-react';
-import { motion, Variants } from 'framer-motion';
+import { motion } from 'framer-motion';
+import type { Variants } from 'framer-motion';
+import NewService from '@/components/NewService';
 
 const Index = () => {
   const features = [
@@ -241,6 +240,8 @@ const Index = () => {
           </div>
         </div>
       </motion.section>
+
+<NewService />
 
       <Footer />
     </div>
