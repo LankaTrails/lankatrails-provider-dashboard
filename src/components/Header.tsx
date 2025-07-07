@@ -19,7 +19,7 @@ const Header = () => {
 
   return (
     <header className="bg-white/95 backdrop-blur-sm shadow-sm sticky top-0 z-50">
-      <div className="container mx-auto px-4 py-4">
+      <div className="container mx-auto px-4 py-3">
         <div className="flex items-center justify-between">
           {/* Logo */}
           <Link to="/" className="flex items-center">
@@ -29,34 +29,6 @@ const Header = () => {
               <span className="text-2xl font-bold text-[#ff6600]">Trails</span>
             </span>
           </Link>
-
-          {/* Desktop Navigation */}
-          {/* <nav className="hidden md:flex items-center space-x-8">
-            <Link
-              to="/destinations"
-              className="text-gray-700 hover:text-primary-500 transition-colors"
-            >
-              Destinations
-            </Link>
-            <Link
-              to="/experiences"
-              className="text-gray-700 hover:text-primary-500 transition-colors"
-            >
-              Experiences
-            </Link>
-            <Link
-              to="/services"
-              className="text-gray-700 hover:text-primary-500 transition-colors"
-            >
-              Services
-            </Link>
-            <Link
-              to="/about"
-              className="text-gray-700 hover:text-primary-500 transition-colors"
-            >
-              About
-            </Link>
-          </nav> */}
 
           {/* Desktop User / Auth */}
           <div className="hidden md:flex items-center space-x-4">
@@ -69,11 +41,11 @@ const Header = () => {
                   <img
                     src={"/default-avatar.png"}
                     alt="avatar"
-                    className="w-8 h-8 rounded-full object-cover border"
+                    className="w-10 h-10 rounded-full object-cover border"
                   />
-                  <span className="font-medium text-gray-700 hidden lg:inline">
-                    {(user?.businessName && user.businessName || "Provider")}
-                  </span>
+                  {/* <span className="font-medium text-gray-700 hidden lg:inline">
+                    {(user?.businessName && user.businessName) || "Provider"}
+                  </span> */}
                 </button>
                 <Button
                   size="sm"
@@ -116,30 +88,6 @@ const Header = () => {
         {isMenuOpen && (
           <div className="md:hidden mt-4 pb-4 border-t pt-4 animate-fade-in">
             <nav className="flex flex-col space-y-4">
-              <Link
-                to="/destinations"
-                className="text-gray-700 hover:text-primary-500 transition-colors"
-              >
-                Destinations
-              </Link>
-              <Link
-                to="/experiences"
-                className="text-gray-700 hover:text-primary-500 transition-colors"
-              >
-                Experiences
-              </Link>
-              <Link
-                to="/services"
-                className="text-gray-700 hover:text-primary-500 transition-colors"
-              >
-                Services
-              </Link>
-              <Link
-                to="/about"
-                className="text-gray-700 hover:text-primary-500 transition-colors"
-              >
-                About
-              </Link>
               {showUser ? (
                 <Button
                   variant="outline"

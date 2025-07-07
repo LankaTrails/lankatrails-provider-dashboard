@@ -20,7 +20,7 @@ const Login = () => {
     e.preventDefault();
     try {
       await login(email, password);
-      navigate('/provider-dashboard');
+      navigate('/provider');
     } catch (err: any) {
       alert(err.message || 'Login failed');
     }
@@ -32,7 +32,7 @@ const Login = () => {
       style={{ backgroundImage: "url('/login.jpg')" }}
     >
       <div className="min-h-screen bg-black/40">
-        <Header />
+        {/* <Header /> */}
         <div className="container mx-auto px-4 py-12 flex items-center justify-center min-h-screen">
           <motion.div 
             className="max-w-md w-full"
