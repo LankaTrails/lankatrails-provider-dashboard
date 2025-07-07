@@ -72,7 +72,7 @@ const MessagingPlatform = () => {
   };
 
   return (
-    <Card className="rounded-lg border bg-card text-card-foreground shadow-sm h-[32rem] flex flex-col overflow-hidden">
+    <Card className="rounded-lg border bg-card text-card-foreground shadow-sm h-[30rem] flex flex-col overflow-hidden">
       <div className="flex flex-1">
         {/* conversation list */}
         <div className="w-56 border-r bg-muted/50">

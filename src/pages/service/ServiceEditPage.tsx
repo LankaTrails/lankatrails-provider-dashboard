@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from "react";
+import { useParams } from "react-router-dom";
 import ServiceForm from "@/components/NewServiceForm";
 import BackButton from "@/components/BackButton";
 import type { ServiceFormData, ImageFile, TabData, PolicyData } from "@/types/serviceTypes";
 
-const EditService: React.FC = () => {
+const ServiceEditPage: React.FC = () => {
+  const { id, serviceType } = useParams();
   const [initialData, setInitialData] = useState<ServiceFormData | undefined>();
   const [initialImages, setInitialImages] = useState<ImageFile[]>([]);
   const [initialTabs, setInitialTabs] = useState<TabData[]>([]);
@@ -12,10 +14,10 @@ const EditService: React.FC = () => {
   useEffect(() => {
     // Fetch service data by ID (mock example)
     const fetchedData: ServiceFormData = {
-      serviceName: "Example Service",
+      serviceName: `Example ${serviceType} Service ${id}`,
       location: "Colombo, Sri Lanka",
       description: "<p>Example description</p>",
-      category: "accommodation",
+      category: serviceType || "activity",
       price: "100",
       duration: "2 hours",
       capacity: "50",
@@ -36,10 +38,10 @@ const EditService: React.FC = () => {
     };
 
     setInitialData(fetchedData);
-    setInitialImages([]); 
+    setInitialImages([]);
     setInitialTabs([{ id: "1", heading: "Info", description: "Details", isExpanded: true }]);
     setInitialPolicies([{ id: "1", heading: "Policy", description: "Rules", isExpanded: true }]);
-  }, []);
+  }, [id, serviceType]);
 
   const handleBack = () => {
     console.log("Navigate back");
@@ -53,10 +55,10 @@ const EditService: React.FC = () => {
   if (!initialData) return <div>Loading...</div>;
 
   return (
-    <div className="max-w-7xl mx-auto p-6 bg-white">
+    <div className="max-w-7xl mx-auto p-6 mt-4 bg-white">
       <div className="flex items-center mb-8">
         <BackButton onClick={handleBack} className="mr-4" />
-        <h1 className="text-3xl font-bold text-gray-800">Edit Service</h1>
+        <h1 className="text-3xl font-bold text-gray-800">Edit {serviceType} Service (ID: {id})</h1>
       </div>
 
       <ServiceForm
@@ -70,4 +72,4 @@ const EditService: React.FC = () => {
   );
 };
 
-export default EditService;
+export default ServiceEditPage;

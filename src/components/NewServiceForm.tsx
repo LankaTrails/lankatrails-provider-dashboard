@@ -1,10 +1,10 @@
 import React, { useState } from "react";
 import { Calendar, DollarSign, Users, Phone, Mail, Globe } from "lucide-react";
-import InputField from "@/components/InputField";
-import SelectField from "@/components/SelectField";
-import ExpandableSectionComponent from "@/components/ExpandableSectionComponent";
-import ImageUploadComponent from "@/components/ImageUploadComponent";
-import MapSelectorComponent from "@/components/MapSelectorComponent";
+import InputField from "@/components/forms/InputField";
+import SelectField from "@/components/forms/SelectField";
+import ExpandableSectionComponent from "@/components/forms/ExpandableSectionComponent";
+import ImageUploadComponent from "@/components/forms/ImageUploadComponent";
+import MapSelectorComponent from "@/components/forms/MapSelectorComponent";
 import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
 
