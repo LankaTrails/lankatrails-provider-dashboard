@@ -1,22 +1,12 @@
+import { BrowserRouter } from "react-router-dom";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { Provider as ReduxProvider } from "react-redux";
+import { TooltipProvider } from "@/components/ui/tooltip";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { Provider as ReduxProvider } from "react-redux";
 import store from "@/store";
-import { useAuth } from "@/hooks/useAuth";
-import { useEffect, useState } from "react";
-
-import Index from "./pages/Index";
-import Profile from "./pages/Profile";
-import Login from "./pages/Login";
-import Register from "./pages/Register";
-import ProviderDashboard from "./pages/ProviderDashboard";
-import ServiceEdit from "./pages/ServiceEdit";
-import ServiceView from "./pages/ServiceView";
-import NotFound from "./pages/NotFound";
-import ProtectedRoute from "./components/ProtectedRoutes";
+import AppRoutes from "@/AppRoutes";
+import Header from "@/components/Header";
 
 const queryClient = new QueryClient();
 
@@ -25,74 +15,23 @@ const App = () => {
     <ReduxProvider store={store}>
       <QueryClientProvider client={queryClient}>
         <TooltipProvider>
-          <Toaster />
-          <Sonner />
           <BrowserRouter>
-            <AppRoutes />
+            <div className="flex flex-col min-h-screen">
+              <Header />
+
+              <main className="flex-1">
+                <AppRoutes />
+              </main>
+
+              {/* <Footer /> */}
+
+              <Toaster />
+              <Sonner />
+            </div>
           </BrowserRouter>
         </TooltipProvider>
       </QueryClientProvider>
     </ReduxProvider>
-  );
-};
-
-const AppRoutes = () => {
-  const { isLoading, restoreSession } = useAuth();
-  const [initialized, setInitialized] = useState(false);
-
-  useEffect(() => {
-    if (!initialized) {
-      restoreSession().finally(() => setInitialized(true));
-    }
-  }, [initialized, restoreSession]);
-
-  if (!initialized || isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        Loading...
-      </div>
-    );
-  }
-
-  return (
-    <Routes>
-      <Route path="/" element={<Index />} />
-      <Route path="/login" element={<Login />} />
-      <Route path="/register" element={<Register />} />
-      <Route
-        path="/provider-dashboard"
-        element={
-          <ProtectedRoute>
-            <ProviderDashboard />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/services/:id/edit"
-        element={
-          <ProtectedRoute>
-            <ServiceEdit />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/services/:id"
-        element={
-          <ProtectedRoute>
-            <ServiceView />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/profile"
-        element={
-          <ProtectedRoute>
-            <Profile />
-          </ProtectedRoute>
-        }
-      />
-      <Route path="*" element={<NotFound />} />
-    </Routes>
   );
 };
 

@@ -2,7 +2,7 @@ import React from "react";
 import { Plus, X, ChevronUp, ChevronDown } from "lucide-react";
 import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
-import InputField from "@/components/InputField";
+import InputField from "@/components/forms/InputField";
 import type { TabData, PolicyData } from "@/types/serviceTypes";
 
 interface ExpandableSectionProps {
@@ -18,17 +18,17 @@ const ExpandableSectionComponent: React.FC<ExpandableSectionProps> = ({
   items,
   onItemsChange,
   addButtonText,
-  itemName
+  itemName,
 }) => {
   const handleItemChange = (id: string, field: string, value: string) => {
-    const updatedItems = items.map(item => 
+    const updatedItems = items.map((item) =>
       item.id === id ? { ...item, [field]: value } : item
     );
     onItemsChange(updatedItems);
   };
 
   const toggleExpanded = (id: string) => {
-    const updatedItems = items.map(item => 
+    const updatedItems = items.map((item) =>
       item.id === id ? { ...item, isExpanded: !item.isExpanded } : item
     );
     onItemsChange(updatedItems);
@@ -37,16 +37,16 @@ const ExpandableSectionComponent: React.FC<ExpandableSectionProps> = ({
   const addNewItem = () => {
     const newItem = {
       id: Math.random().toString(36).substr(2, 9),
-      heading: '',
-      description: '',
-      isExpanded: true
+      heading: "",
+      description: "",
+      isExpanded: true,
     };
     onItemsChange([...items, newItem]);
   };
 
   const removeItem = (id: string) => {
     if (items.length > 1) {
-      onItemsChange(items.filter(item => item.id !== id));
+      onItemsChange(items.filter((item) => item.id !== id));
     }
   };
 
@@ -63,11 +63,14 @@ const ExpandableSectionComponent: React.FC<ExpandableSectionProps> = ({
           {addButtonText}
         </button>
       </div>
-      
+
       <div className="space-y-3">
         {items.map((item, index) => (
-          <div key={item.id} className="border border-gray-200 rounded-lg overflow-hidden">
-            <div 
+          <div
+            key={item.id}
+            className="border border-gray-200 rounded-lg overflow-hidden"
+          >
+            <div
               className="flex items-center justify-between p-3 bg-gray-50 cursor-pointer hover:bg-gray-100"
               onClick={() => toggleExpanded(item.id)}
             >
@@ -96,23 +99,27 @@ const ExpandableSectionComponent: React.FC<ExpandableSectionProps> = ({
                 )}
               </div>
             </div>
-            
+
             {item.isExpanded && (
               <div className="p-4 border-t border-gray-200 space-y-3">
                 <InputField
                   label="Heading"
                   value={item.heading}
-                  onChange={(value) => handleItemChange(item.id, 'heading', value)}
+                  onChange={(value) =>
+                    handleItemChange(item.id, "heading", value)
+                  }
                   placeholder="Enter heading"
                 />
-                
+
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Description
                   </label>
                   <ReactQuill
                     value={item.description}
-                    onChange={(value) => handleItemChange(item.id, 'description', value)}
+                    onChange={(value) =>
+                      handleItemChange(item.id, "description", value)
+                    }
                     placeholder="Enter description"
                   />
                 </div>
