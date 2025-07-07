@@ -9,11 +9,13 @@ import {
   Users, 
   MessageSquare, 
   Star,
-  Heart
+  Heart,
+  Edit
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import type { Variants } from 'framer-motion';
-import NewService from '@/components/NewService';
+import AddService from '@/components/AddService';
+import EditService from '@/components/EditService';
 
 const Index = () => {
   const features = [
@@ -240,10 +242,10 @@ const Index = () => {
           </div>
         </div>
       </motion.section>
-
-<NewService />
-
       <Footer />
+
+      {/* <AddService /> */}
+      <EditService />
     </div>
   );
 };

@@ -22,6 +22,11 @@ export interface PolicyData {
 export interface ServiceFormData {
     serviceName: string;
     location: string;
+    city: string | null;
+    district: string | null;
+    province: string | null;
+    country: string | null;
+    postalCode: string | null;
     description: string;
     category: string;
     price: string;
@@ -39,7 +44,12 @@ export interface ServiceFormData {
 }
 
 export interface LocationData {
-    address: string;
+    formattedAddress: string;
+    city: string | null;
+    district: string | null;
+    province: string | null;
+    country: string | null;
+    postalCode: string | null;
     latitude: number;
     longitude: number;
 }
