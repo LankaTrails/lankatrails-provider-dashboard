@@ -4,13 +4,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import Header from '@/components/Header';
-import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import CalendarView from '@/components/CalendarView';
 import AnalyticsCharts from '@/components/AnalyticsCharts';
-import Chat from '@/components/Chat';
 import ReviewList from '@/components/ReviewList';
 import ServiceForm from '@/components/ServiceForm';
+import MessagingPlatform from '@/components/MessagingPlatform';
 import { 
   Calendar,
   MessageSquare,
@@ -22,7 +22,8 @@ import {
   DollarSign,
   Users,
   Clock,
-  CheckCircle
+  CheckCircle,
+  Package
 } from 'lucide-react';
 
 const ProviderDashboard = () => {
@@ -30,9 +31,9 @@ const ProviderDashboard = () => {
   const [formOpen, setFormOpen] = useState(false);
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
 
-  const initialCat = searchParams.get('category') || 'all';
+  const initialCat = searchParams.get('category') || 'activity';
   const [selectedCategory, setSelectedCategory] = useState<string>(initialCat);
 
   const gradientClasses = [
@@ -51,7 +52,7 @@ const ProviderDashboard = () => {
     },
     {
       title: 'Revenue',
-      value: '$3,450',
+      value: '3,450',
       change: '+18%',
       icon: <DollarSign className="w-8 h-8 text-white/90" />
     },
@@ -76,7 +77,7 @@ const ProviderDashboard = () => {
       service: "Sigiriya Rock Climb Guide",
       date: "2024-01-15",
       status: "confirmed",
-      amount: "$85"
+      amount: "85"
     },
     {
       id: 2,
@@ -84,7 +85,7 @@ const ProviderDashboard = () => {
       service: "Cultural Triangle Tour",
       date: "2024-01-18",
       status: "pending",
-      amount: "$150"
+      amount: "150"
     },
     {
       id: 3,
@@ -92,7 +93,7 @@ const ProviderDashboard = () => {
       service: "Wildlife Safari - Yala",
       date: "2024-01-20",
       status: "completed",
-      amount: "$120"
+      amount: "120"
     }
   ];
 
@@ -103,7 +104,8 @@ const ProviderDashboard = () => {
       id: 1,
       title: "Sigiriya Rock Climb Guide",
       type: "Tour Guide",
-      price: "$85/day",
+      category: "tour-guides",
+      price: "85/day",
       bookings: "12 this month",
       rating: 4.9,
       status: "active"
@@ -112,7 +114,8 @@ const ProviderDashboard = () => {
       id: 2,
       title: "Cultural Triangle Tour",
       type: "Tour Package",
-      price: "$150/person",
+      category: "tour-guides",
+      price: "150/person",
       bookings: "8 this month",
       rating: 4.7,
       status: "active"
@@ -121,12 +124,65 @@ const ProviderDashboard = () => {
       id: 3,
       title: "Wildlife Safari - Yala",
       type: "Activity",
-      price: "$120/person",
+      category: "activity",
+      price: "120/person",
       bookings: "15 this month",
       rating: 4.8,
       status: "active"
+    },
+    {
+      id: 4,
+      title: "Airport Transfers",
+      type: "Private / Shuttle / Limo",
+      category: "transportation",
+      price: "30 - 100",
+      bookings: "10 this month",
+      rating: 4.6,
+      status: "active"
+    },
+    {
+      id: 5,
+      title: "Car Rentals",
+      type: "Self-drive / Luxury / 4x4",
+      category: "transportation",
+      price: "40+/day",
+      bookings: "7 this month",
+      rating: 4.5,
+      status: "active"
+    },
+    {
+      id: 6,
+      title: "Public Transport Guidance",
+      type: "Metro / Bus Passes",
+      category: "transportation",
+      price: "10 pass",
+      bookings: "3 this month",
+      rating: 4.4,
+      status: "active"
+    },
+    {
+      id: 7,
+      title: "Specialty Transport",
+      type: "Bike / Tuk-tuk / Yacht",
+      category: "transportation",
+      price: "15+",
+      bookings: "5 this month",
+      rating: 4.7,
+      status: "active"
+    },
+    {
+      id: 8,
+      title: "Long-Distance Travel",
+      type: "Intercity Bus / Train / Flight",
+      category: "transportation",
+      price: "30 - 200",
+      bookings: "4 this month",
+      rating: 4.3,
+      status: "active"
     }
   ];
+
+  const filteredServices = selectedCategory === 'all' ? services : services.filter((s) => s.category === selectedCategory);
 
   const categories = [
     { label: 'Activity Provider', slug: 'activity' },
@@ -134,6 +190,7 @@ const ProviderDashboard = () => {
     { label: 'Transportation Services', slug: 'transportation' },
     { label: 'Food & Beverage Services', slug: 'food-beverage' },
     { label: 'Accommodation Providers', slug: 'accommodation' },
+    
   ];
 
   const reviews = [
@@ -168,9 +225,11 @@ const ProviderDashboard = () => {
         {/* Sidebar */}
         <aside className="lg:w-64 w-full lg:sticky lg:top-20 lg:self-start mb-8 lg:mb-0">
           <Card className="shadow-lg">
-            <CardHeader className="items-center text-center pb-0">
+            <CardHeader
+              onClick={() => navigate('/profile')}
+              className="items-center text-center pb-0 cursor-pointer hover:bg-gray-50 transition-colors">
               <img
-                src={user?.logoUrl || '/default-avatar.png'}
+                src={user?.profilePictureUrl || '/default-avatar.png'}
                 alt="avatar"
                 className="w-24 h-24 rounded-full object-cover border-4 border-white -mt-12 mx-auto shadow-md"
               />
@@ -179,22 +238,11 @@ const ProviderDashboard = () => {
             </CardHeader>
             <CardContent className="pt-0">
               <ul className="space-y-2 mt-4">
-                <li>
-                  <Button
-                    variant={selectedCategory === 'all' ? 'default' : 'outline'}
-                    className="w-full justify-start"
-                    onClick={() => {
-                      setSelectedCategory('all');
-                      setSearchParams({});
-                    }}
-                  >
-                    All Services
-                  </Button>
-                </li>
+
                 {categories.map(cat => (
                   <li key={cat.slug}>
                     <Button
-                      variant={selectedCategory === cat.slug ? 'default' : 'outline'}
+                      variant={selectedCategory === cat.slug && activeTab === 'services' ? 'default' : 'outline'}
                       className="w-full justify-start capitalize"
                       onClick={() => {
                         setSelectedCategory(cat.slug);
@@ -207,16 +255,30 @@ const ProviderDashboard = () => {
                   </li>
                 ))}
               </ul>
+              <hr className="my-4" />
+              <Button
+                variant={activeTab === 'messages' ? 'default' : 'outline'}
+                className="w-full justify-start"
+                onClick={() => setActiveTab('messages')}
+              >
+                Messages
+              </Button>
             </CardContent>
           </Card>
         </aside>
 
         {/* Main Content */}
         <div className="flex-1">
+          {activeTab === 'messages' ? (
+            <MessagingPlatform />
+          ) : (
+            <>
         {/* Dashboard Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Provider Dashboard</h1>
-          <p className="text-gray-600">Welcome {(user?.businessName && user.businessName) || 'Provider'}! Manage your services and connect with travelers.</p>
+          <p className="text-gray-600">
+            Welcome {user?.businessName ? user.businessName.split(' ')[0] : 'Provider'}! Manage your services and connect with travelers.
+          </p>
         </div>
 
         {/* Stats Cards */}
@@ -243,13 +305,12 @@ const ProviderDashboard = () => {
 
         {/* Main Dashboard Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid grid-cols-7 w-full max-w-4xl">
+          <TabsList className="grid grid-cols-6 w-full max-w-4xl">
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="services">Services</TabsTrigger>
             <TabsTrigger value="bookings">Bookings</TabsTrigger>
             <TabsTrigger value="calendar">Calendar</TabsTrigger>
-            <TabsTrigger value="messages">Messages</TabsTrigger>
-            <TabsTrigger value="analytics">Analytics</TabsTrigger>
+                                    <TabsTrigger value="analytics">Analytics</TabsTrigger>
             <TabsTrigger value="reviews">Reviews</TabsTrigger>
           </TabsList>
 
@@ -325,7 +386,8 @@ const ProviderDashboard = () => {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {services.map((service) => (
+              {filteredServices.length > 0 ? (
+                filteredServices.map((service) => (
                 <Card key={service.id} className="hover:shadow-lg transition-shadow">
                   <CardHeader>
                     <div className="flex items-center justify-between">
@@ -354,11 +416,11 @@ const ProviderDashboard = () => {
                         </div>
                       </div>
                       <div className="flex gap-2 pt-2">
-                        <Button variant="outline" size="sm" className="flex-1">
+                        <Button variant="outline" size="sm" className="flex-1" onClick={() => navigate(`/services/${service.id}`)}>
                           <Eye className="w-4 h-4 mr-1" />
                           View
                         </Button>
-                        <Button variant="outline" size="sm" className="flex-1">
+                        <Button variant="outline" size="sm" className="flex-1" onClick={() => navigate(`/services/${service.id}/edit`)}>
                           <Edit className="w-4 h-4 mr-1" />
                           Edit
                         </Button>
@@ -366,7 +428,18 @@ const ProviderDashboard = () => {
                     </div>
                   </CardContent>
                 </Card>
-              ))}
+              ))
+              ) : (
+                <div className="col-span-full flex flex-col items-center justify-center space-y-4 py-12 bg-white border-2 border-dashed border-gray-200 rounded-lg shadow-sm">
+                  <Package className="w-12 h-12 text-gray-400" />
+                  <h3 className="text-lg font-medium text-gray-700">No services in this category</h3>
+                  <p className="text-sm text-gray-500">Click below to add your first service.</p>
+                  <Button onClick={() => setFormOpen(true)} className="bg-primary-500 hover:bg-primary-600 text-white">
+                    <Plus className="w-4 h-4 mr-2" />
+                    Add Service
+                  </Button>
+                </div>
+              )}
             </div>
           </TabsContent>
 
@@ -437,17 +510,9 @@ const ProviderDashboard = () => {
             </Card>
           </TabsContent>
 
-          <TabsContent value="messages">
-            <Chat />
-            <Card>
-              <CardHeader>
-                <CardTitle>Messages</CardTitle>
-                <CardDescription>Chat with customers and manage inquiries</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <p className="text-gray-500 text-center py-8">No messages yet.</p>
-              </CardContent>
-            </Card>
+
+          <TabsContent value="messages" className="space-y-6">
+            <MessagingPlatform />
           </TabsContent>
 
           <TabsContent value="analytics">
@@ -474,6 +539,8 @@ const ProviderDashboard = () => {
             <ReviewList reviews={reviews} />
           </TabsContent>
         </Tabs>
+            </>
+          )}
         <ServiceForm open={formOpen} onOpenChange={setFormOpen} />
       </div>
     </div>

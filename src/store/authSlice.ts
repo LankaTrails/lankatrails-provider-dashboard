@@ -10,6 +10,7 @@ interface ProviderUser {
   businessName?: string;
   businessDescription?: string;
   logoUrl?: string | null;
+  profilePictureUrl?: string | null;
 }
 
 interface AuthState {
@@ -34,6 +35,7 @@ export const login = createAsyncThunk(
       const { jwtToken } = res.data.data;
       setAccessToken(jwtToken);
       const profileRes = await api.get('/auth/logged-user');
+      console.log('Profile fetched after login:', profileRes.data.data);
       return profileRes.data.data as ProviderUser;
     } catch (err: any) {
       return rejectWithValue(err.response?.data?.message || 'Login failed');
@@ -60,6 +62,7 @@ export const fetchProfile = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       const res = await api.get('/auth/logged-user');
+      console.log('Fetched profile:', res.data.data);
       return res.data.data as ProviderUser;
     } catch {
       return rejectWithValue('Failed to fetch profile');

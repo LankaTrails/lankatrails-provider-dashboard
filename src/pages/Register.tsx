@@ -49,8 +49,10 @@ const Register = () => {
     const email = formData.get("email")?.toString().trim() || "";
     const password = formData.get("password")?.toString() || "";
     const confirmPassword = formData.get("confirmPassword")?.toString() || "";
-    const phone = formData.get("phone")?.toString().trim() || "";
-    const description = formData.get("description")?.toString().trim() || "";
+    const contactNumber =
+      formData.get("contactNumber")?.toString().trim() || "";
+    const businessDescription =
+      formData.get("businessDescription")?.toString().trim() || "";
     const logo = formData.get("logo") as File | null;
 
     if (!businessName) {
@@ -86,18 +88,23 @@ const Register = () => {
     }
 
     const phoneRegex = /^(\+94|0)?[1-9][0-9]{8}$/;
-    if (!phone) {
+    if (!contactNumber) {
       errors.phone = "Phone number is required";
-    } else if (!phoneRegex.test(phone.replace(/\s/g, ""))) {
+    } else if (!phoneRegex.test(contactNumber.replace(/\s/g, ""))) {
       errors.phone = "Please enter a valid Sri Lankan phone number";
     }
 
-    if (description && description.length > 500) {
+    if (businessDescription && businessDescription.length > 500) {
       errors.description = "Description must be less than 500 characters";
     }
 
     if (logo && logo.size > 0) {
-      const allowedTypes = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
+      const allowedTypes = [
+        "image/jpeg",
+        "image/jpg",
+        "image/png",
+        "image/webp",
+      ];
       const maxSizeInMB = 5;
       if (!allowedTypes.includes(logo.type)) {
         errors.logo = "Logo must be a JPEG, PNG, or WebP image";
@@ -112,7 +119,12 @@ const Register = () => {
   const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      const allowedTypes = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
+      const allowedTypes = [
+        "image/jpeg",
+        "image/jpg",
+        "image/png",
+        "image/webp",
+      ];
       const maxSizeInMB = 5;
 
       if (!allowedTypes.includes(file.type)) {
@@ -190,7 +202,10 @@ const Register = () => {
 
   const renderError = (fieldName: keyof ValidationErrors) =>
     errors[fieldName] && (
-      <div className="flex items-center gap-1 mt-1 text-red-600 text-sm" aria-live="polite">
+      <div
+        className="flex items-center gap-1 mt-1 text-red-600 text-sm"
+        aria-live="polite"
+      >
         <AlertCircle size={14} aria-hidden="true" />
         <span>{errors[fieldName]}</span>
       </div>
@@ -211,13 +226,19 @@ const Register = () => {
           >
             <Card className="shadow-xl border-0 bg-white/80 backdrop-blur-sm">
               <CardHeader className="space-y-1">
-                <CardTitle className="text-2xl text-center">Provider Registration</CardTitle>
+                <CardTitle className="text-2xl text-center">
+                  Provider Registration
+                </CardTitle>
                 <CardDescription className="text-center">
                   Fill in your details to create a provider account
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <form onSubmit={handleRegister} className="space-y-6 mt-2" autoComplete="off">
+                <form
+                  onSubmit={handleRegister}
+                  className="space-y-6 mt-2"
+                  autoComplete="off"
+                >
                   {errors.general && (
                     <div className="bg-red-50 border border-red-200 rounded-lg p-3">
                       <div className="flex items-center gap-2 text-red-800">
@@ -241,13 +262,15 @@ const Register = () => {
                       {renderError("businessName")}
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="phone">Phone Number *</Label>
+                      <Label htmlFor="contactNumber">Phone Number *</Label>
                       <Input
-                        id="phone"
-                        name="phone"
+                        id="contactNumber"
+                        name="contactNumber"
                         placeholder="+94 70 123 4567"
                         aria-invalid={!!errors.phone}
-                        className={`bg-white/50 ${errors.phone ? "border-red-500 bg-red-50" : ""}`}
+                        className={`bg-white/50 ${
+                          errors.phone ? "border-red-500 bg-red-50" : ""
+                        }`}
                       />
                       {renderError("phone")}
                     </div>
@@ -260,7 +283,9 @@ const Register = () => {
                       type="email"
                       placeholder="Enter business email"
                       aria-invalid={!!errors.email}
-                      className={`bg-white/50 ${errors.email ? "border-red-500 bg-red-50" : ""}`}
+                      className={`bg-white/50 ${
+                        errors.email ? "border-red-500 bg-red-50" : ""
+                      }`}
                     />
                     {renderError("email")}
                   </div>
@@ -282,15 +307,23 @@ const Register = () => {
                           type="button"
                           onClick={() => setShowPassword(!showPassword)}
                           className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
-                          title={showPassword ? "Hide password" : "Show password"}
+                          title={
+                            showPassword ? "Hide password" : "Show password"
+                          }
                         >
-                          {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                          {showPassword ? (
+                            <EyeOff size={20} />
+                          ) : (
+                            <Eye size={20} />
+                          )}
                         </button>
                       </div>
                       {renderError("password")}
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="confirmPassword">Confirm Password *</Label>
+                      <Label htmlFor="confirmPassword">
+                        Confirm Password *
+                      </Label>
                       <div className="relative">
                         <Input
                           id="confirmPassword"
@@ -299,16 +332,28 @@ const Register = () => {
                           placeholder="Re-enter your password"
                           aria-invalid={!!errors.confirmPassword}
                           className={`pr-10 bg-white/50 ${
-                            errors.confirmPassword ? "border-red-500 bg-red-50" : ""
+                            errors.confirmPassword
+                              ? "border-red-500 bg-red-50"
+                              : ""
                           }`}
                         />
                         <button
                           type="button"
-                          onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                          onClick={() =>
+                            setShowConfirmPassword(!showConfirmPassword)
+                          }
                           className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
-                          title={showConfirmPassword ? "Hide password" : "Show password"}
+                          title={
+                            showConfirmPassword
+                              ? "Hide password"
+                              : "Show password"
+                          }
                         >
-                          {showConfirmPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                          {showConfirmPassword ? (
+                            <EyeOff size={20} />
+                          ) : (
+                            <Eye size={20} />
+                          )}
                         </button>
                       </div>
                       {renderError("confirmPassword")}
@@ -380,12 +425,18 @@ const Register = () => {
                             <div className="mt-2 text-center text-sm text-gray-600">
                               <div className="flex items-center justify-center gap-1 mb-1">
                                 <ImageIcon size={14} />
-                                <span className="truncate max-w-24" title={logoFile?.name}>
+                                <span
+                                  className="truncate max-w-24"
+                                  title={logoFile?.name}
+                                >
                                   {logoFile?.name}
                                 </span>
                               </div>
                               <div className="text-xs text-gray-500">
-                                {logoFile && `${(logoFile.size / (1024 * 1024)).toFixed(2)} MB`}
+                                {logoFile &&
+                                  `${(logoFile.size / (1024 * 1024)).toFixed(
+                                    2
+                                  )} MB`}
                               </div>
                             </div>
                           </motion.div>
@@ -404,7 +455,7 @@ const Register = () => {
                     <Label htmlFor="description">Business Description</Label>
                     <Textarea
                       id="description"
-                      name="description"
+                      name="businessDescription"
                       placeholder="Describe your services and what makes you unique"
                       rows={3}
                       aria-invalid={!!errors.description}
@@ -414,13 +465,18 @@ const Register = () => {
                     />
                     {renderError("description")}
                   </div>
-                  <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                  <motion.div
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                  >
                     <Button
                       type="submit"
                       disabled={loading || submitDisabled}
                       className="w-full bg-primary-500 hover:bg-primary-600 text-white font-bold py-3 text-base"
                     >
-                      {loading ? "Creating Account..." : "Create Provider Account"}
+                      {loading
+                        ? "Creating Account..."
+                        : "Create Provider Account"}
                     </Button>
                   </motion.div>
                 </form>

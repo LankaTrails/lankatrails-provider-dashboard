@@ -1,20 +1,17 @@
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { Link } from 'react-router-dom';
 import { 
-  MapPin, 
   Calendar, 
   Users, 
   MessageSquare, 
   Star,
-  Camera,
-  Compass,
   Heart
 } from 'lucide-react';
-import { motion, Variants } from 'framer-motion';
+import { motion } from 'framer-motion';
+import type { Variants } from 'framer-motion';
 
 const Index = () => {
   const features = [
@@ -88,7 +85,7 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-white">
-      <Header />
+      {/* <Header /> */}
       
       {/* Hero Section */}
       <section className="relative bg-gradient-to-br from-primary-500 to-primary-700 text-white py-20 overflow-hidden">
@@ -241,7 +238,6 @@ const Index = () => {
           </div>
         </div>
       </motion.section>
-
       <Footer />
     </div>
   );

@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import Header from '@/components/Header';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuth } from '@/hooks/useAuth';
 import { Badge } from '@/components/ui/badge';
@@ -50,7 +49,7 @@ const Profile = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-white via-indigo-50 to-rose-50">
-      <Header />
+      {/* <Header /> */}
       {/* Cover banner */}
       <div className="relative h-48 md:h-60 lg:h-72 overflow-hidden">
         {/* dynamic stripes */}
@@ -65,7 +64,7 @@ const Profile = () => {
       <div className="container mx-auto px-4 mt-8 pb-12">
         {/* Back link */}
         <div className="mb-6">
-          <Link to="/provider-dashboard" className="inline-flex items-center text-primary-600 hover:underline">
+          <Link to="/provider" className="inline-flex items-center text-primary-600 hover:underline">
             <ArrowLeft className="w-4 h-4 mr-2" /> Back to Dashboard
           </Link>
         </div>
