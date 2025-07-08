@@ -9,24 +9,21 @@ import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
 
 import type {
-  ImageFile,
+  ImageData,
+  TabSection,
+  PolicySection,
+  ServiceFormData,
+  LocationBased,
   TabData,
   PolicyData,
-  ServiceFormData,
-  LocationData,
 } from "@/types/serviceTypes";
 
 interface ServiceFormProps {
   initialData?: ServiceFormData;
-  initialImages?: ImageFile[];
-  initialTabs?: TabData[];
-  initialPolicies?: PolicyData[];
-  onSubmit: (data: {
-    formData: ServiceFormData;
-    images: ImageFile[];
-    tabs: TabData[];
-    policies: PolicyData[];
-  }) => void;
+  initialImages?: ImageData[];
+  initialTabs?: TabSection[];
+  initialPolicies?: PolicySection[];
+  onSubmit: (data: ServiceFormData) => void;
 }
 
 const categories = [
@@ -43,21 +40,20 @@ const categories = [
 const NewServiceForm: React.FC<ServiceFormProps> = ({
   initialData,
   initialImages = [],
-  initialTabs = [{ id: "1", heading: "", description: "", isExpanded: true }],
-  initialPolicies = [
-    { id: "1", heading: "", description: "", isExpanded: true },
-  ],
+  initialTabs = [{ heading: "", content: "" }],
+  initialPolicies = [{ heading: "", policy: "" }],
   onSubmit,
 }) => {
-  const [images, setImages] = useState<ImageFile[]>(initialImages);
+  const [images, setImages] = useState<ImageData[]>(initialImages);
   const [selectedImageIndex, setSelectedImageIndex] = useState<number>(0);
   const [selectedCoordinates, setSelectedCoordinates] = useState<
     { latitude: number; longitude: number } | undefined
   >(
-    initialData?.latitude && initialData?.longitude
+    initialData?.locationBased?.latitude &&
+      initialData?.locationBased?.longitude
       ? {
-          latitude: initialData.latitude,
-          longitude: initialData.longitude,
+          latitude: initialData.locationBased.latitude,
+          longitude: initialData.locationBased.longitude,
         }
       : undefined
   );
@@ -65,40 +61,53 @@ const NewServiceForm: React.FC<ServiceFormProps> = ({
   const [formData, setFormData] = useState<ServiceFormData>(
     initialData || {
       serviceName: "",
-      location: "",
-      city: null,
-      district: null,
-      province: null,
-      country: null,
-      postalCode: null,
-      description: "",
-      category: "",
-      price: "",
-      duration: "",
-      capacity: "",
-      contactPhone: "",
-      contactEmail: "",
-      website: "",
-      startDate: "",
-      endDate: "",
-      features: [],
-      notes: "",
-      latitude: undefined,
-      longitude: undefined,
+      locationBased: {
+        formattedAddress: "",
+        city: "",
+        district: "",
+        province: "",
+        country: "",
+        postalCode: "",
+        latitude: 0,
+        longitude: 0,
+      },
+      contactNo: "",
+      status: true,
+      activityType: "",
+      activityDetails: "",
+      safetyInstructions: "",
+      tabsSection: [{ heading: "", content: "" }],
+      policySection: [{ heading: "", policy: "" }],
+      images: [{ imageUrl: "" }],
     }
   );
 
-  const [tabs, setTabs] = useState<TabData[]>(initialTabs);
-  const [policies, setPolicies] = useState<PolicyData[]>(initialPolicies);
+  const [tabsSection, setTabsSection] = useState<TabData[]>(
+    initialTabs.map((tab) => ({
+      id: Math.random().toString(36).substr(2, 9),
+      heading: tab.heading,
+      description: tab.content,
+      isExpanded: true,
+    }))
+  );
 
-  const handleInputChange = (field: keyof ServiceFormData, value: string) => {
+  const [policySection, setPolicySection] = useState<PolicyData[]>(
+    initialPolicies.map((policy) => ({
+      id: Math.random().toString(36).substr(2, 9),
+      heading: policy.heading,
+      description: policy.policy,
+      isExpanded: true,
+    }))
+  );
+
+  const handleInputChange = (field: keyof ServiceFormData, value: any) => {
     setFormData((prev) => ({
       ...prev,
       [field]: value,
     }));
   };
 
-  const handleLocationSelect = (locationData: LocationData) => {
+  const handleLocationSelect = (locationData: LocationBased) => {
     setSelectedCoordinates({
       latitude: locationData.latitude,
       longitude: locationData.longitude,
@@ -106,19 +115,46 @@ const NewServiceForm: React.FC<ServiceFormProps> = ({
 
     setFormData((prev) => ({
       ...prev,
-      location: locationData.formattedAddress,
-      latitude: locationData.latitude,
-      longitude: locationData.longitude,
-      city: locationData.city,
-      district: locationData.district,
-      province: locationData.province,
-      country: locationData.country,
-      postalCode: locationData.postalCode,
+      locationBased: locationData,
+    }));
+  };
+
+  const handleTabsChange = (tabs: TabData[]) => {
+    setTabsSection(tabs); // for UI
+    const backendTabs: TabSection[] = tabs.map(({ heading, description }) => ({
+      heading,
+      content: description,
+    }));
+    setFormData((prev) => ({
+      ...prev,
+      tabsSection: backendTabs,
+    }));
+  };
+
+  const handlePoliciesChange = (policies: PolicyData[]) => {
+    setPolicySection(policies); // for UI
+    const backendPolicies: PolicySection[] = policies.map(
+      ({ heading, description }) => ({
+        heading,
+        policy: description,
+      })
+    );
+    setFormData((prev) => ({
+      ...prev,
+      policySection: backendPolicies,
+    }));
+  };
+
+  const handleImagesChange = (imgs: ImageData[]) => {
+    setImages(imgs);
+    setFormData((prev) => ({
+      ...prev,
+      images: imgs,
     }));
   };
 
   const handleSubmit = () => {
-    onSubmit({ formData, images, tabs, policies });
+    onSubmit(formData);
   };
 
   return (
@@ -127,7 +163,7 @@ const NewServiceForm: React.FC<ServiceFormProps> = ({
         <div className="space-y-6">
           <ImageUploadComponent
             images={images}
-            onImagesChange={setImages}
+            onImagesChange={handleImagesChange}
             selectedImageIndex={selectedImageIndex}
             onSelectedImageChange={setSelectedImageIndex}
           />
@@ -145,56 +181,30 @@ const NewServiceForm: React.FC<ServiceFormProps> = ({
                 required
               />
 
-              <SelectField
-                label="Category"
-                value={formData.category}
-                onChange={(value) => handleInputChange("category", value)}
-                options={categories}
-                placeholder="Select category"
+              <InputField
+                label="Activity Type"
+                value={formData.activityType}
+                onChange={(value) => handleInputChange("activityType", value)}
+                placeholder="Enter activity type"
                 required
               />
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Description
-                </label>
-                <ReactQuill
-                  value={formData.description}
-                  onChange={(value) => handleInputChange("description", value)}
-                  placeholder="Enter service description"
-                />
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-gray-50 p-4 rounded-lg">
-            <h3 className="text-lg font-semibold text-gray-700 mb-4">
-              Pricing & Capacity
-            </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <InputField
-                label="Price ($)"
-                value={formData.price}
-                onChange={(value) => handleInputChange("price", value)}
-                type="number"
-                placeholder="0.00"
-                icon={<DollarSign className="h-4 w-4 text-gray-400" />}
+                label="Activity Details"
+                value={formData.activityDetails}
+                onChange={(value) =>
+                  handleInputChange("activityDetails", value)
+                }
+                placeholder="Enter activity details"
               />
 
               <InputField
-                label="Duration"
-                value={formData.duration}
-                onChange={(value) => handleInputChange("duration", value)}
-                placeholder="e.g., 2 hours, 1 day"
-              />
-
-              <InputField
-                label="Capacity"
-                value={formData.capacity}
-                onChange={(value) => handleInputChange("capacity", value)}
-                placeholder="Maximum number of people"
-                icon={<Users className="h-4 w-4 text-gray-400" />}
-                className="md:col-span-2"
+                label="Safety Instructions"
+                value={formData.safetyInstructions}
+                onChange={(value) =>
+                  handleInputChange("safetyInstructions", value)
+                }
+                placeholder="Enter safety instructions"
               />
             </div>
           </div>
@@ -202,8 +212,13 @@ const NewServiceForm: React.FC<ServiceFormProps> = ({
 
         <div className="space-y-6">
           <MapSelectorComponent
-            location={formData.location}
-            onLocationChange={(value) => handleInputChange("location", value)}
+            location={formData.locationBased.formattedAddress}
+            onLocationChange={(value) =>
+              handleInputChange("locationBased", {
+                ...formData.locationBased,
+                formattedAddress: value,
+              })
+            }
             onLocationSelect={handleLocationSelect}
             selectedCoordinates={selectedCoordinates}
           />
@@ -215,65 +230,12 @@ const NewServiceForm: React.FC<ServiceFormProps> = ({
             <div className="space-y-4">
               <InputField
                 label="Phone Number"
-                value={formData.contactPhone}
-                onChange={(value) => handleInputChange("contactPhone", value)}
+                value={formData.contactNo}
+                onChange={(value) => handleInputChange("contactNo", value)}
                 type="tel"
                 placeholder="+94 xxx xxx xxxx"
-                icon={<Phone className="h-4 w-4 text-gray-400" />}
-              />
-
-              <InputField
-                label="Email"
-                value={formData.contactEmail}
-                onChange={(value) => handleInputChange("contactEmail", value)}
-                type="email"
-                placeholder="contact@example.com"
-                icon={<Mail className="h-4 w-4 text-gray-400" />}
-              />
-
-              <InputField
-                label="Website"
-                value={formData.website}
-                onChange={(value) => handleInputChange("website", value)}
-                type="url"
-                placeholder="https://example.com"
-                icon={<Globe className="h-4 w-4 text-gray-400" />}
               />
             </div>
-          </div>
-
-          <div className="bg-gray-50 p-4 rounded-lg">
-            <h3 className="text-lg font-semibold text-gray-700 mb-4">
-              Availability
-            </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <InputField
-                label="Start Date"
-                value={formData.startDate}
-                onChange={(value) => handleInputChange("startDate", value)}
-                type="date"
-                icon={<Calendar className="h-4 w-4 text-gray-400" />}
-              />
-
-              <InputField
-                label="End Date"
-                value={formData.endDate}
-                onChange={(value) => handleInputChange("endDate", value)}
-                type="date"
-                icon={<Calendar className="h-4 w-4 text-gray-400" />}
-              />
-            </div>
-          </div>
-
-          <div className="bg-gray-50 p-4 rounded-lg">
-            <h3 className="text-lg font-semibold text-gray-700 mb-4">
-              Additional Notes
-            </h3>
-            <ReactQuill
-              value={formData.notes}
-              onChange={(value) => handleInputChange("notes", value)}
-              placeholder="Any additional information or special instructions"
-            />
           </div>
         </div>
       </div>
@@ -281,16 +243,16 @@ const NewServiceForm: React.FC<ServiceFormProps> = ({
       <div className="mt-8 grid grid-cols-1 lg:grid-cols-2 gap-8">
         <ExpandableSectionComponent
           title="Tabs"
-          items={tabs}
-          onItemsChange={setTabs}
+          items={tabsSection}
+          onItemsChange={handleTabsChange}
           addButtonText="Add Tab"
           itemName="Tab"
         />
 
         <ExpandableSectionComponent
           title="Policies"
-          items={policies}
-          onItemsChange={setPolicies}
+          items={policySection}
+          onItemsChange={handlePoliciesChange}
           addButtonText="Add Policy"
           itemName="Policy"
         />

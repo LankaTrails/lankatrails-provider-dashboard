@@ -1,7 +1,9 @@
 import React from "react";
-import ServiceForm from "@/components/NewServiceForm";
+import NewServiceForm from "@/components/NewServiceForm";
 import ProviderTopBar from "@/components/provider/ProviderTopBar";
 import { useParams } from "react-router-dom";
+import { addNewActivity } from "@/services/activityService";
+import type { ServiceFormData } from "@/types/serviceTypes";
 
 // Helper to prettify the serviceType
 const formatServiceTitle = (type?: string) => {
@@ -12,9 +14,11 @@ const formatServiceTitle = (type?: string) => {
     .join(" ");
 };
 const AddServicePage: React.FC = () => {
-  const handleAddSubmit = (data: any) => {
+  const handleAddSubmit = (data: ServiceFormData) => {
+    data.images=[];
     console.log("Add Service Data:", data);
-    // API call to create service
+    const response = addNewActivity(data);
+    console.log("Response:", response);
   };
 
   const { serviceType } = useParams();
@@ -27,7 +31,7 @@ const AddServicePage: React.FC = () => {
         <h1 className="text-2xl p-2 font-bold">{title} Services</h1>
         <ProviderTopBar />
       </div>
-      <ServiceForm onSubmit={handleAddSubmit} />
+      <NewServiceForm onSubmit={handleAddSubmit} />
     </div>
   );
 };

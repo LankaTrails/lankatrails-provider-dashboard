@@ -4,7 +4,11 @@ import api from "@/api/axiosInstance";
 export const addNewActivity = async (payload :any) => {
   console.log(payload);
   try {
-    const response = await api.post('/provider/activity-service/add', payload);
+    const response = await api.post('/provider/activity-service/add', payload,{
+      headers:{
+        "Content-Type" : "application/json"
+      }
+    });
     // Log response for debugging
     console.log('addNewActivity response:', response);
     return response;
