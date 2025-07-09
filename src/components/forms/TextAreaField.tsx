@@ -8,7 +8,7 @@ const TextAreaField: React.FC<TextAreaFieldProps> = ({
   placeholder,
   rows = 3,
   required = false,
-  className = ''
+  className = 'mt-3'
 }) => (
   <div className={className}>
     <label className="block text-sm font-medium text-gray-700 mb-1">

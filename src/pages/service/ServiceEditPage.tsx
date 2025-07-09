@@ -2,45 +2,36 @@ import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import ServiceForm from "@/components/NewServiceForm";
 import BackButton from "@/components/BackButton";
-import type { ServiceFormData, ImageFile, TabData, PolicyData } from "@/types/serviceTypes";
+import type { ServiceFormData, ImageData, TabData, PolicyData } from "@/types/serviceTypes";
+import { findActivityById, findGuideById } from "@/services/activityService";
 
 const ServiceEditPage: React.FC = () => {
   const { id, serviceType } = useParams();
   const [initialData, setInitialData] = useState<ServiceFormData | undefined>();
-  const [initialImages, setInitialImages] = useState<ImageFile[]>([]);
-  const [initialTabs, setInitialTabs] = useState<TabData[]>([]);
-  const [initialPolicies, setInitialPolicies] = useState<PolicyData[]>([]);
+  const [loading, setLoading] = useState(true);
+  // const [initialImages, setInitialImages] = useState<ImageData[]>([]);
 
   useEffect(() => {
-    // Fetch service data by ID (mock example)
-    const fetchedData: ServiceFormData = {
-      serviceName: `Example ${serviceType} Service ${id}`,
-      location: "Colombo, Sri Lanka",
-      description: "<p>Example description</p>",
-      category: serviceType || "activity",
-      price: "100",
-      duration: "2 hours",
-      capacity: "50",
-      contactPhone: "+94712345678",
-      contactEmail: "example@example.com",
-      website: "https://example.com",
-      startDate: "2025-08-01",
-      endDate: "2025-08-31",
-      features: [],
-      notes: "<p>Example notes</p>",
-      city: "Colombo",
-      district: "Colombo",
-      province: "Western",
-      country: "Sri Lanka",
-      postalCode: "00100",
-      latitude: 6.9271,
-      longitude: 79.8612,
+    const fetchActivityService = async () =>{
+      if(!id) return;
+      
+      try {
+        let data;
+        if (serviceType === 'activity') {
+          data = await findActivityById(id);
+        }else if (serviceType === 'tour-guides') {
+          data = await findGuideById(id);
+        }
+        
+        setInitialData(data);
+        console.log("Fetched Service Data:", data);
+      } catch (error) {
+          console.error("Error fetching service data:", error);
+      } finally{
+        setLoading(false);
+      }
     };
-
-    setInitialData(fetchedData);
-    setInitialImages([]);
-    setInitialTabs([{ id: "1", heading: "Info", description: "Details", isExpanded: true }]);
-    setInitialPolicies([{ id: "1", heading: "Policy", description: "Rules", isExpanded: true }]);
+    fetchActivityService();
   }, [id, serviceType]);
 
   const handleBack = () => {
@@ -52,7 +43,7 @@ const ServiceEditPage: React.FC = () => {
     // API call to update service
   };
 
-  if (!initialData) return <div>Loading...</div>;
+  if (loading) return <div>Loading...</div>;
 
   return (
     <div className="max-w-7xl mx-auto p-6 mt-4 bg-white">
@@ -62,10 +53,8 @@ const ServiceEditPage: React.FC = () => {
       </div>
 
       <ServiceForm
+        serviceType={serviceType}
         initialData={initialData}
-        initialImages={initialImages}
-        initialTabs={initialTabs}
-        initialPolicies={initialPolicies}
         onSubmit={handleEditSubmit}
       />
     </div>

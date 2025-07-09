@@ -2,8 +2,8 @@ import React from "react";
 import NewServiceForm from "@/components/NewServiceForm";
 import ProviderTopBar from "@/components/provider/ProviderTopBar";
 import { useParams } from "react-router-dom";
-import { addNewActivity } from "@/services/activityService";
-import type { ServiceFormData } from "@/types/serviceTypes";
+import { addNewActivity, saveImgs } from "@/services/activityService";
+import type { ImageFile, ServiceFormData } from "@/types/serviceTypes";
 
 // Helper to prettify the serviceType
 const formatServiceTitle = (type?: string) => {
@@ -14,14 +14,20 @@ const formatServiceTitle = (type?: string) => {
     .join(" ");
 };
 const AddServicePage: React.FC = () => {
-  const handleAddSubmit = (data: ServiceFormData) => {
-    data.images=[];
+  const handleAddSubmit = (data: ServiceFormData, images: ImageFile[] | undefined): void => {
+    data.images = [];
     console.log("Add Service Data:", data);
-    const response = addNewActivity(data);
-    console.log("Response:", response);
+    addNewActivity(data).then((response) => {
+      console.log("Response:", response);
+      // if (images) {
+      //   const imageResponse = saveImgs(response.serviceId, images);
+      //   console.log("Response:", imageResponse);
+      // }
+    });
   };
 
   const { serviceType } = useParams();
+  console.log("Service Type:", serviceType);
 
   const title = formatServiceTitle(serviceType);
 
@@ -31,7 +37,7 @@ const AddServicePage: React.FC = () => {
         <h1 className="text-2xl p-2 font-bold">{title} Services</h1>
         <ProviderTopBar />
       </div>
-      <NewServiceForm onSubmit={handleAddSubmit} />
+      <NewServiceForm serviceType={serviceType} onSubmit={handleAddSubmit} />
     </div>
   );
 };

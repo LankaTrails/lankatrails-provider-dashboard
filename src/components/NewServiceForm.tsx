@@ -7,6 +7,8 @@ import ImageUploadComponent from "@/components/forms/ImageUploadComponent";
 import MapSelectorComponent from "@/components/forms/MapSelectorComponent";
 import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
+import MultiSelectField from "./forms/MultiSelectField";
+import TextAreaField from "./forms/TextAreaField";
 
 import type {
   ImageData,
@@ -16,36 +18,35 @@ import type {
   LocationBased,
   TabData,
   PolicyData,
+  ImageFile,
 } from "@/types/serviceTypes";
+import { Value } from "@radix-ui/react-select";
 
 interface ServiceFormProps {
+  serviceType?: string; // Optional category prop for filtering or categorization
   initialData?: ServiceFormData;
-  initialImages?: ImageData[];
-  initialTabs?: TabSection[];
-  initialPolicies?: PolicySection[];
-  onSubmit: (data: ServiceFormData) => void;
+  images?: ImageFile[]; // Optional initial images
+  onSubmit: (
+    data: ServiceFormData,
+    images: ImageFile[] | undefined // Adjusted to accept both ImageData and ImageFile
+  ) => void;
 }
 
-const categories = [
-  { value: "accommodation", label: "Accommodation" },
-  { value: "transportation", label: "Transportation" },
-  { value: "adventure", label: "Adventure Sports" },
-  { value: "cultural", label: "Cultural Tours" },
-  { value: "food", label: "Food & Dining" },
-  { value: "shopping", label: "Shopping" },
-  { value: "entertainment", label: "Entertainment" },
-  { value: "wellness", label: "Wellness & Spa" },
-];
-
 const NewServiceForm: React.FC<ServiceFormProps> = ({
+  serviceType,
   initialData,
-  initialImages = [],
-  initialTabs = [{ heading: "", content: "" }],
-  initialPolicies = [{ heading: "", policy: "" }],
   onSubmit,
 }) => {
-  const [images, setImages] = useState<ImageData[]>(initialImages);
+  const [images, setImages] = useState<ImageFile[]>(
+    initialData?.images?.map((img) => ({
+      id: Math.random().toString(36).substr(2, 9),
+      file: new File([], img.imageUrl), // Placeholder, actual file handling should be done
+      url: img.imageUrl,
+    })) || []
+  );
+
   const [selectedImageIndex, setSelectedImageIndex] = useState<number>(0);
+
   const [selectedCoordinates, setSelectedCoordinates] = useState<
     { latitude: number; longitude: number } | undefined
   >(
@@ -79,11 +80,18 @@ const NewServiceForm: React.FC<ServiceFormProps> = ({
       tabsSection: [{ heading: "", content: "" }],
       policySection: [{ heading: "", policy: "" }],
       images: [{ imageUrl: "" }],
+      serviceAreas: [],
+      languages: [],
     }
   );
-
+  const [preferredLanguages, setPreferredLanguages] = useState<string[]>(
+    initialData?.languages ? initialData.languages : []
+  );
+  const [preferredDistricts, setPreferredDistricts] = useState<string[]>(
+    initialData?.serviceAreas ? initialData.serviceAreas : []
+  );
   const [tabsSection, setTabsSection] = useState<TabData[]>(
-    initialTabs.map((tab) => ({
+    (initialData?.tabsSection || [{ heading: "", content: "" }]).map((tab) => ({
       id: Math.random().toString(36).substr(2, 9),
       heading: tab.heading,
       description: tab.content,
@@ -92,12 +100,14 @@ const NewServiceForm: React.FC<ServiceFormProps> = ({
   );
 
   const [policySection, setPolicySection] = useState<PolicyData[]>(
-    initialPolicies.map((policy) => ({
-      id: Math.random().toString(36).substr(2, 9),
-      heading: policy.heading,
-      description: policy.policy,
-      isExpanded: true,
-    }))
+    (initialData?.policySection || [{ heading: "", policy: "" }]).map(
+      (policy) => ({
+        id: Math.random().toString(36).substr(2, 9),
+        heading: policy.heading,
+        description: policy.policy,
+        isExpanded: true,
+      })
+    )
   );
 
   const handleInputChange = (field: keyof ServiceFormData, value: any) => {
@@ -145,17 +155,60 @@ const NewServiceForm: React.FC<ServiceFormProps> = ({
     }));
   };
 
-  const handleImagesChange = (imgs: ImageData[]) => {
-    setImages(imgs);
-    setFormData((prev) => ({
-      ...prev,
-      images: imgs,
-    }));
+  const handleImagesChange = (imgs: ImageFile[]) => {
+    setImages(imgs); // for UI
   };
 
   const handleSubmit = () => {
-    onSubmit(formData);
+    const updatedData: ServiceFormData = {
+      ...formData,
+      // languages: preferredLanguages, // Use as array
+      serviceAreas:Array.isArray(formData.serviceAreas)
+      ? formData.serviceAreas.join(",")
+      :formData.serviceAreas, // Convert to comma-separated string
+    };
+
+    onSubmit(updatedData, images);
   };
+
+  const languageOptions = [
+    { value: "en", label: "English" },
+    { value: "si", label: "Sinhala" },
+    { value: "ta", label: "Tamil" },
+    { value: "fr", label: "French" },
+    { value: "de", label: "German" },
+    { value: "es", label: "Spanish" },
+    { value: "zh", label: "Chinese" },
+  ];
+
+  const districtOptions = [
+    { value: "islandWide", label: "Island Wide" },
+    { value: "ampara", label: "Ampara" },
+    { value: "anuradhapura", label: "Anuradhapura" },
+    { value: "badulla", label: "Badulla" },
+    { value: "batticaloa", label: "Batticaloa" },
+    { value: "colombo", label: "Colombo" },
+    { value: "galle", label: "Galle" },
+    { value: "gampaha", label: "Gampaha" },
+    { value: "hambantota", label: "Hambantota" },
+    { value: "jaffna", label: "Jaffna" },
+    { value: "kalutara", label: "Kalutara" },
+    { value: "kandy", label: "Kandy" },
+    { value: "kegalle", label: "Kegalle" },
+    { value: "kilinochchi", label: "Kilinochchi" },
+    { value: "kurunegala", label: "Kurunegala" },
+    { value: "mannar", label: "Mannar" },
+    { value: "matale", label: "Matale" },
+    { value: "matara", label: "Matara" },
+    { value: "monaragala", label: "Monaragala" },
+    { value: "mullaitivu", label: "Mullaitivu" },
+    { value: "nuwara_eliya", label: "Nuwara Eliya" },
+    { value: "polonnaruwa", label: "Polonnaruwa" },
+    { value: "puttalam", label: "Puttalam" },
+    { value: "ratnapura", label: "Ratnapura" },
+    { value: "trincomalee", label: "Trincomalee" },
+    { value: "vavuniya", label: "Vavuniya" },
+  ];
 
   return (
     <div className="space-y-6">
@@ -167,28 +220,30 @@ const NewServiceForm: React.FC<ServiceFormProps> = ({
             selectedImageIndex={selectedImageIndex}
             onSelectedImageChange={setSelectedImageIndex}
           />
-
-          <div className="bg-gray-50 p-4 rounded-lg">
-            <h3 className="text-lg font-semibold text-gray-700 mb-4">
-              Basic Information
-            </h3>
-            <div className="space-y-4">
+          {serviceType == "activity" && (
+            <div className="bg-gray-50 p-4 rounded-lg">
+              <h3 className="text-lg font-semibold text-gray-700 mb-4">
+                Basic Information
+              </h3>
               <InputField
-                label="Service Name"
+                label="Name of Activity Service"
                 value={formData.serviceName}
                 onChange={(value) => handleInputChange("serviceName", value)}
-                placeholder="Enter service name"
+                placeholder="Enter tour guide name"
                 required
               />
-
-              <InputField
-                label="Activity Type"
+              <SelectField
+                label="Activity Category"
+                options={[
+                  { value: "adventure", label: "Adventure" },
+                  { value: "water_sports", label: "Water Sports" },
+                  { value: "hiking", label: "Hiking & Trekking" },
+                  { value: "safari", label: "Safari Tours" },
+                ]}
                 value={formData.activityType}
                 onChange={(value) => handleInputChange("activityType", value)}
-                placeholder="Enter activity type"
                 required
               />
-
               <InputField
                 label="Activity Details"
                 value={formData.activityDetails}
@@ -198,35 +253,138 @@ const NewServiceForm: React.FC<ServiceFormProps> = ({
                 placeholder="Enter activity details"
               />
 
-              <InputField
+              <TextAreaField
                 label="Safety Instructions"
                 value={formData.safetyInstructions}
                 onChange={(value) =>
                   handleInputChange("safetyInstructions", value)
                 }
                 placeholder="Enter safety instructions"
+                rows={4}
               />
             </div>
+          )}
+
+          {/* Activity Service Provider */}
+
+          <div className="bg-gray-50 p-4 rounded-lg">
+            {/* <h3 className="text-lg font-semibold text-gray-700 mb-4">
+              Basic Information
+            </h3> */}
+            {serviceType == "tour-guides" && (
+              <div className="space-y-4">
+                {/* <InputField
+                      label="Name of Tour Guide"
+                      value={formData.serviceName}
+                      onChange={(value) => handleInputChange("serviceName", value)}
+                      placeholder="Enter tour guide name"
+                      required
+                    /> */}
+                {/* <SelectField
+                      label="Activity Category"
+                    options={[
+                      { value: "en", label: "English" },
+  { value: "si", label: "Sinhala" },
+  { value: "ta", label: "Tamil" },
+  { value: "fr", label: "French" },
+  { value: "de", label: "German" },
+  { value: "es", label: "Spanish" },
+  { value: "zh", label: "Chinese" },
+                    ]}
+                    value={formData.activityType}
+                    onChange={(value) =>
+                      handleInputChange("activityType", value)
+                    }
+                    required
+                    /> */}
+              </div>
+            )}
+            {/* <div className="space-y-4"> */}
+              {/* <InputField
+                label="Service Name"
+                value={formData.serviceName}
+                onChange={(value) => handleInputChange("serviceName", value)}
+                placeholder="Enter service name"
+                required
+              /> */}
+
+              {/* <InputField
+                label="Activity Type"
+                value={formData.activityType}
+                onChange={(value) => handleInputChange("activityType", value)}
+                placeholder="Enter activity type"
+                required
+              /> */}
+            {/* </div> */}
           </div>
         </div>
 
-        <div className="space-y-6">
-          <MapSelectorComponent
-            location={formData.locationBased.formattedAddress}
-            onLocationChange={(value) =>
-              handleInputChange("locationBased", {
-                ...formData.locationBased,
-                formattedAddress: value,
-              })
-            }
-            onLocationSelect={handleLocationSelect}
-            selectedCoordinates={selectedCoordinates}
-          />
+        <div className="space-y-0">
+          {serviceType == "activity" && (
+            <MapSelectorComponent
+              location={formData.locationBased.formattedAddress}
+              onLocationChange={(value) =>
+                handleInputChange("locationBased", {
+                  ...formData.locationBased,
+                  formattedAddress: value,
+                })
+              }
+              onLocationSelect={handleLocationSelect}
+              selectedCoordinates={selectedCoordinates}
+            />
+          )}
 
           <div className="bg-gray-50 p-4 rounded-lg">
-            <h3 className="text-lg font-semibold text-gray-700 mb-4">
+            {serviceType == "tour-guides" && (
+              <div className="space-y-4">
+                <InputField
+                  label="Name of Tour Guide"
+                  value={formData.serviceName}
+                  onChange={(value) => handleInputChange("serviceName", value)}
+                  placeholder="Enter tour guide name"
+                  required
+                />
+              </div>
+            )}
+            {serviceType == "tour-guides" && (
+              <>
+                <SelectField
+                  label="Guiding Category"
+                  options={[
+                    { value: "national", label: "National" },
+                    { value: "chauffer", label: "Chauffeur" },
+                    { value: "site", label: "Site" },
+                    { value: "area", label: "Area" },
+                  ]}
+                  value={formData.activityType}
+                  onChange={(value) => handleInputChange("activityType", value)}
+                  required
+                />
+              </>
+            )}
+            {serviceType == "tour-guides" && (
+              <MultiSelectField
+                label="Service Areas"
+                options={districtOptions}
+                value={preferredDistricts}
+                onChange={setPreferredDistricts}
+                required
+                icon={<Globe size={16} />}
+              />
+            )}
+            {serviceType == "tour-guides" && (
+              <MultiSelectField
+                label="Preferred Languages"
+                options={languageOptions}
+                value={preferredLanguages}
+                onChange={setPreferredLanguages}
+                required
+                icon={<Globe size={16} />}
+              />
+            )}
+            {/* <h3 className="text-lg font-semibold text-gray-700 mb-4 mt-5">
               Contact Information
-            </h3>
+            </h3> */}
             <div className="space-y-4">
               <InputField
                 label="Phone Number"

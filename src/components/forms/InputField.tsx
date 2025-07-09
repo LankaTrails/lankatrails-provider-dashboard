@@ -9,7 +9,7 @@ const InputField: React.FC<InputFieldProps> = ({
   placeholder,
   icon,
   required = false,
-  className = ''
+  className = 'mt-3'
 }) => (
   <div className={className}>
     <label className="block text-sm font-medium text-gray-700 mb-1">

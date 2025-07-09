@@ -37,6 +37,12 @@ export interface ImageData {
   imageUrl: string;
 }
 
+export interface ImageFile {
+    id: string;
+    file: File;
+    url: string;
+}
+
 export interface ServiceFormData {
   serviceName: string;
   locationBased: LocationBased;
@@ -48,4 +54,6 @@ export interface ServiceFormData {
   tabsSection: TabSection[];
   policySection: PolicySection[];
   images: ImageData[];
+  serviceAreas: string[];
+  languages: string[];
 }

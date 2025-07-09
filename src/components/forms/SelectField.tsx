@@ -8,7 +8,7 @@ const SelectField: React.FC<SelectFieldProps> = ({
   options,
   placeholder,
   required = false,
-  className = ''
+  className = 'mt-5'
 }) => (
   <div className={className}>
     <label className="block text-sm font-medium text-gray-700 mb-1">
