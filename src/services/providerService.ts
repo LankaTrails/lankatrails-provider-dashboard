@@ -1,42 +1,43 @@
 import api from "@/api/axiosInstance";
+import type { RegistrationRequestBody, RegistrationFiles } from "@/types/registration";
 
-export const registerProvider = async (formData: FormData) => {
-  console.log('🚀 registerProvider called');
-
-  // Extract form fields
-  const userData: Record<string, any> = {};
-  let logoFile: File | null = null;
-
-  for (const [key, value] of formData.entries()) {
-    if (key === 'logo' && value instanceof File) {
-      logoFile = value;
-      console.log('📁 Logo file found:', {
-        name: value.name,
-        size: value.size,
-        type: value.type
-      });
-    } else {
-      userData[key] = value;
-    }
-  }
-
-  // Mask sensitive info for logging
-  const logData = { ...userData };
-  if (logData.password) logData.password = '[REDACTED]';
-  if (logData.confirmPassword) logData.confirmPassword = '[REDACTED]';
-
-  console.log('📋 User data to be sent:', logData);
-  console.log('📁 Logo file:', logoFile ? `${logoFile.name} (${logoFile.size} bytes)` : 'No file');
-
+export const registerProvider = async (
+  requestBody: RegistrationRequestBody,
+  files: RegistrationFiles
+) => {
   try {
     console.log('🌐 Making POST request to /auth/signup/provider');
 
     const startTime = performance.now();
+    const requestData = new FormData();
 
-    // Send user data as JSON
-    const response = await api.post("/auth/signup/provider", userData, {
+    // Create a Blob with proper JSON content type
+    const providerBlob = new Blob([JSON.stringify(requestBody)], {
+      type: 'application/json'
+    });
+
+    requestData.append("provider", providerBlob);
+    requestData.append("profilePicture", files.profilePhoto);
+    requestData.append("coverPhoto", files.coverPhoto);
+    requestData.append("businessRegistrationFile", files.businessRegistrationFile);
+    requestData.append("contactPersonIdentityFile", files.contactPersonIdentityFile);
+    // 3. Add license files in ORDERED array format
+    files.licenseFiles.forEach((file) => {
+      requestData.append(`licenseFiles`, file); // Simple array-style name
+    });
+
+    console.log('📦 Request data prepared:', requestBody);
+    console.log('📂 Files to upload:', {
+      profilePhoto: files.profilePhoto ? files.profilePhoto.name : 'N/A',
+      coverPhoto: files.coverPhoto ? files.coverPhoto.name : 'N/A',
+      businessRegistrationFile: files.businessRegistrationFile ? files.businessRegistrationFile.name : 'N/A',
+      contactPersonIdentityFile: files.contactPersonIdentityFile ? files.contactPersonIdentityFile.name : 'N/A',
+      licenseFiles: files.licenseFiles.map(file => file.name)
+    });
+
+    const response = await api.post("/auth/signup/provider", requestData, {
       headers: {
-        "Content-Type": "application/json",
+        "Content-Type": "multipart/form-data",
       },
     });
 
@@ -58,24 +59,6 @@ export const registerProvider = async (formData: FormData) => {
       userId: userId || 'N/A'
     });
 
-    // Upload profile picture if available
-    if (logoFile && userId) {
-      console.log('🌐 Uploading profile picture...');
-      const picFormData = new FormData();
-      picFormData.append("profilePicture", logoFile);
-
-      const picResponse = await api.post(`/user/${userId}/add-profile-picture`, picFormData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      });
-
-      console.log('✅ Profile picture uploaded:', {
-        status: picResponse.status,
-        statusText: picResponse.statusText,
-      });
-    }
-
     return response.data;
   } catch (error: any) {
     console.error('❌ Registration flow failed:', {
@@ -93,3 +76,87 @@ export const registerProvider = async (formData: FormData) => {
     throw error;
   }
 };
+
+// const uploadFiles = async (userId: string, files: RegistrationFiles) => {
+//   try {
+//     // Upload profile photo
+//     if (files.profilePhoto) {
+//       console.log('🌐 Uploading profile photo...');
+//       const profileFormData = new FormData();
+//       profileFormData.append("profilePicture", files.profilePhoto);
+
+//       await api.post(`/user/${userId}/add-profile-picture`, profileFormData, {
+//         headers: {
+//           "Content-Type": "multipart/form-data",
+//         },
+//       });
+//       console.log('✅ Profile photo uploaded');
+//     }
+
+//     // Upload cover photo
+//     if (files.coverPhoto) {
+//       console.log('🌐 Uploading cover photo...');
+//       const coverFormData = new FormData();
+//       coverFormData.append("coverPhoto", files.coverPhoto);
+
+//       await api.post(`/provider/${userId}/add-cover-photo`, coverFormData, {
+//         headers: {
+//           "Content-Type": "multipart/form-data",
+//         },
+//       });
+//       console.log('✅ Cover photo uploaded');
+//     }
+
+//     // Upload business registration files
+//     if (files.businessRegistrationFile) {
+//       console.log('🌐 Uploading business registration files...');
+//       const brFormData = new FormData();
+//       brFormData.append("businessRegistrationFile", files.businessRegistrationFile);
+
+//       await api.post(`/provider/${userId}/add-business-registration`, brFormData, {
+//         headers: {
+//           "Content-Type": "multipart/form-data",
+//         },
+//       });
+//       console.log('✅ Business registration files uploaded');
+//     }
+
+//     // Upload license files
+//     // if (files.licenseFiles.length > 0) {
+//     //   console.log('🌐 Uploading license files...');
+//     //   const licenseFormData = new FormData();
+//     //   files.licenseFiles.forEach((file, index) => {
+//     //     licenseFormData.append(`licenseFile_${index}`, file);
+//     //   });
+
+//     //   await api.post(`/user/${userId}/add-license-files`, licenseFormData, {
+//     //     headers: {
+//     //       "Content-Type": "multipart/form-data",
+//     //     },
+//     //   });
+//     //   console.log('✅ License files uploaded');
+//     // }
+
+//     // Upload contact person identity files
+//     // if (files.contactPersonIdentityFile) {
+//     //   console.log('🌐 Uploading contact person identity files...');
+//     //   const identityFormData = new FormData();
+//     //   identityFormData.append("contactPersonIdentityFile", files.contactPersonIdentityFile);
+
+//     //   await api.post(`/user/${userId}/add-contact-person-identity-files`, identityFormData, {
+//     //     headers: {
+//     //       "Content-Type": "multipart/form-data",
+//     //     },
+//     //   });
+//     //   console.log('✅ Contact person identity files uploaded');
+//     // }
+
+//   } catch (error: any) {
+//     console.error('❌ File upload failed:', {
+//       message: error.message,
+//       status: error.response?.status,
+//       statusText: error.response?.statusText,
+//     });
+//     throw error;
+//   }
+// };
