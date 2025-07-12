@@ -12,7 +12,8 @@ export const addNewActivity = async (payload :any) => {
     });
     // Log response for debugging
     console.log('addNewActivity response:', response);
-    return response.data.content[0];
+    
+    return response.data.message;
   } catch (error : any) {
     if(error.response && error.response.data ){
       const {code,message,details,userMessage} = error.response.data;

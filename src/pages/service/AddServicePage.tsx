@@ -47,10 +47,17 @@ const AddServicePage: React.FC = () => {
       });
 
     } catch (error :any) {
-      setToast({
-        message:error.userMessage || error.message ||"An unexpected error occurred",
-        type: "error"
-      });
+          let message = error.userMessage || error.message || "An unexpected error occurred";
+
+        if (error.details && typeof error.details === "object") {
+          const errorMessages = Object.values(error.details).join(" | "); // join all validation messages
+          message += `: ${errorMessages}`;
+        }
+
+        setToast({
+          message,
+          type: "error"
+        });
     }
    
     
