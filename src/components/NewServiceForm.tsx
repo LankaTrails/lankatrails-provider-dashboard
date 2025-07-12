@@ -163,9 +163,7 @@ const NewServiceForm: React.FC<ServiceFormProps> = ({
     const updatedData: ServiceFormData = {
       ...formData,
       // languages: preferredLanguages, // Use as array
-      serviceAreas:Array.isArray(formData.serviceAreas)
-      ? formData.serviceAreas.join(",")
-      :formData.serviceAreas, // Convert to comma-separated string
+      serviceAreas: preferredDistricts, // Always use array of strings
     };
 
     onSubmit(updatedData, images);
@@ -267,54 +265,34 @@ const NewServiceForm: React.FC<ServiceFormProps> = ({
 
           {/* Activity Service Provider */}
 
-          <div className="bg-gray-50 p-4 rounded-lg">
+          <div className="bg-gray-50 p-4 rounded-lg w-full">
             {/* <h3 className="text-lg font-semibold text-gray-700 mb-4">
               Basic Information
             </h3> */}
             {serviceType == "tour-guides" && (
               <div className="space-y-4">
-                {/* <InputField
-                      label="Name of Tour Guide"
-                      value={formData.serviceName}
-                      onChange={(value) => handleInputChange("serviceName", value)}
-                      placeholder="Enter tour guide name"
-                      required
-                    /> */}
-                {/* <SelectField
-                      label="Activity Category"
-                    options={[
-                      { value: "en", label: "English" },
-  { value: "si", label: "Sinhala" },
-  { value: "ta", label: "Tamil" },
-  { value: "fr", label: "French" },
-  { value: "de", label: "German" },
-  { value: "es", label: "Spanish" },
-  { value: "zh", label: "Chinese" },
-                    ]}
-                    value={formData.activityType}
-                    onChange={(value) =>
-                      handleInputChange("activityType", value)
-                    }
-                    required
-                    /> */}
+                        
+          
+            <div>
+                <MultiSelectField
+                label="Select Policies"
+                options={policyOptions}
+                value={preferredPolicies}
+                onChange={setPreferredPolicies}
+                required
+                icon={<Globe size={16} />}
+                />
+            </div>
+         
+        
+        
+        
               </div>
             )}
             {/* <div className="space-y-4"> */}
-              {/* <InputField
-                label="Service Name"
-                value={formData.serviceName}
-                onChange={(value) => handleInputChange("serviceName", value)}
-                placeholder="Enter service name"
-                required
-              /> */}
+              
 
-              {/* <InputField
-                label="Activity Type"
-                value={formData.activityType}
-                onChange={(value) => handleInputChange("activityType", value)}
-                placeholder="Enter activity type"
-                required
-              /> */}
+             
             {/* </div> */}
           </div>
         </div>
@@ -393,6 +371,7 @@ const NewServiceForm: React.FC<ServiceFormProps> = ({
                 type="tel"
                 placeholder="+94 xxx xxx xxxx"
               />
+               
             </div>
           </div>
         </div>
@@ -406,7 +385,8 @@ const NewServiceForm: React.FC<ServiceFormProps> = ({
           addButtonText="Add Tab"
           itemName="Tab"
         />
-
+  
+        
         <ExpandableSectionComponent
           title="Policies"
           items={policySection}

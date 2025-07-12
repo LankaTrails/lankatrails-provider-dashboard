@@ -3,7 +3,7 @@ import type { ImageFile } from "@/types/serviceTypes";
 
 
 export const addNewActivity = async (payload :any) => {
-  console.log(payload);
+  console.log("before post"+payload);
   try {
     const response = await api.post('/provider/activity-service/add', payload,{
       headers:{
@@ -13,9 +13,21 @@ export const addNewActivity = async (payload :any) => {
     // Log response for debugging
     console.log('addNewActivity response:', response);
     return response.data.content[0];
-  } catch (error) {
-    console.error('addNewActivity error:', error);
-    throw new Error('Failed to add new activity');
+  } catch (error : any) {
+    if(error.response && error.response.data ){
+      const {code,message,details,userMessage} = error.response.data;
+      throw{
+        code,
+        message,
+        details,
+        userMessage
+      };
+    }
+    // Fallback generic error
+    throw {
+      message : "Failed to add new acivity",
+      code : "UNKNOWN_ERROR"
+    };
   }
 };
 //find an activity service by the serviceId
