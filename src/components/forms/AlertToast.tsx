@@ -23,6 +23,7 @@ const AlertToast: React.FC<AlertToastProps> = ({ message, type, onClose }) => {
         animate-slide-in
         ${type === "success" ? "bg-green-600" : "bg-red-600"}
       `}
+      style={{ whiteSpace: 'pre-line' }}
     >
       {message}
     </div>

@@ -273,7 +273,7 @@ const NewServiceForm: React.FC<ServiceFormProps> = ({
               <div className="space-y-4">
                         
           
-            <div>
+            {/* <div>
                 <MultiSelectField
                 label="Select Policies"
                 options={policyOptions}
@@ -282,7 +282,7 @@ const NewServiceForm: React.FC<ServiceFormProps> = ({
                 required
                 icon={<Globe size={16} />}
                 />
-            </div>
+            </div> */}
          
         
         

@@ -38,7 +38,7 @@ const AddServicePage: React.FC = () => {
       //     //   console.log("Response:", imageResponse);
       //     // }
       // });
-      // console.log("Add Service Data:", data);
+      console.log("Add Service Data:", data);
       const result = await addNewActivity(data);
       console.log("Add Service Result:", result);
       setToast({
@@ -50,7 +50,7 @@ const AddServicePage: React.FC = () => {
           let message = error.userMessage || error.message || "An unexpected error occurred";
 
         if (error.details && typeof error.details === "object") {
-          const errorMessages = Object.values(error.details).join(" | "); // join all validation messages
+          const errorMessages ="\n"+ Object.values(error.details).join("\n"); // join all validation messages
           message += `: ${errorMessages}`;
         }
 
