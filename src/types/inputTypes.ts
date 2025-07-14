@@ -3,11 +3,12 @@ export interface InputFieldProps {
     label: string;
     value: string;
     onChange: (value: string) => void;
-    type?: 'text' | 'email' | 'tel' | 'url' | 'date' | 'number';
+    type?: string;
     placeholder?: string;
     icon?: React.ReactNode;
     required?: boolean;
     className?: string;
+    error?: string;
 }
 
 export interface SelectFieldProps {
@@ -18,6 +19,7 @@ export interface SelectFieldProps {
     placeholder?: string;
     required?: boolean;
     className?: string;
+    error?: string;
 }
 
 export interface TextAreaFieldProps {
@@ -28,4 +30,5 @@ export interface TextAreaFieldProps {
     rows?: number;
     required?: boolean;
     className?: string;
+    error?: string;
 }
