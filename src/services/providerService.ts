@@ -17,13 +17,23 @@ export const registerProvider = async (
     });
 
     requestData.append("provider", providerBlob);
-    requestData.append("profilePicture", files.profilePhoto);
-    requestData.append("coverPhoto", files.coverPhoto);
-    requestData.append("businessRegistrationFile", files.businessRegistrationFile);
-    requestData.append("contactPersonIdentityFile", files.contactPersonIdentityFile);
+    if (files.profilePhoto) {
+      requestData.append("profilePicture", files.profilePhoto);
+    }
+    if (files.coverPhoto) {
+      requestData.append("coverPhoto", files.coverPhoto);
+    }
+    if (files.businessRegistrationFile) {
+      requestData.append("businessRegistrationFile", files.businessRegistrationFile);
+    }
+    if (files.contactPersonIdentityFile) {
+      requestData.append("contactPersonIdentityFile", files.contactPersonIdentityFile);
+    }
     // 3. Add license files in ORDERED array format
     files.licenseFiles.forEach((file) => {
-      requestData.append(`licenseFiles`, file); // Simple array-style name
+      if (file) {
+        requestData.append(`licenseFiles`, file); // Simple array-style name
+      }
     });
 
     console.log('📦 Request data prepared:', requestBody);

@@ -91,10 +91,10 @@ export interface RegistrationRequestBody {
 }
 
 export interface RegistrationFiles {
-    profilePhoto: File;
-    coverPhoto: File;
-    businessRegistrationFile: File;
-    contactPersonIdentityFile: File;
+    profilePhoto: File | null;
+    coverPhoto: File | null;
+    businessRegistrationFile: File | null;
+    contactPersonIdentityFile: File | null;
     licenseFiles: File[];
 }
 

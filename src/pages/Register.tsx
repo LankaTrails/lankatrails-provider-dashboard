@@ -59,9 +59,9 @@ const businessTypes: BusinessType[] = [
 const categories: Category[] = [
   { label: "Activity", value: "ACTIVITY" },
   { label: "Accommodation", value: "ACCOMMODATION" },
-  { label: "Food & Beverages", value: "FOOD_BEVERAGE" },
+  { label: "Food & Beverages", value: "FOOD_BEVERAGES" },
   { label: "Transport", value: "TRANSPORT" },
-  { label: "Tour Guides", value: "TOUR_GUIDE" },
+  { label: "Tour Guides", value: "TOUR_GUIDES" },
 ];
 
 const stepTitles: StepTitles = {
@@ -198,6 +198,22 @@ const RegisterProvider: React.FC = () => {
     if (errors[key]) {
       setErrors((prev) => ({ ...prev, [key]: "" }));
     }
+
+    // If updating licenses, clear all license-specific errors
+    if (key === "licenses") {
+      setErrors((prev) => {
+        const newErrors = { ...prev };
+        // Remove all license-specific errors
+        Object.keys(newErrors).forEach((errorKey) => {
+          if (errorKey.startsWith("license_")) {
+            delete newErrors[errorKey];
+          }
+        });
+        // Also clear general licenses error
+        delete newErrors.licenses;
+        return newErrors;
+      });
+    }
   };
 
   const validateStep = (): boolean => {
@@ -238,6 +254,48 @@ const RegisterProvider: React.FC = () => {
       case 4:
         if (formData.licenses.length === 0) {
           stepErrors.licenses = "At least one license is required";
+        } else {
+          // Validate each license
+          let hasValidLicense = false;
+          formData.licenses.forEach((license, index) => {
+            const licenseErrors: string[] = [];
+
+            if (!license.licenseNumber?.trim()) {
+              licenseErrors.push("License number is required");
+            }
+
+            if (!license.expiryDate) {
+              licenseErrors.push("Expiry date is required");
+            } else {
+              // Check if expiry date is in the future
+              const expiryDate = new Date(license.expiryDate);
+              const today = new Date();
+              today.setHours(0, 0, 0, 0);
+
+              if (expiryDate <= today) {
+                licenseErrors.push("Expiry date must be in the future");
+              }
+            }
+
+            if (!license.category) {
+              licenseErrors.push("Category is required");
+            }
+
+            if (!license.licenseFile) {
+              licenseErrors.push("License file is required");
+            }
+
+            if (licenseErrors.length > 0) {
+              stepErrors[`license_${index}`] = licenseErrors.join(", ");
+            } else {
+              hasValidLicense = true;
+            }
+          });
+
+          if (!hasValidLicense) {
+            stepErrors.licenses =
+              "At least one complete license is required (all fields filled and file uploaded)";
+          }
         }
         break;
     }
@@ -339,7 +397,7 @@ const RegisterProvider: React.FC = () => {
         coverPhoto: formData.coverPhoto,
         businessRegistrationFile: formData.businessRegistrationFile,
         licenseFiles: licenseFiles,
-        contactPersonIdentityFile: formData.contactPersonIdentityFile
+        contactPersonIdentityFile: formData.contactPersonIdentityFile,
       };
 
       // Call API with the structured data
@@ -556,67 +614,64 @@ const RegisterProvider: React.FC = () => {
                 />
               </div>
             </div>
-            
-              <div>
-                <h3 className="text-lg font-semibold text-gray-800 mb-4">
-                  Account Setup
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+            <div>
+              <h3 className="text-lg font-semibold text-gray-800 mb-4">
+                Account Setup
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <InputField
+                  label="Email"
+                  type="email"
+                  value={formData.email}
+                  onChange={(val) => updateField("email", val)}
+                  required
+                  error={errors.email}
+                  placeholder="business@example.com"
+                />
+                <div className="hidden md:block" />
+                <div className="relative">
                   <InputField
-                    label="Email"
-                    type="email"
-                    value={formData.email}
-                    onChange={(val) => updateField("email", val)}
+                    label="Password"
+                    type={showPassword ? "text" : "password"}
+                    value={formData.password}
+                    onChange={(val) => updateField("password", val)}
                     required
-                    error={errors.email}
-                    placeholder="business@example.com"
+                    error={errors.password}
+                    placeholder="Create a strong password"
                   />
-                  <div className="hidden md:block" />
-                  <div className="relative">
-                    <InputField
-                      label="Password"
-                      type={showPassword ? "text" : "password"}
-                      value={formData.password}
-                      onChange={(val) => updateField("password", val)}
-                      required
-                      error={errors.password}
-                      placeholder="Create a strong password"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-9 text-gray-500 hover:text-gray-700"
-                    >
-                      {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-                    </button>
-                  </div>
-                  <div className="relative">
-                    <InputField
-                      label="Confirm Password"
-                      type={showConfirmPassword ? "text" : "password"}
-                      value={formData.confirmPassword}
-                      onChange={(val) => updateField("confirmPassword", val)}
-                      required
-                      error={errors.confirmPassword}
-                      placeholder="Confirm your password"
-                    />
-                    <button
-                      type="button"
-                      onClick={() =>
-                        setShowConfirmPassword(!showConfirmPassword)
-                      }
-                      className="absolute right-3 top-9 text-gray-500 hover:text-gray-700"
-                    >
-                      {showConfirmPassword ? (
-                        <EyeOff size={20} />
-                      ) : (
-                        <Eye size={20} />
-                      )}
-                    </button>
-                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-9 text-gray-500 hover:text-gray-700"
+                  >
+                    {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                  </button>
+                </div>
+                <div className="relative">
+                  <InputField
+                    label="Confirm Password"
+                    type={showConfirmPassword ? "text" : "password"}
+                    value={formData.confirmPassword}
+                    onChange={(val) => updateField("confirmPassword", val)}
+                    required
+                    error={errors.confirmPassword}
+                    placeholder="Confirm your password"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    className="absolute right-3 top-9 text-gray-500 hover:text-gray-700"
+                  >
+                    {showConfirmPassword ? (
+                      <EyeOff size={20} />
+                    ) : (
+                      <Eye size={20} />
+                    )}
+                  </button>
                 </div>
               </div>
-
+            </div>
           </motion.div>
         );
 
@@ -701,6 +756,16 @@ const RegisterProvider: React.FC = () => {
                       >
                         Remove License
                       </button>
+                      {errors[`license_${index}`] && (
+                        <div className="mt-3 p-3 bg-red-50 border border-red-200 rounded-lg">
+                          <p className="text-red-700 text-sm font-medium">
+                            License {index + 1} errors:
+                          </p>
+                          <p className="text-red-600 text-sm mt-1">
+                            {errors[`license_${index}`]}
+                          </p>
+                        </div>
+                      )}
                     </div>
                   ))}
                   <button
@@ -776,7 +841,7 @@ const RegisterProvider: React.FC = () => {
                   </div>
                 )}
 
-                <form onSubmit={handleSubmit}>
+                <div>
                   <AnimatePresence mode="wait">{renderStep()}</AnimatePresence>
 
                   <div className="flex justify-between mt-8 pt-6 border-t">
@@ -802,23 +867,25 @@ const RegisterProvider: React.FC = () => {
                         Next <ArrowRight className="w-4 h-4 ml-2" />
                       </button>
                     ) : (
-                      <button
-                        type="submit"
-                        disabled={isSubmitting}
-                        className="flex items-center px-8 py-3 bg-primary-500 text-white rounded-lg font-medium hover:bg-primary-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                      >
-                        {isSubmitting ? (
-                          <>Submitting...</>
-                        ) : (
-                          <>
-                            Submit Registration{" "}
-                            <CheckCircle className="w-4 h-4 ml-2" />
-                          </>
-                        )}
-                      </button>
+                      <form onSubmit={handleSubmit} className="inline">
+                        <button
+                          type="submit"
+                          disabled={isSubmitting}
+                          className="flex items-center px-8 py-3 bg-primary-500 text-white rounded-lg font-medium hover:bg-primary-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          {isSubmitting ? (
+                            <>Submitting...</>
+                          ) : (
+                            <>
+                              Submit Registration{" "}
+                              <CheckCircle className="w-4 h-4 ml-2" />
+                            </>
+                          )}
+                        </button>
+                      </form>
                     )}
                   </div>
-                </form>
+                </div>
               </CardContent>
             </Card>
           </motion.div>
