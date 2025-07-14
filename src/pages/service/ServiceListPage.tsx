@@ -5,7 +5,11 @@ import { Button } from "@/components/ui/button";
 import { Eye, Edit, Star, Package, Plus } from "lucide-react";
 import ProviderTopBar from "@/components/provider/ProviderTopBar";
 import { fetchAllActivities } from "@/services/activityService";
-import { useEffect } from "react";
+import { useState,useEffect } from "react";
+import { Trash2 } from "lucide-react";
+import ConfirmDeleteModal from "@/components/forms/ConfirmDeleteModal"; // adjust path
+
+
 
 const mockServices = {
   activity: [
@@ -65,19 +69,57 @@ const formatServiceTitle = (type?: string) => {
     .join(" ");
 };
 
+type Activity = {
+  id: number;
+  serviceName?: string;
+  status: boolean;
+  // add other properties if needed
+};
+
 
 const ServiceListPage = () => {
   const { serviceType } = useParams();
   const navigate = useNavigate();
+  const [fetchedActivities, setFetchedActivities] = useState<Activity[]>([]);
+  const services =
+  serviceType === "activity"
+    ? fetchedActivities.map((item, index) => ({
+        id: index + 1, // fallback since serviceId is null
+        title: item.serviceName ?? "Untitled Activity",
+        type: "Activity",
+        category: "activity",
+        bookings: "N/A",
+        rating: 2,
+        status: item.status ? "active" : "inactive",
+      }))
+    : mockServices[serviceType as keyof typeof mockServices] || [];
 
-  const services = mockServices[serviceType as keyof typeof mockServices] || [];
   const title = formatServiceTitle(serviceType);
+
+  const [isDeleteModalOpen, setDeleteModalOpen] = useState(false);
+const [selectedServiceId, setSelectedServiceId] = useState<number | null>(null);
+//handle delete click
+const handleDeleteClick = (id:number)=>{
+  setSelectedServiceId(id);
+  setDeleteModalOpen(true);
+}
+//doing the backend process for deletion
+const confirmDelete = () => {
+  if (selectedServiceId != null) {
+    
+    console.log("Deleting service:", selectedServiceId);
+    // Call delete API here
+    setDeleteModalOpen(false);
+  }
+};
+
 
   //get all activities to display on the cards
   useEffect(() => {
   const loadActivities = async () => {
     const result = await fetchAllActivities(0, 3);
     console.log("Fetched activities", result);
+    setFetchedActivities(result.content);
   };
 
   loadActivities();
@@ -95,18 +137,26 @@ const ServiceListPage = () => {
                 <Card key={service.id} className="hover:shadow-lg transition-shadow">
                   <CardHeader>
                     <div className="flex items-center justify-between">
-                      <Badge variant="outline">{service.type}</Badge>
-                      <Badge variant={service.status === 'active' ? 'default' : 'secondary'}>
+                      {/* <Badge variant="outline">{service.type}</Badge> */}
+                      <Badge variant={service.status? 'default' : 'secondary'}>
                         {service.status}
                       </Badge>
+                        <Trash2
+    className="w-4 h-4 text-red-500 cursor-pointer ml-2 hover:scale-110 transition-transform"
+    onClick={() => handleDeleteClick(service.id)}
+    // title="Delete Service"
+  />
                     </div>
-                    <CardTitle className="text-lg">{service.title}</CardTitle>
+                    <CardTitle className="text-lg">
+                      {service.title}
+                    
+                    </CardTitle>
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-3">
                       <div className="flex items-center justify-between">
-                        <span className="text-sm text-gray-600">Price:</span>
-                        <span className="font-semibold text-primary-500">{service.price}</span>
+                        {/* <span className="text-sm text-gray-600">Price:</span> */}
+                        {/* <span className="font-semibold text-primary-500">{service.price}</span> */}
                       </div>
                       <div className="flex items-center justify-between">
                         <span className="text-sm text-gray-600">Bookings:</span>
@@ -145,6 +195,11 @@ const ServiceListPage = () => {
                 </div>
               )}
       </div>
+      <ConfirmDeleteModal
+  isOpen={isDeleteModalOpen}
+  onClose={() => setDeleteModalOpen(false)}
+  onConfirm={confirmDelete}
+/>
     </div>
   );
 };

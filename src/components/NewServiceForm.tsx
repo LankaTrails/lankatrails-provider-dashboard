@@ -15,7 +15,7 @@ import type {
   TabSection,
   PolicySection,
   ServiceFormData,
-  LocationBased,
+  LocationData,
   TabData,
   PolicyData,
   ImageFile,
@@ -169,7 +169,7 @@ useEffect(()=>{
     }));
   };
 
-  const handleLocationSelect = (locationData: LocationBased) => {
+  const handleLocationSelect = (locationData: LocationData) => {
     setSelectedCoordinates({
       latitude: locationData.latitude,
       longitude: locationData.longitude,

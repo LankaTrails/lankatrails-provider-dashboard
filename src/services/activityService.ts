@@ -1,6 +1,11 @@
 import api from "@/api/axiosInstance";
 import type { ImageFile } from "@/types/serviceTypes";
 
+//delete an activity service
+export const deleteActivityService = async (id: number) => {
+  const response = await api.delete(`/activity-service/${id}`);
+  return response.data.data;
+}
 //Fetch all the provider policies
 export const fetchAllPolicies = async ()=>{
   const response = await api.get('/provider/policies');
@@ -15,7 +20,7 @@ export const fetchAllActivities = async (pageNumber: number = 0, pageSize: numbe
       pageSize,
     },
   });
-  console.log("fetch all",response.data);
+  console.log("fetch all",response.data.data);
 
   return response.data.data; // Assuming the response contains an array of activities
 }
