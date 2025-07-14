@@ -4,6 +4,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Eye, Edit, Star, Package, Plus } from "lucide-react";
 import ProviderTopBar from "@/components/provider/ProviderTopBar";
+import { fetchAllActivities } from "@/services/activityService";
+import { useEffect } from "react";
 
 const mockServices = {
   activity: [
@@ -63,12 +65,23 @@ const formatServiceTitle = (type?: string) => {
     .join(" ");
 };
 
+
 const ServiceListPage = () => {
   const { serviceType } = useParams();
   const navigate = useNavigate();
 
   const services = mockServices[serviceType as keyof typeof mockServices] || [];
   const title = formatServiceTitle(serviceType);
+
+  //get all activities to display on the cards
+  useEffect(() => {
+  const loadActivities = async () => {
+    const result = await fetchAllActivities(0, 3);
+    console.log("Fetched activities", result);
+  };
+
+  loadActivities();
+}, []);
 
   return (
     <div className="space-y-6">

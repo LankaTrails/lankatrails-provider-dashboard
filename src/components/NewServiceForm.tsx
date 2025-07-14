@@ -285,7 +285,7 @@ useEffect(()=>{
               <SelectField
                 label="Activity Category"
                 options={[
-                  { value: "adventure", label: "Adventure" },
+                  { value: "Adventures", label: "Adventure" },
                   { value: "water_sports", label: "Water Sports" },
                   { value: "hiking", label: "Hiking & Trekking" },
                   { value: "safari", label: "Safari Tours" },

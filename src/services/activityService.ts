@@ -7,7 +7,18 @@ export const fetchAllPolicies = async ()=>{
   return response.data.data; // Assuming the response contains an array of policies
 
 };
+//fetch all activity services
+export const fetchAllActivities = async (pageNumber: number = 0, pageSize: number = 10) => {
+  const response = await api.get(`/activity-service/getAll`,{
+    params: {
+      pageNumber,
+      pageSize,
+    },
+  });
+  console.log("fetch all",response.data);
 
+  return response.data.data; // Assuming the response contains an array of activities
+}
 export const addNewActivity = async (payload :any) => {
   console.log("before post"+payload);
   try {
