@@ -10,7 +10,7 @@ const InputField: React.FC<InputFieldProps> = ({
   placeholder,
   icon,
   required = false,
-  className = "",
+  className = 'mt-3'
   error,
 }) => (
   <div className={className}>

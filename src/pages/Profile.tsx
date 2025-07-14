@@ -73,7 +73,7 @@ const Profile = () => {
         <Card className="p-6 md:p-8 lg:p-10 shadow-xl mb-10 relative overflow-visible">
           <div className="flex flex-col md:flex-row md:items-end md:space-x-6">
             <div className="-mt-24 w-36 h-36 md:w-40 md:h-40 rounded-full overflow-hidden border-4 border-white shadow-lg">
-              <img src={user.logoUrl || "/default-avatar.png"} alt="avatar" className="w-full h-full object-cover" />
+              <img src={"/default-avatar.png"} alt="avatar" className="w-full h-full object-cover" />
             </div>
             <div className="mt-4 md:mt-0 space-y-1 flex-1">
               <h2 className="text-3xl font-extrabold">{user.businessName || "Provider"}</h2>
@@ -158,7 +158,7 @@ const Profile = () => {
           <div className="space-y-6">
             <Card className="overflow-hidden shadow-lg">
               <img
-                src={user.logoUrl || "/default-avatar.png"}
+                src={ "/default-avatar.png"}
                 alt="avatar"
                 className="w-full h-56 object-cover"
               />

@@ -9,7 +9,7 @@ const TextAreaField: React.FC<TextAreaFieldProps> = ({
   placeholder,
   rows = 3,
   required = false,
-  className = "",
+  className = 'mt-3'
   error,
 }) => (
   <div className={className}>

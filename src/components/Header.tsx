@@ -39,7 +39,7 @@ const Header = () => {
                   className="flex items-center space-x-2 hover:opacity-80"
                 >
                   <img
-                    src={user.logoUrl || "/default-avatar.png"}
+                    src={"/default-avatar.png"}
                     alt="avatar"
                     className="w-10 h-10 rounded-full object-cover border"
                   />

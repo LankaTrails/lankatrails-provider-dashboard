@@ -14,7 +14,7 @@ const libraries: ("places" | "geocoding")[] = ["places", "geocoding"];
 interface MapSelectorProps {
   location: string;
   onLocationChange: (location: string) => void;
-  onLocationSelect?: (locationData: LocationData) => void;
+  onLocationSelect?: (locationData: LocationBased) => void;
   selectedCoordinates?: { latitude: number; longitude: number };
   error?: string;
   label?: string | null;
@@ -42,7 +42,7 @@ const MapSelectorComponent: React.FC<MapSelectorProps> = ({
     result: google.maps.GeocoderResult,
     lat: number,
     lng: number
-  ): LocationData => {
+  ): LocationBased => {
     const components = result.address_components;
 
     const getComponent = (type: string) =>
@@ -53,11 +53,11 @@ const MapSelectorComponent: React.FC<MapSelectorProps> = ({
       city:
         getComponent("locality") ||
         getComponent("sublocality") ||
-        getComponent("administrative_area_level_2"),
-      district: getComponent("administrative_area_level_2"),
-      province: getComponent("administrative_area_level_1"),
-      country: getComponent("country"),
-      postalCode: getComponent("postal_code"),
+        getComponent("administrative_area_level_2")|| "",
+      district: getComponent("administrative_area_level_2") || "",
+      province: getComponent("administrative_area_level_1") || "",
+      country: getComponent("country") || "",
+      postalCode: getComponent("postal_code") || "",
       latitude: lat,
       longitude: lng,
     };
@@ -86,11 +86,11 @@ const MapSelectorComponent: React.FC<MapSelectorProps> = ({
         onLocationChange(`${lat.toFixed(6)}, ${lng.toFixed(6)}`);
         onLocationSelect?.({
           formattedAddress: `${lat.toFixed(6)}, ${lng.toFixed(6)}`,
-          city: null,
-          district: null,
-          province: null,
-          country: null,
-          postalCode: null,
+          city: "",
+          district: "",
+          province: "",
+          country: "",
+          postalCode: "",
           latitude: lat,
           longitude: lng,
         });
