@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Calendar, DollarSign, Users, Phone, Mail, Globe } from "lucide-react";
 import InputField from "@/components/forms/InputField";
 import SelectField from "@/components/forms/SelectField";
@@ -21,6 +21,7 @@ import type {
   ImageFile,
 } from "@/types/serviceTypes";
 import { Value } from "@radix-ui/react-select";
+import { fetchAllPolicies } from "@/services/activityService";
 
 interface ServiceFormProps {
   serviceType?: string; // Optional category prop for filtering or categorization
@@ -31,6 +32,7 @@ interface ServiceFormProps {
     images: ImageFile[] | undefined // Adjusted to accept both ImageData and ImageFile
   ) => void;
 }
+type OptionType = { label: string ,content: string, value: string };
 
 const NewServiceForm: React.FC<ServiceFormProps> = ({
   serviceType,
@@ -58,6 +60,56 @@ const NewServiceForm: React.FC<ServiceFormProps> = ({
         }
       : undefined
   );
+  
+const [policyOptions, setPolicyOptions] = useState<OptionType[]>([]);
+const [preferredPolicies, setPreferredPolicies] = useState<string[]>([]);
+
+useEffect(() => {
+  const loadPolicies = async () => {
+    try {
+      const policies = await fetchAllPolicies();
+      console.log("Policies:", policies);
+      
+      const options = policies.map((p: any) => ({
+        label: p.heading,
+        value: p.id.toString(), // Assuming each policy has a unique id
+        content: p.policy,
+      }));
+      
+      setPolicyOptions(options);
+      
+      // If you want to preselect some options, do it here:
+      // setPreferredPolicies(['1']); // Example: preselect option with value "1"
+    } catch (error) {
+      console.error("Failed to load policies", error);
+    }
+  };
+  loadPolicies();
+}, []);
+
+//look at preferredPolicies to see if it has any changes
+useEffect(()=>{
+  const selectedPolicyObjects = policyOptions
+    .filter((option)=> preferredPolicies.includes(option.value))
+    .map((option)=>({
+      id:option.value,
+      heading: option.label,
+      description: option.content,
+      isExpanded: true, // Default to expanded
+    }));
+    setPolicySection(selectedPolicyObjects);
+    const backendPolicies:PolicySection[]= selectedPolicyObjects.map(
+      ({ heading, description }) => ({
+        heading,
+        policy: description,
+      })
+    );
+    setFormData((prev) => ({
+      ...prev,
+      policySection: backendPolicies,
+    }));
+}, [preferredPolicies, policyOptions]);
+
 
   const [formData, setFormData] = useState<ServiceFormData>(
     initialData || {
@@ -385,8 +437,20 @@ const NewServiceForm: React.FC<ServiceFormProps> = ({
           addButtonText="Add Tab"
           itemName="Tab"
         />
+        <div>
   
-        
+        {serviceType == "activity" && (
+                <MultiSelectField
+                  label="Available Policies"
+                  options={policyOptions}
+                  value={preferredPolicies}
+                  onChange={setPreferredPolicies}
+                  required
+                  icon={<Globe size={16} />}
+                />
+              )
+
+              }
         <ExpandableSectionComponent
           title="Policies"
           items={policySection}
@@ -394,6 +458,7 @@ const NewServiceForm: React.FC<ServiceFormProps> = ({
           addButtonText="Add Policy"
           itemName="Policy"
         />
+        </div>
       </div>
 
       <div className="mt-8 flex justify-end">

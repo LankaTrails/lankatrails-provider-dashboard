@@ -1,6 +1,12 @@
 import api from "@/api/axiosInstance";
 import type { ImageFile } from "@/types/serviceTypes";
 
+//Fetch all the provider policies
+export const fetchAllPolicies = async ()=>{
+  const response = await api.get('/provider/policies');
+  return response.data.data; // Assuming the response contains an array of policies
+
+};
 
 export const addNewActivity = async (payload :any) => {
   console.log("before post"+payload);
