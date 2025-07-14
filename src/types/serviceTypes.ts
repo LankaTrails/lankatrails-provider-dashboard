@@ -12,7 +12,7 @@ export interface PolicyData {
     isExpanded: boolean;
 }
 
-export interface LocationBased {
+export interface LocationData {
   formattedAddress: string;
   city: string;
   district: string;
@@ -45,7 +45,7 @@ export interface ImageFile {
 
 export interface ServiceFormData {
   serviceName: string;
-  locationBased: LocationBased;
+  locationBased: LocationData;
   contactNo: string;
   status: boolean;
   activityType: string;

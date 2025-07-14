@@ -1,5 +1,6 @@
-import React from 'react'
-import type { TextAreaFieldProps } from '@/types/inputTypes'
+import React from "react";
+import type { TextAreaFieldProps } from "@/types/inputTypes";
+import { AlertCircle } from "lucide-react";
 
 const TextAreaField: React.FC<TextAreaFieldProps> = ({
   label,
@@ -8,7 +9,8 @@ const TextAreaField: React.FC<TextAreaFieldProps> = ({
   placeholder,
   rows = 3,
   required = false,
-  className = 'mt-3'
+  className = "",
+  error,
 }) => (
   <div className={className}>
     <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -18,10 +20,18 @@ const TextAreaField: React.FC<TextAreaFieldProps> = ({
       value={value}
       onChange={(e) => onChange(e.target.value)}
       rows={rows}
-      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-400"
+      className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 ${
+        error
+          ? "border-red-500 focus:ring-red-400"
+          : "border-gray-300 focus:ring-primary-400"
+      }`}
       placeholder={placeholder}
       required={required}
     />
+    {error && <div className="flex items-center gap-2 text-sm text-red-600  p-3 rounded-md">
+          <AlertCircle size={16} />
+          <span>{error}</span>
+        </div>}
   </div>
 );
 
