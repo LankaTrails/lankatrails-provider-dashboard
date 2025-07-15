@@ -1,15 +1,15 @@
 export interface TabData {
-    id: string;
-    heading: string;
-    description: string;
-    isExpanded: boolean;
+  id: string;
+  heading: string;
+  description: string;
+  isExpanded: boolean;
 }
 
 export interface PolicyData {
-    id: string;
-    heading: string;
-    description: string;
-    isExpanded: boolean;
+  id: string;
+  heading: string;
+  description: string;
+  isExpanded: boolean;
 }
 
 export interface LocationData {
@@ -34,13 +34,24 @@ export interface PolicySection {
 }
 
 export interface ImageData {
+  id: number;
   imageUrl: string;
 }
 
-export interface ImageFile {
-    id: string;
-    file: File;
-    url: string;
+export interface ImageUploadItem {
+  id: string;
+  file: File;
+  url: string;
+}
+
+export interface ImageFiles {
+  serviceImages: ImageUploadItem[];
+}
+
+export interface OptionType {
+  label: string;
+  value: string;
+  content?: string; // used only for policies
 }
 
 export interface ServiceFormData {
@@ -53,7 +64,13 @@ export interface ServiceFormData {
   safetyInstructions: string;
   tabsSection: TabSection[];
   policySection: PolicySection[];
-  images: ImageData[];
   serviceAreas: string[];
   languages: string[];
+}
+
+export interface ServiceFormProps {
+  serviceType?: string;
+  initialData?: ServiceFormData;
+  initialImages?: ImageUploadItem[]; // fixed typo and type
+  onSubmit: (data: ServiceFormData, images: ImageFiles) => void;
 }

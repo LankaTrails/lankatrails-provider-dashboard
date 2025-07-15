@@ -1,66 +1,90 @@
 import api from "@/api/axiosInstance";
-import type { ImageFile } from "@/types/serviceTypes";
+import type { ImageFiles, ServiceFormData } from "@/types/serviceTypes";
 
 //delete an activity service
-export const deleteActivityService = async (id: number) => {
-  const response = await api.get(`/activity-service/${id}`);
+export const deleteActivityService = async (id: number): Promise<any> => {
+  const response = await api.delete(`/activity-service/${id}`);
   return response.data.data;
 }
+
 //Fetch all the provider policies
-export const fetchAllPolicies = async ()=>{
+export const fetchAllPolicies = async (): Promise<any[]> => {
   const response = await api.get('/provider/policies');
   return response.data.data; // Assuming the response contains an array of policies
-
 };
+
 //fetch all activity services
-export const fetchAllActivities = async (pageNumber: number = 0, pageSize: number = 10) => {
-  const response = await api.get(`/activity-service/getAll`,{
+export const fetchAllActivities = async (
+  pageNumber: number = 0,
+  pageSize: number = 10
+): Promise<any> => {
+  const response = await api.get(`/activity-service/getAll`, {
     params: {
       pageNumber,
       pageSize,
     },
   });
-  console.log("fetch all",response.data.data);
-
+  console.log("fetch all", response.data.data);
   return response.data.data; // Assuming the response contains an array of activities
 }
-export const addNewActivity = async (payload :any) => {
-  console.log("before post"+payload);
+
+export const addNewActivity = async (
+  payload: ServiceFormData,
+  images: ImageFiles
+): Promise<string> => {
   try {
-    const response = await api.post('/provider/activity-service/add', payload,{
-      headers:{
-        "Content-Type" : "application/json"
+    const formData = new FormData();
+
+    // JSON blob for 'service'
+    const serviceBlob = new Blob([JSON.stringify(payload)], {
+      type: 'application/json',
+    });
+    formData.append('service', serviceBlob);
+
+    // Append all images under 'images' key with proper type checking
+    images.serviceImages.forEach((item) => {
+      if (item.file) {
+        console.log("📸 File name:", item.file.name);
+        formData.append(`images`, item.file);
       }
     });
-    // Log response for debugging
-    console.log('addNewActivity response:', response);
-    
+
+    console.log('Adding new activity with formData:', formData);
+
+    const response = await api.post('/provider/activity-service/add', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+
     return response.data.message;
-  } catch (error : any) {
-    if(error.response && error.response.data ){
-      const {code,message,details,userMessage} = error.response.data;
-      throw{
+  } catch (error: any) {
+    console.error('❌ addNewActivity error:', error);
+    if (error.response && error.response.data) {
+      const { code, message, details, userMessage } = error.response.data;
+      throw {
         code,
         message,
         details,
-        userMessage
+        userMessage,
       };
     }
-    // Fallback generic error
+
     throw {
-      message : "Failed to add new acivity",
-      code : "UNKNOWN_ERROR"
+      message: 'Failed to add new activity',
+      code: 'UNKNOWN_ERROR',
     };
   }
 };
+
 //find an activity service by the serviceId
-export const findActivityById = async (id: any)=>{
+export const findActivityById = async (id: any): Promise<any> => {
   try {
     const response = await api.get(`/activity-service/${id}`);
     // Log response for debugging
     console.log('findActivityById response:', response);
     return response.data.data; // Assuming the response contains an array of activities
-    
+
   } catch (error) {
     console.error('Error fetching activity by ID:', error);
     throw new Error('Failed to fetch activity by ID');
@@ -68,7 +92,7 @@ export const findActivityById = async (id: any)=>{
 }
 
 //find a tourist guide by the serviceId
-export const findGuideById =async (id: any)=>{
+export const findGuideById = async (id: any): Promise<any> => {
   try {
     const response = await api.get(`/tour-guide/${id}`);
     // Log response for debugging
@@ -80,25 +104,97 @@ export const findGuideById =async (id: any)=>{
   }
 }
 
-export const saveImgs = async (id : number , images: ImageFile[]) => {
+// Add new tour guide service
+export const addNewTourGuide = async (
+  payload: ServiceFormData,
+  images: ImageFiles
+): Promise<string> => {
   try {
     const formData = new FormData();
-    images.forEach((image) => {
-      formData.append('serviceImages', image.file);
+
+    // JSON blob for 'service'
+    const serviceBlob = new Blob([JSON.stringify(payload)], {
+      type: 'application/json',
+    });
+    formData.append('service', serviceBlob);
+
+    // Append all images under 'images' key with proper type checking
+    images.serviceImages.forEach((item) => {
+      if (item.file) {
+        console.log("📸 File name:", item.file.name);
+        formData.append(`images`, item.file);
+      }
     });
 
-    console.log('Images Saving ',formData);
-    
-    const response = await api.post(`/service/${id}/add-service-images`, formData, {
+    console.log('Adding new tour guide with formData:', formData);
+
+    const response = await api.post('/provider/tour-guide/add', formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
       },
     });
-    
-    console.log('saveImgs response:', response);
-    return response.data.content;
-  } catch (error) {
-    console.error('Error saving images:', error);
-    throw new Error('Failed to save images');
+
+    return response.data.message;
+  } catch (error: any) {
+    console.error('❌ addNewTourGuide error:', error);
+    if (error.response && error.response.data) {
+      const { code, message, details, userMessage } = error.response.data;
+      throw {
+        code,
+        message,
+        details,
+        userMessage,
+      };
+    }
+
+    throw {
+      message: 'Failed to add new tour guide',
+      code: 'UNKNOWN_ERROR',
+    };
   }
+};
+
+// Fetch all tour guide services  
+export const fetchAllTourGuides = async (
+  pageNumber: number = 0,
+  pageSize: number = 10
+): Promise<any> => {
+  const response = await api.get(`/tour-guide/getAll`, {
+    params: {
+      pageNumber,
+      pageSize,
+    },
+  });
+  console.log("fetch all tour guides", response.data.data);
+  return response.data.data;
 }
+
+// Generic function to fetch services based on type
+export const fetchAllServices = async (
+  serviceType: string,
+  pageNumber: number = 0,
+  pageSize: number = 10
+): Promise<any> => {
+  if (serviceType === 'tour-guides') {
+    return await fetchAllTourGuides(pageNumber, pageSize);
+  } else if (serviceType === 'activity') {
+    return await fetchAllActivities(pageNumber, pageSize);
+  } else {
+    throw new Error(`Unsupported service type: ${serviceType}`);
+  }
+};
+
+// Generic function to add any service type
+export const addNewService = async (
+  serviceType: string,
+  payload: ServiceFormData,
+  images: ImageFiles
+): Promise<string> => {
+  if (serviceType === 'tour-guides') {
+    return await addNewTourGuide(payload, images);
+  } else if (serviceType === 'activity') {
+    return await addNewActivity(payload, images);
+  } else {
+    throw new Error(`Unsupported service type: ${serviceType}`);
+  }
+};
