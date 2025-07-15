@@ -3,7 +3,7 @@ import type { ImageFile } from "@/types/serviceTypes";
 
 //delete an activity service
 export const deleteActivityService = async (id: number) => {
-  const response = await api.delete(`/activity-service/${id}`);
+  const response = await api.get(`/activity-service/${id}`);
   return response.data.data;
 }
 //Fetch all the provider policies

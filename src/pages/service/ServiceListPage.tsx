@@ -4,7 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Eye, Edit, Star, Package, Plus } from "lucide-react";
 import ProviderTopBar from "@/components/provider/ProviderTopBar";
-import { fetchAllActivities } from "@/services/activityService";
+import { deleteActivityService, fetchAllActivities } from "@/services/activityService";
 import { useState,useEffect } from "react";
 import { Trash2 } from "lucide-react";
 import ConfirmDeleteModal from "@/components/forms/ConfirmDeleteModal"; // adjust path
@@ -70,7 +70,7 @@ const formatServiceTitle = (type?: string) => {
 };
 
 type Activity = {
-  id: number;
+  serviceId: number;
   serviceName?: string;
   status: boolean;
   // add other properties if needed
@@ -84,7 +84,7 @@ const ServiceListPage = () => {
   const services =
   serviceType === "activity"
     ? fetchedActivities.map((item, index) => ({
-        id: index + 1, // fallback since serviceId is null
+        id: item.serviceId, // fallback since serviceId is null
         title: item.serviceName ?? "Untitled Activity",
         type: "Activity",
         category: "activity",
@@ -109,6 +109,21 @@ const confirmDelete = () => {
     
     console.log("Deleting service:", selectedServiceId);
     // Call delete API here
+    const deleteService = async () => {
+      const result = await deleteActivityService(selectedServiceId);
+      console.log("Delete result:", result);
+    };
+    deleteService()
+      .then(() => {
+        console.log("Service deleted successfully");
+        // Optionally, refresh the service list or show a success message
+        setFetchedActivities((prev) => prev.filter((service) => service.status == true));
+      })
+      .catch((error) => {
+        console.error("Error deleting service:", error);
+        // Optionally, show an error message
+      });
+
     setDeleteModalOpen(false);
   }
 };
