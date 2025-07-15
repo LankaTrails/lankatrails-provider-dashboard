@@ -1,15 +1,15 @@
 export interface TabData {
-    id: string;
-    heading: string;
-    description: string;
-    isExpanded: boolean;
+  id: string;
+  heading: string;
+  description: string;
+  isExpanded: boolean;
 }
 
 export interface PolicyData {
-    id: string;
-    heading: string;
-    description: string;
-    isExpanded: boolean;
+  id: string;
+  heading: string;
+  description: string;
+  isExpanded: boolean;
 }
 
 export interface LocationData {
@@ -34,13 +34,13 @@ export interface PolicySection {
 }
 
 export interface ImageData {
+  id: number;
   imageUrl: string;
+  
 }
 
-export interface ImageFile {
-    id: string;
-    file: File;
-    url: string;
+export interface ImageFiles {
+  serviceImages: File[];
 }
 
 export interface ServiceFormData {
@@ -53,7 +53,6 @@ export interface ServiceFormData {
   safetyInstructions: string;
   tabsSection: TabSection[];
   policySection: PolicySection[];
-  images: ImageData[];
   serviceAreas: string[];
   languages: string[];
 }

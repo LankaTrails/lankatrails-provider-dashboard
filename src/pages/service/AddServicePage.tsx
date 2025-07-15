@@ -2,8 +2,8 @@ import React, { useState } from "react";
 import NewServiceForm from "@/components/NewServiceForm";
 import ProviderTopBar from "@/components/provider/ProviderTopBar";
 import { useParams } from "react-router-dom";
-import { addNewActivity, saveImgs } from "@/services/activityService";
-import type { ImageFile, ServiceFormData } from "@/types/serviceTypes";
+import { addNewActivity } from "@/services/activityService";
+import type { ImageFiles, ServiceFormData } from "@/types/serviceTypes";
 import AlertToast from "@/components/forms/AlertToast";
 
 // Helper to prettify the serviceType
@@ -27,20 +27,15 @@ const AddServicePage: React.FC = () => {
 
   const handleAddSubmit = async(
     data: ServiceFormData, 
-    images: ImageFile[] | undefined
+    files: ImageFiles
   ): Promise<void> => {
     try {
-      //  data.images = [];
-      //  addNewActivity(data).then((response) => {
-      //  console.log("Response:", response);
-      //     // if (images) {
-      //     //   const imageResponse = saveImgs(response.serviceId, images);
-      //     //   console.log("Response:", imageResponse);
-      //     // }
-      // });
-      console.log("Add Service Data:", data);
-      const result = await addNewActivity(data);
-      console.log("Add Service Result:", result);
+       console.log("Add Service Data:", data);
+       addNewActivity(data, files).then((response) => {
+       console.log("Response:", response);
+      });
+      // const result = await addNewActivity(data);
+      // console.log("Add Service Result:", result);
       setToast({
         message:"Service added successfully!",
         type: "success"
