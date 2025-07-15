@@ -3,7 +3,8 @@ import type { ImageFiles, ServiceFormData } from "@/types/serviceTypes";
 
 //delete an activity service
 export const deleteActivityService = async (id: number): Promise<any> => {
-  const response = await api.delete(`/activity-service/${id}`);
+  const response = await api.put(`/activity-service/delete/${id}`);
+  console.log("Deleting activity service with ID:", response);
   return response.data.data;
 }
 

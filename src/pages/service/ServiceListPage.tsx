@@ -117,7 +117,7 @@ const confirmDelete = () => {
       .then(() => {
         console.log("Service deleted successfully");
         // Optionally, refresh the service list or show a success message
-        setFetchedActivities((prev) => prev.filter((service) => service.status == true));
+        setFetchedActivities((prev) => prev.filter((service) => service.serviceId != selectedServiceId));
       })
       .catch((error) => {
         console.error("Error deleting service:", error);
