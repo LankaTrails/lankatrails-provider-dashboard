@@ -36,11 +36,22 @@ export interface PolicySection {
 export interface ImageData {
   id: number;
   imageUrl: string;
-  
+}
+
+export interface ImageUploadItem {
+  id: string;
+  file: File;
+  url: string;
 }
 
 export interface ImageFiles {
-  serviceImages: File[];
+  serviceImages: ImageUploadItem[];
+}
+
+export interface OptionType {
+  label: string;
+  value: string;
+  content?: string; // used only for policies
 }
 
 export interface ServiceFormData {
@@ -55,4 +66,11 @@ export interface ServiceFormData {
   policySection: PolicySection[];
   serviceAreas: string[];
   languages: string[];
+}
+
+export interface ServiceFormProps {
+  serviceType?: string;
+  initialData?: ServiceFormData;
+  initialImages?: ImageUploadItem[]; // fixed typo and type
+  onSubmit: (data: ServiceFormData, images: ImageFiles) => void;
 }

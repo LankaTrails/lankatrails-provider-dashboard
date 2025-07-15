@@ -1,17 +1,14 @@
 import React, { useEffect, useState } from "react";
-import { Calendar, DollarSign, Users, Phone, Mail, Globe } from "lucide-react";
+import { Globe } from "lucide-react";
 import InputField from "@/components/forms/InputField";
 import SelectField from "@/components/forms/SelectField";
 import ExpandableSectionComponent from "@/components/forms/ExpandableSectionComponent";
 import ImageUploadComponent from "@/components/forms/ImageUploadComponent";
 import MapSelectorComponent from "@/components/forms/MapSelectorComponent";
-import ReactQuill from "react-quill";
-import "react-quill/dist/quill.snow.css";
 import MultiSelectField from "./forms/MultiSelectField";
 import TextAreaField from "./forms/TextAreaField";
 
 import type {
-  ImageData,
   TabSection,
   PolicySection,
   ServiceFormData,
@@ -19,36 +16,20 @@ import type {
   TabData,
   PolicyData,
   ImageFiles,
+  OptionType,
+  ServiceFormProps,
 } from "@/types/serviceTypes";
-import { Value } from "@radix-ui/react-select";
 import { fetchAllPolicies } from "@/services/activityService";
-
-interface ServiceFormProps {
-  serviceType?: string; // Optional category prop for filtering or categorization
-  initialData?: ServiceFormData;
-  intialImages?: ImageData[]; // Optional initial images
-  images?: ImageFiles; // Optional initial images
-  onSubmit: (
-    data: ServiceFormData,
-    images: ImageFiles // Adjusted to accept both ImageData and ImageFile
-  ) => void;
-}
-type OptionType = { label: string, content: string, value: string };
 
 const NewServiceForm: React.FC<ServiceFormProps> = ({
   serviceType,
-  intialImages,
+  initialImages,
   initialData,
   onSubmit,
 }) => {
-  // Separate state for initial images and current images
-  const [initialImages, setInitialImages] = useState<ImageData[]>(
-    intialImages || [] // Initialize with intialImages if provided, otherwise an empty array
-  );
-
-  const [images, setImages] = useState<ImageFiles>(
-    { serviceImages: [] } as ImageFiles // Initialize with an empty serviceImages array
-  );
+  const [images, setImages] = useState<ImageFiles>({
+    serviceImages: initialImages || [], // Initialize with initialImages if provided, otherwise an empty array
+  });
 
   const [selectedImageIndex, setSelectedImageIndex] = useState<number>(0);
 
@@ -93,7 +74,7 @@ const NewServiceForm: React.FC<ServiceFormProps> = ({
       .map((option) => ({
         id: option.value,
         heading: option.label,
-        description: option.content,
+        description: option.content || "", // Provide default empty string
         isExpanded: true, // Default to expanded
       }));
     setPolicySection(selectedPolicyObjects);
@@ -213,6 +194,7 @@ const NewServiceForm: React.FC<ServiceFormProps> = ({
     const updatedData: ServiceFormData = {
       ...formData,
       serviceAreas: preferredDistricts, // Always use array of strings
+      languages: preferredLanguages, // Update languages field
     };
 
     onSubmit(updatedData, images);
@@ -263,7 +245,9 @@ const NewServiceForm: React.FC<ServiceFormProps> = ({
         <div className="space-y-6">
           <ImageUploadComponent
             images={images.serviceImages}
-            onImagesChange={(images) => handleImagesChange({ serviceImages: images })}
+            onImagesChange={(images) =>
+              handleImagesChange({ serviceImages: images })
+            }
             selectedImageIndex={selectedImageIndex}
             onSelectedImageChange={setSelectedImageIndex}
           />
@@ -320,9 +304,7 @@ const NewServiceForm: React.FC<ServiceFormProps> = ({
             </h3> */}
             {serviceType == "tour-guides" && (
               <div className="space-y-4">
-                        
-          
-            {/* <div>
+                {/* <div>
                 <MultiSelectField
                 label="Select Policies"
                 options={policyOptions}
@@ -332,16 +314,10 @@ const NewServiceForm: React.FC<ServiceFormProps> = ({
                 icon={<Globe size={16} />}
                 />
             </div> */}
-         
-        
-        
-        
               </div>
             )}
             {/* <div className="space-y-4"> */}
-              
 
-             
             {/* </div> */}
           </div>
         </div>
@@ -420,7 +396,6 @@ const NewServiceForm: React.FC<ServiceFormProps> = ({
                 type="tel"
                 placeholder="+94 xxx xxx xxxx"
               />
-               
             </div>
           </div>
         </div>
@@ -435,26 +410,23 @@ const NewServiceForm: React.FC<ServiceFormProps> = ({
           itemName="Tab"
         />
         <div>
-  
-        {serviceType == "activity" && (
-                <MultiSelectField
-                  label="Available Policies"
-                  options={policyOptions}
-                  value={preferredPolicies}
-                  onChange={setPreferredPolicies}
-                  required
-                  icon={<Globe size={16} />}
-                />
-              )
-
-              }
-        <ExpandableSectionComponent
-          title="Policies"
-          items={policySection}
-          onItemsChange={handlePoliciesChange}
-          addButtonText="Add Policy"
-          itemName="Policy"
-        />
+          {serviceType == "activity" && (
+            <MultiSelectField
+              label="Available Policies"
+              options={policyOptions}
+              value={preferredPolicies}
+              onChange={setPreferredPolicies}
+              required
+              icon={<Globe size={16} />}
+            />
+          )}
+          <ExpandableSectionComponent
+            title="Policies"
+            items={policySection}
+            onItemsChange={handlePoliciesChange}
+            addButtonText="Add Policy"
+            itemName="Policy"
+          />
         </div>
       </div>
 
