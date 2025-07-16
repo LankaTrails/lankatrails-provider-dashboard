@@ -9,7 +9,7 @@ const SelectField: React.FC<SelectFieldProps> = ({
   options,
   placeholder,
   required = false,
-  className = 'mt-5'
+  className = "",
   error,
 }) => (
   <div className={className}>
