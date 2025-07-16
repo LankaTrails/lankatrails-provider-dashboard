@@ -196,7 +196,7 @@ const NewServiceForm: React.FC<ServiceFormProps> = ({
       serviceAreas: preferredDistricts, // Always use array of strings
       languages: preferredLanguages, // Update languages field
     };
-
+    console.log("Submitting updated data:", updatedData);
     onSubmit(updatedData, images);
   };
 
