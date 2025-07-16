@@ -147,6 +147,9 @@ export const addNewService = async (
     return await addNewTourGuide(payload, images);
   } else if (serviceType === 'activity') {
     return await addNewActivity(payload, images);
+
+  }else if (serviceType === 'transportation') {
+    return await addNew
   } else {
     throw new Error(`Unsupported service type: ${serviceType}`);
   }

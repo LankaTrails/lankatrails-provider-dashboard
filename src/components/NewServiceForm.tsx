@@ -7,6 +7,7 @@ import ImageUploadComponent from "@/components/forms/ImageUploadComponent";
 import MapSelectorComponent from "@/components/forms/MapSelectorComponent";
 import MultiSelectField from "./forms/MultiSelectField";
 import TextAreaField from "./forms/TextAreaField";
+import CounterInput from "./forms/CounterInput";
 
 import type {
   TabSection,
@@ -112,6 +113,10 @@ const NewServiceForm: React.FC<ServiceFormProps> = ({
       policySection: [{ heading: "", policy: "" }],
       serviceAreas: [],
       languages: [],
+      pricePerKm : 0,
+      vehicleCapacity:0,
+      vehicleQty:0
+
     }
   );
 
@@ -195,6 +200,8 @@ const NewServiceForm: React.FC<ServiceFormProps> = ({
       ...formData,
       serviceAreas: preferredDistricts, // Always use array of strings
       languages: preferredLanguages, // Update languages field
+      vehicleCapacity:capacity,
+      vehicleQty:count,
     };
     console.log("Submitting updated data:", updatedData);
     onSubmit(updatedData, images);
@@ -238,7 +245,8 @@ const NewServiceForm: React.FC<ServiceFormProps> = ({
     { value: "trincomalee", label: "Trincomalee" },
     { value: "vavuniya", label: "Vavuniya" },
   ];
-
+  const [capacity, setCapacity] = useState(1);
+  const [count, setCount] = useState(1);
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -251,7 +259,7 @@ const NewServiceForm: React.FC<ServiceFormProps> = ({
             selectedImageIndex={selectedImageIndex}
             onSelectedImageChange={setSelectedImageIndex}
           />
-          {serviceType == "activity" && (
+          {serviceType == "activity"  && (
             <div className="bg-gray-50 p-4 rounded-lg">
               <h3 className="text-lg font-semibold text-gray-700 mb-4">
                 Basic Information
@@ -295,8 +303,41 @@ const NewServiceForm: React.FC<ServiceFormProps> = ({
               />
             </div>
           )}
-
           {/* Activity Service Provider */}
+          {/* Transportation */}
+          {serviceType == "transportation"  && (
+            <div className="bg-gray-50 p-4 rounded-lg">
+              <h3 className="text-lg font-semibold text-gray-700 mb-4">
+                Basic Information
+              </h3>
+              <InputField
+                label="Name of Transportation "
+                value={formData.serviceName}
+                onChange={(value) => handleInputChange("serviceName", value)}
+                placeholder="Enter tour transportation"
+                required
+              />
+              <label>Capacity</label>
+              <CounterInput value={capacity} onChange={setCapacity} min={1} max={10}  />
+
+              <label>No. of Vehicles</label>
+              <CounterInput value={count} onChange={setCount} min={1} max={10}  />
+
+             
+              <InputField
+                label="Price per km"
+                value={formData.pricePerKm.toString()}
+                onChange={(value) =>
+                  handleInputChange("pricePerKm", Number(value))
+                }
+                placeholder="Enter price per km"
+              />
+
+          
+            </div>
+          )}
+
+          
 
           <div className="bg-gray-50 p-4 rounded-lg w-full">
             {/* <h3 className="text-lg font-semibold text-gray-700 mb-4">
@@ -323,7 +364,7 @@ const NewServiceForm: React.FC<ServiceFormProps> = ({
         </div>
 
         <div className="space-y-0">
-          {serviceType == "activity" && (
+          {(serviceType == "activity"|| serviceType == "transportation") && (
             <MapSelectorComponent
               location={formData.locationBased.formattedAddress}
               onLocationChange={(value) =>
