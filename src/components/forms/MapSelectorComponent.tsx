@@ -1,15 +1,25 @@
-import React, { useState, useRef, useCallback } from "react";
+import React, { useState, useRef, useCallback, useEffect } from "react";
 import {
   LoadScript,
   Autocomplete,
   GoogleMap,
   Marker,
+  InfoWindow,
 } from "@react-google-maps/api";
 import { Search, AlertCircle } from "lucide-react";
 import type { LocationData } from "@/types/serviceTypes";
+import { lankaTrailsMapStyle } from "@/utils/MapStyles";
 import type { n } from "node_modules/framer-motion/dist/types.d-B_QPEvFK";
 
+// Configuration constants
 const libraries: ("places" | "geocoding")[] = ["places", "geocoding"];
+const DEFAULT_CENTER = { lat: 7.8731, lng: 80.7718 }; // Sri Lanka center
+const SRI_LANKA_BOUNDS = {
+  south: 5.919,
+  west: 79.5212,
+  north: 9.8356,
+  east: 81.8795,
+};
 
 interface MapSelectorProps {
   location: string;
@@ -32,19 +42,28 @@ const MapSelectorComponent: React.FC<MapSelectorProps> = ({
   required = false,
   heading = null,
 }) => {
+  // State management
   const [autocomplete, setAutocomplete] =
     useState<google.maps.places.Autocomplete | null>(null);
-  const mapRef = useRef<google.maps.Map | null>(null);
-  const searchInputRef = useRef<HTMLInputElement>(null);
+  const [mapLoaded, setMapLoaded] = useState(false);
+  const [markerPosition, setMarkerPosition] = useState<{
+    lat: number;
+    lng: number;
+  } | null>(null);
+  const [animate, setAnimate] = useState(true);
+  const [infoOpen, setInfoOpen] = useState(false);
 
-  // Helper to extract components
+  // Refs for map control
+  const mapRef = useRef<google.maps.Map | null>(null);
+  const hasInitialized = useRef(false); // Prevent multiple initializations
+
+  // Extract location components from geocoding result
   const extractLocationData = (
     result: google.maps.GeocoderResult,
     lat: number,
     lng: number
   ): LocationBased => {
     const components = result.address_components;
-
     const getComponent = (type: string) =>
       components.find((c) => c.types.includes(type))?.long_name || null;
 
@@ -63,41 +82,48 @@ const MapSelectorComponent: React.FC<MapSelectorProps> = ({
     };
   };
 
-  // Run reverse geocode and trigger callbacks
-  const handleGeocodeResult = (latLng: google.maps.LatLng) => {
-    new window.google.maps.Geocoder()
-      .geocode({ location: latLng })
-      .then((response) => {
-        if (response.results && response.results.length > 0) {
-          const result = response.results[0];
-          const lat = latLng.lat();
-          const lng = latLng.lng();
+  // Main handler for coordinate selection and reverse geocoding
+  const handleGeocodeResult = useCallback(
+    (latLng: google.maps.LatLng) => {
+      const lat = latLng.lat();
+      const lng = latLng.lng();
+      setMarkerPosition({ lat, lng });
 
-          const locationData = extractLocationData(result, lat, lng);
-          onLocationChange(locationData.formattedAddress);
-          onLocationSelect?.(locationData);
-        }
-      })
-      .catch((error) => {
-        console.error("Reverse geocoding failed:", error);
-        const lat = latLng.lat();
-        const lng = latLng.lng();
-
-        onLocationChange(`${lat.toFixed(6)}, ${lng.toFixed(6)}`);
-        onLocationSelect?.({
-          formattedAddress: `${lat.toFixed(6)}, ${lng.toFixed(6)}`,
-          city: "",
-          district: "",
-          province: "",
-          country: "",
-          postalCode: "",
-          latitude: lat,
-          longitude: lng,
+      // Reverse geocode to get address
+      new window.google.maps.Geocoder()
+        .geocode({ location: latLng })
+        .then((response) => {
+          if (response.results?.[0]) {
+            const locationData = extractLocationData(
+              response.results[0],
+              lat,
+              lng
+            );
+            onLocationChange(locationData.formattedAddress);
+            onLocationSelect?.(locationData);
+          }
+        })
+        .catch((error) => {
+          console.error("Reverse geocoding failed:", error);
+          // Fallback to coordinates if geocoding fails
+          const fallbackAddress = `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+          onLocationChange(fallbackAddress);
+          onLocationSelect?.({
+            formattedAddress: fallbackAddress,
+            city: null,
+            district: null,
+            province: null,
+            country: null,
+            postalCode: null,
+            latitude: lat,
+            longitude: lng,
+          });
         });
-      });
-  };
+    },
+    [onLocationChange, onLocationSelect]
+  );
 
-  // When place is selected
+  // Handle autocomplete place selection
   const onPlaceChanged = useCallback(() => {
     if (!autocomplete) return;
 
@@ -107,30 +133,83 @@ const MapSelectorComponent: React.FC<MapSelectorProps> = ({
       return;
     }
 
-    const location = place.geometry.location;
-
-    // Center map
+    // Pan map to selected location
     if (mapRef.current) {
-      mapRef.current.panTo(location);
+      mapRef.current.panTo(place.geometry.location);
       mapRef.current.setZoom(16);
     }
 
-    // Do reverse geocoding
-    handleGeocodeResult(location);
-  }, [autocomplete, onLocationChange, onLocationSelect]);
+    handleGeocodeResult(place.geometry.location);
+  }, [autocomplete, handleGeocodeResult]);
 
+  // Map initialization callback
   const onMapLoad = useCallback((map: google.maps.Map) => {
     mapRef.current = map;
+    setMapLoaded(true);
   }, []);
 
+  // Handle map clicks
   const onMapClick = useCallback(
     (e: google.maps.MapMouseEvent) => {
       if (e.latLng) {
         handleGeocodeResult(e.latLng);
       }
     },
+    [handleGeocodeResult]
+  );
+
+  // Handle marker drag
+  const onMarkerDragEnd = useCallback(
+    (e: google.maps.MapMouseEvent) => {
+      if (e.latLng) {
+        const lat = e.latLng.lat();
+        const lng = e.latLng.lng();
+        setMarkerPosition({ lat, lng });
+
+        // Reverse geocode new position
+        new window.google.maps.Geocoder()
+          .geocode({ location: e.latLng })
+          .then((response) => {
+            if (response.results?.[0]) {
+              const locationData = extractLocationData(
+                response.results[0],
+                lat,
+                lng
+              );
+              onLocationChange(locationData.formattedAddress);
+              onLocationSelect?.(locationData);
+            }
+          });
+      }
+      setAnimate(true);
+    },
     [onLocationChange, onLocationSelect]
   );
+
+  // Setup autocomplete with Sri Lanka restrictions
+  const onAutocompleteLoad = useCallback(
+    (autocompleteInstance: google.maps.places.Autocomplete) => {
+      setAutocomplete(autocompleteInstance);
+      autocompleteInstance.setComponentRestrictions({ country: "lk" });
+      autocompleteInstance.setBounds(
+        new google.maps.LatLngBounds(
+          new google.maps.LatLng(SRI_LANKA_BOUNDS.south, SRI_LANKA_BOUNDS.west),
+          new google.maps.LatLng(SRI_LANKA_BOUNDS.north, SRI_LANKA_BOUNDS.east)
+        )
+      );
+    },
+    []
+  );
+
+  // Initialize map with selected coordinates once
+  useEffect(() => {
+    if (mapLoaded && selectedCoordinates && !hasInitialized.current) {
+      const { latitude, longitude } = selectedCoordinates;
+      const latLng = new google.maps.LatLng(latitude, longitude);
+      handleGeocodeResult(latLng);
+      hasInitialized.current = true;
+    }
+  }, [mapLoaded, selectedCoordinates, handleGeocodeResult]);
 
   return (
     <LoadScript
@@ -145,27 +224,19 @@ const MapSelectorComponent: React.FC<MapSelectorProps> = ({
           </h3>
         )}
         <div className="space-y-4">
+          {/* Search Input */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               {label} {required && <span className="text-red-500">*</span>}
             </label>
+
             <Autocomplete
-              onLoad={(autocomplete) => {
-                setAutocomplete(autocomplete);
-                autocomplete.setComponentRestrictions({ country: "lk" });
-                autocomplete.setBounds(
-                  new google.maps.LatLngBounds(
-                    new google.maps.LatLng(5.919, 79.5212),
-                    new google.maps.LatLng(9.8356, 81.8795)
-                  )
-                );
-              }}
+              onLoad={onAutocompleteLoad}
               onPlaceChanged={onPlaceChanged}
               fields={["formatted_address", "geometry", "name"]}
             >
               <div className="relative">
                 <input
-                  ref={searchInputRef}
                   type="text"
                   value={location}
                   onChange={(e) => onLocationChange(e.target.value)}
@@ -189,48 +260,75 @@ const MapSelectorComponent: React.FC<MapSelectorProps> = ({
             )}
           </div>
 
+          {/* Map Container */}
           <div>
             <div className="w-full h-48 border border-gray-300 rounded-lg overflow-hidden">
               <GoogleMap
                 mapContainerStyle={{ width: "100%", height: "100%" }}
-                center={
-                  selectedCoordinates
-                    ? {
-                        lat: selectedCoordinates.latitude,
-                        lng: selectedCoordinates.longitude,
-                      }
-                    : { lat: 7.8731, lng: 80.7718 }
-                }
-                zoom={selectedCoordinates ? 16 : 7}
+                center={markerPosition || DEFAULT_CENTER}
+                zoom={markerPosition ? 16 : 7}
                 onLoad={onMapLoad}
                 onClick={onMapClick}
                 options={{
-                  streetViewControl: false,
+                  disableDefaultUI: true,
+                  zoomControl: true,
+                  draggable: true,
+                  scrollwheel: true,
                   mapTypeControl: false,
                   fullscreenControl: false,
+                  streetViewControl: false,
+                  restriction: {
+                    latLngBounds: {
+                      north: 10.0,
+                      south: 5.8,
+                      east: 82.0,
+                      west: 79.3,
+                    },
+                  },
+                  // styles: lankaTrailsMapStyle,
                 }}
               >
-                {selectedCoordinates && (
+                {/* Draggable Marker */}
+                {mapLoaded && markerPosition && (
                   <Marker
-                    position={{
-                      lat: selectedCoordinates.latitude,
-                      lng: selectedCoordinates.longitude,
-                    }}
+                    position={markerPosition}
                     draggable
-                    onDragEnd={(e) => {
-                      if (e.latLng) {
-                        handleGeocodeResult(e.latLng);
-                      }
+                    animation={
+                      animate ? google.maps.Animation.BOUNCE : undefined
+                    }
+                    title="Drag to set service location"
+                    icon={{
+                      url: "/public/orange-marker.svg",
+                      scaledSize: new window.google.maps.Size(40, 40),
+                      anchor: new window.google.maps.Point(20, 40),
                     }}
+                    onClick={() => setInfoOpen(true)}
+                    onDragStart={() => setAnimate(false)}
+                    onDragEnd={onMarkerDragEnd}
                   />
+                )}
+
+                {/* Info Window */}
+                {infoOpen && markerPosition && (
+                  <InfoWindow
+                    position={markerPosition}
+                    onCloseClick={() => setInfoOpen(false)}
+                  >
+                    <div>
+                      <h4>Service Location</h4>
+                      <p>Drag marker to adjust position</p>
+                    </div>
+                  </InfoWindow>
                 )}
               </GoogleMap>
             </div>
-            {selectedCoordinates && (
+
+            {/* Coordinates Display */}
+            {markerPosition && (
               <div className="mt-2 text-sm text-gray-600">
                 <p>
-                  Coordinates: {selectedCoordinates.latitude.toFixed(6)},{" "}
-                  {selectedCoordinates.longitude.toFixed(6)}
+                  Coordinates: {markerPosition.lat.toFixed(6)},{" "}
+                  {markerPosition.lng.toFixed(6)}
                 </p>
               </div>
             )}
