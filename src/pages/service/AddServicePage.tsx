@@ -33,6 +33,7 @@ const AddServicePage: React.FC = () => {
     data: ServiceFormData,
     files: ImageFiles
   ): Promise<void> => {
+    console.log("Submitting data:", data);
     if (isSubmitting) return; // Prevent double submission
 
     setIsSubmitting(true);

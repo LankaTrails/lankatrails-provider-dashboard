@@ -1,5 +1,6 @@
 import api from "@/api/axiosInstance";
 import type { ImageFiles, ServiceFormData } from "@/types/serviceTypes";
+import { addNewTourGuide } from "@/services/guideService";
 
 //delete an activity service
 export const deleteActivityService = async (id: number): Promise<any> => {
@@ -28,7 +29,7 @@ export const fetchAllActivities = async (
   console.log("fetch all", response.data.data);
   return response.data.data; // Assuming the response contains an array of activities
 }
-
+//Add a new activity service
 export const addNewActivity = async (
   payload: ServiceFormData,
   images: ImageFiles
@@ -105,55 +106,6 @@ export const findGuideById = async (id: any): Promise<any> => {
   }
 }
 
-// Add new tour guide service
-export const addNewTourGuide = async (
-  payload: ServiceFormData,
-  images: ImageFiles
-): Promise<string> => {
-  try {
-    const formData = new FormData();
-
-    // JSON blob for 'service'
-    const serviceBlob = new Blob([JSON.stringify(payload)], {
-      type: 'application/json',
-    });
-    formData.append('service', serviceBlob);
-
-    // Append all images under 'images' key with proper type checking
-    images.serviceImages.forEach((item) => {
-      if (item.file) {
-        console.log("📸 File name:", item.file.name);
-        formData.append(`images`, item.file);
-      }
-    });
-
-    console.log('Adding new tour guide with formData:', formData);
-
-    const response = await api.post('/provider/tour-guide/add', formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
-    });
-
-    return response.data.message;
-  } catch (error: any) {
-    console.error('❌ addNewTourGuide error:', error);
-    if (error.response && error.response.data) {
-      const { code, message, details, userMessage } = error.response.data;
-      throw {
-        code,
-        message,
-        details,
-        userMessage,
-      };
-    }
-
-    throw {
-      message: 'Failed to add new tour guide',
-      code: 'UNKNOWN_ERROR',
-    };
-  }
-};
 
 // Fetch all tour guide services  
 export const fetchAllTourGuides = async (

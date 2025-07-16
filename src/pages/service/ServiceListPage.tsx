@@ -4,7 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Eye, Edit, Star, Package, Plus } from "lucide-react";
 import ProviderTopBar from "@/components/provider/ProviderTopBar";
-import { deleteActivityService, fetchAllActivities } from "@/services/activityService";
+import { deleteActivityService, fetchAllActivities, fetchAllTourGuides } from "@/services/activityService";
 import { useState,useEffect } from "react";
 import { Trash2 } from "lucide-react";
 import ConfirmDeleteModal from "@/components/forms/ConfirmDeleteModal"; // adjust path
@@ -76,14 +76,23 @@ type Activity = {
   // add other properties if needed
 };
 
+type TourGuide = {
+  serviceId: number;
+  serviceName?: string;
+  status: boolean;
+}
 
 const ServiceListPage = () => {
   const { serviceType } = useParams();
   const navigate = useNavigate();
+  //for activities
   const [fetchedActivities, setFetchedActivities] = useState<Activity[]>([]);
+  //for tour guides
+  const [fetchedGuides, setFetchedGuides] = useState<Activity[]>([]);
+  
   const services =
   serviceType === "activity"
-    ? fetchedActivities.map((item, index) => ({
+    ? fetchedActivities.map((item) => ({
         id: item.serviceId, // fallback since serviceId is null
         title: item.serviceName ?? "Untitled Activity",
         type: "Activity",
@@ -92,7 +101,17 @@ const ServiceListPage = () => {
         rating: 2,
         status: item.status ? "active" : "inactive",
       }))
-    : mockServices[serviceType as keyof typeof mockServices] || [];
+    : serviceType === "tour-guides"
+    ? fetchedGuides.map((item)=>({
+      id: item.serviceId,
+        title: item.serviceName ?? "Unnamed Guide",
+        type: "Tour Guide",
+        category: "tour-guide",
+        bookings: "N/A", // replace if real data exists
+        rating: 2,
+        status: item.status ? "active" : "inactive",
+    }))
+    :mockServices[serviceType as keyof typeof mockServices] || [];
 
   const title = formatServiceTitle(serviceType);
 
@@ -103,6 +122,8 @@ const handleDeleteClick = (id:number)=>{
   setSelectedServiceId(id);
   setDeleteModalOpen(true);
 }
+
+
 //doing the backend process for deletion
 const confirmDelete = () => {
   if (selectedServiceId != null) {
@@ -129,16 +150,23 @@ const confirmDelete = () => {
 };
 
 
-  //get all activities to display on the cards
+  //get respective services based on each category
   useEffect(() => {
-  const loadActivities = async () => {
-    const result = await fetchAllActivities(0, 3);
-    console.log("Fetched activities", result);
-    setFetchedActivities(result.content);
+  const loadServices = async () => {
+    if(serviceType == "activity"){
+        const result = await fetchAllActivities(0, 3);
+        console.log("Fetched activities", result);
+        setFetchedActivities(result.content);
+    }else if(serviceType == "tour-guides"){
+        const result = await fetchAllTourGuides(0, 3);
+        console.log("Fetched guides", result);
+        setFetchedGuides(result.content);
+    }
+    
   };
 
-  loadActivities();
-}, []);
+  loadServices();
+}, [serviceType]);
 
   return (
     <div className="space-y-6">
