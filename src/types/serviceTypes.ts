@@ -1,10 +1,3 @@
-// types/service.ts
-export interface ImageFile {
-    id: string;
-    file: File;
-    url: string;
-}
-
 export interface TabData {
     id: string;
     heading: string;
@@ -19,37 +12,48 @@ export interface PolicyData {
     isExpanded: boolean;
 }
 
-export interface ServiceFormData {
-    serviceName: string;
-    location: string;
-    city: string | null;
-    district: string | null;
-    province: string | null;
-    country: string | null;
-    postalCode: string | null;
-    description: string;
-    category: string;
-    price: string;
-    duration: string;
-    capacity: string;
-    contactPhone: string;
-    contactEmail: string;
-    website: string;
-    startDate: string;
-    endDate: string;
-    features: string[];
-    notes: string;
-    latitude?: number;
-    longitude?: number;
+export interface LocationBased {
+  formattedAddress: string;
+  city: string;
+  district: string;
+  province: string;
+  country: string;
+  postalCode: string;
+  latitude: number;
+  longitude: number;
 }
 
-export interface LocationData {
-    formattedAddress: string;
-    city: string | null;
-    district: string | null;
-    province: string | null;
-    country: string | null;
-    postalCode: string | null;
-    latitude: number;
-    longitude: number;
+export interface TabSection {
+  heading: string;
+  content: string;
+}
+
+export interface PolicySection {
+  heading: string;
+  policy: string;
+}
+
+export interface ImageData {
+  imageUrl: string;
+}
+
+export interface ImageFile {
+    id: string;
+    file: File;
+    url: string;
+}
+
+export interface ServiceFormData {
+  serviceName: string;
+  locationBased: LocationBased;
+  contactNo: string;
+  status: boolean;
+  activityType: string;
+  activityDetails: string;
+  safetyInstructions: string;
+  tabsSection: TabSection[];
+  policySection: PolicySection[];
+  images: ImageData[];
+  serviceAreas: string[];
+  languages: string[];
 }

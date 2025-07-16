@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Calendar, DollarSign, Users, Phone, Mail, Globe } from "lucide-react";
 import InputField from "@/components/forms/InputField";
 import SelectField from "@/components/forms/SelectField";
@@ -7,98 +7,169 @@ import ImageUploadComponent from "@/components/forms/ImageUploadComponent";
 import MapSelectorComponent from "@/components/forms/MapSelectorComponent";
 import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
+import MultiSelectField from "./forms/MultiSelectField";
+import TextAreaField from "./forms/TextAreaField";
 
 import type {
-  ImageFile,
+  ImageData,
+  TabSection,
+  PolicySection,
+  ServiceFormData,
+  LocationBased,
   TabData,
   PolicyData,
-  ServiceFormData,
-  LocationData,
+  ImageFile,
 } from "@/types/serviceTypes";
+import { Value } from "@radix-ui/react-select";
+import { fetchAllPolicies } from "@/services/activityService";
 
 interface ServiceFormProps {
+  serviceType?: string; // Optional category prop for filtering or categorization
   initialData?: ServiceFormData;
-  initialImages?: ImageFile[];
-  initialTabs?: TabData[];
-  initialPolicies?: PolicyData[];
-  onSubmit: (data: {
-    formData: ServiceFormData;
-    images: ImageFile[];
-    tabs: TabData[];
-    policies: PolicyData[];
-  }) => void;
+  images?: ImageFile[]; // Optional initial images
+  onSubmit: (
+    data: ServiceFormData,
+    images: ImageFile[] | undefined // Adjusted to accept both ImageData and ImageFile
+  ) => void;
 }
-
-const categories = [
-  { value: "accommodation", label: "Accommodation" },
-  { value: "transportation", label: "Transportation" },
-  { value: "adventure", label: "Adventure Sports" },
-  { value: "cultural", label: "Cultural Tours" },
-  { value: "food", label: "Food & Dining" },
-  { value: "shopping", label: "Shopping" },
-  { value: "entertainment", label: "Entertainment" },
-  { value: "wellness", label: "Wellness & Spa" },
-];
+type OptionType = { label: string ,content: string, value: string };
 
 const NewServiceForm: React.FC<ServiceFormProps> = ({
+  serviceType,
   initialData,
-  initialImages = [],
-  initialTabs = [{ id: "1", heading: "", description: "", isExpanded: true }],
-  initialPolicies = [
-    { id: "1", heading: "", description: "", isExpanded: true },
-  ],
   onSubmit,
 }) => {
-  const [images, setImages] = useState<ImageFile[]>(initialImages);
+  const [images, setImages] = useState<ImageFile[]>(
+    initialData?.images?.map((img) => ({
+      id: Math.random().toString(36).substr(2, 9),
+      file: new File([], img.imageUrl), // Placeholder, actual file handling should be done
+      url: img.imageUrl,
+    })) || []
+  );
+
   const [selectedImageIndex, setSelectedImageIndex] = useState<number>(0);
+
   const [selectedCoordinates, setSelectedCoordinates] = useState<
     { latitude: number; longitude: number } | undefined
   >(
-    initialData?.latitude && initialData?.longitude
+    initialData?.locationBased?.latitude &&
+      initialData?.locationBased?.longitude
       ? {
-          latitude: initialData.latitude,
-          longitude: initialData.longitude,
+          latitude: initialData.locationBased.latitude,
+          longitude: initialData.locationBased.longitude,
         }
       : undefined
   );
+  
+const [policyOptions, setPolicyOptions] = useState<OptionType[]>([]);
+const [preferredPolicies, setPreferredPolicies] = useState<string[]>([]);
+
+useEffect(() => {
+  const loadPolicies = async () => {
+    try {
+      const policies = await fetchAllPolicies();
+      console.log("Policies:", policies);
+      
+      const options = policies.map((p: any) => ({
+        label: p.heading,
+        value: p.id.toString(), // Assuming each policy has a unique id
+        content: p.policy,
+      }));
+      
+      setPolicyOptions(options);
+      
+      // If you want to preselect some options, do it here:
+      // setPreferredPolicies(['1']); // Example: preselect option with value "1"
+    } catch (error) {
+      console.error("Failed to load policies", error);
+    }
+  };
+  loadPolicies();
+}, []);
+
+//look at preferredPolicies to see if it has any changes
+useEffect(()=>{
+  const selectedPolicyObjects = policyOptions
+    .filter((option)=> preferredPolicies.includes(option.value))
+    .map((option)=>({
+      id:option.value,
+      heading: option.label,
+      description: option.content,
+      isExpanded: true, // Default to expanded
+    }));
+    setPolicySection(selectedPolicyObjects);
+    const backendPolicies:PolicySection[]= selectedPolicyObjects.map(
+      ({ heading, description }) => ({
+        heading,
+        policy: description,
+      })
+    );
+    setFormData((prev) => ({
+      ...prev,
+      policySection: backendPolicies,
+    }));
+}, [preferredPolicies, policyOptions]);
+
 
   const [formData, setFormData] = useState<ServiceFormData>(
     initialData || {
       serviceName: "",
-      location: "",
-      city: null,
-      district: null,
-      province: null,
-      country: null,
-      postalCode: null,
-      description: "",
-      category: "",
-      price: "",
-      duration: "",
-      capacity: "",
-      contactPhone: "",
-      contactEmail: "",
-      website: "",
-      startDate: "",
-      endDate: "",
-      features: [],
-      notes: "",
-      latitude: undefined,
-      longitude: undefined,
+      locationBased: {
+        formattedAddress: "",
+        city: "",
+        district: "",
+        province: "",
+        country: "",
+        postalCode: "",
+        latitude: 0,
+        longitude: 0,
+      },
+      contactNo: "",
+      status: true,
+      activityType: "",
+      activityDetails: "",
+      safetyInstructions: "",
+      tabsSection: [{ heading: "", content: "" }],
+      policySection: [{ heading: "", policy: "" }],
+      images: [{ imageUrl: "" }],
+      serviceAreas: [],
+      languages: [],
     }
   );
+  const [preferredLanguages, setPreferredLanguages] = useState<string[]>(
+    initialData?.languages ? initialData.languages : []
+  );
+  const [preferredDistricts, setPreferredDistricts] = useState<string[]>(
+    initialData?.serviceAreas ? initialData.serviceAreas : []
+  );
+  const [tabsSection, setTabsSection] = useState<TabData[]>(
+    (initialData?.tabsSection || [{ heading: "", content: "" }]).map((tab) => ({
+      id: Math.random().toString(36).substr(2, 9),
+      heading: tab.heading,
+      description: tab.content,
+      isExpanded: true,
+    }))
+  );
 
-  const [tabs, setTabs] = useState<TabData[]>(initialTabs);
-  const [policies, setPolicies] = useState<PolicyData[]>(initialPolicies);
+  const [policySection, setPolicySection] = useState<PolicyData[]>(
+    (initialData?.policySection || [{ heading: "", policy: "" }]).map(
+      (policy) => ({
+        id: Math.random().toString(36).substr(2, 9),
+        heading: policy.heading,
+        description: policy.policy,
+        isExpanded: true,
+      })
+    )
+  );
 
-  const handleInputChange = (field: keyof ServiceFormData, value: string) => {
+  const handleInputChange = (field: keyof ServiceFormData, value: any) => {
     setFormData((prev) => ({
       ...prev,
       [field]: value,
     }));
   };
 
-  const handleLocationSelect = (locationData: LocationData) => {
+  const handleLocationSelect = (locationData: LocationBased) => {
     setSelectedCoordinates({
       latitude: locationData.latitude,
       longitude: locationData.longitude,
@@ -106,20 +177,88 @@ const NewServiceForm: React.FC<ServiceFormProps> = ({
 
     setFormData((prev) => ({
       ...prev,
-      location: locationData.formattedAddress,
-      latitude: locationData.latitude,
-      longitude: locationData.longitude,
-      city: locationData.city,
-      district: locationData.district,
-      province: locationData.province,
-      country: locationData.country,
-      postalCode: locationData.postalCode,
+      locationBased: locationData,
     }));
   };
 
-  const handleSubmit = () => {
-    onSubmit({ formData, images, tabs, policies });
+  const handleTabsChange = (tabs: TabData[]) => {
+    setTabsSection(tabs); // for UI
+    const backendTabs: TabSection[] = tabs.map(({ heading, description }) => ({
+      heading,
+      content: description,
+    }));
+    setFormData((prev) => ({
+      ...prev,
+      tabsSection: backendTabs,
+    }));
   };
+
+  const handlePoliciesChange = (policies: PolicyData[]) => {
+    setPolicySection(policies); // for UI
+    const backendPolicies: PolicySection[] = policies.map(
+      ({ heading, description }) => ({
+        heading,
+        policy: description,
+      })
+    );
+    setFormData((prev) => ({
+      ...prev,
+      policySection: backendPolicies,
+    }));
+  };
+
+  const handleImagesChange = (imgs: ImageFile[]) => {
+    setImages(imgs); // for UI
+  };
+
+  const handleSubmit = () => {
+    const updatedData: ServiceFormData = {
+      ...formData,
+      // languages: preferredLanguages, // Use as array
+      serviceAreas: preferredDistricts, // Always use array of strings
+    };
+
+    onSubmit(updatedData, images);
+  };
+
+  const languageOptions = [
+    { value: "en", label: "English" },
+    { value: "si", label: "Sinhala" },
+    { value: "ta", label: "Tamil" },
+    { value: "fr", label: "French" },
+    { value: "de", label: "German" },
+    { value: "es", label: "Spanish" },
+    { value: "zh", label: "Chinese" },
+  ];
+
+  const districtOptions = [
+    { value: "islandWide", label: "Island Wide" },
+    { value: "ampara", label: "Ampara" },
+    { value: "anuradhapura", label: "Anuradhapura" },
+    { value: "badulla", label: "Badulla" },
+    { value: "batticaloa", label: "Batticaloa" },
+    { value: "colombo", label: "Colombo" },
+    { value: "galle", label: "Galle" },
+    { value: "gampaha", label: "Gampaha" },
+    { value: "hambantota", label: "Hambantota" },
+    { value: "jaffna", label: "Jaffna" },
+    { value: "kalutara", label: "Kalutara" },
+    { value: "kandy", label: "Kandy" },
+    { value: "kegalle", label: "Kegalle" },
+    { value: "kilinochchi", label: "Kilinochchi" },
+    { value: "kurunegala", label: "Kurunegala" },
+    { value: "mannar", label: "Mannar" },
+    { value: "matale", label: "Matale" },
+    { value: "matara", label: "Matara" },
+    { value: "monaragala", label: "Monaragala" },
+    { value: "mullaitivu", label: "Mullaitivu" },
+    { value: "nuwara_eliya", label: "Nuwara Eliya" },
+    { value: "polonnaruwa", label: "Polonnaruwa" },
+    { value: "puttalam", label: "Puttalam" },
+    { value: "ratnapura", label: "Ratnapura" },
+    { value: "trincomalee", label: "Trincomalee" },
+    { value: "vavuniya", label: "Vavuniya" },
+  ];
 
   return (
     <div className="space-y-6">
@@ -127,153 +266,165 @@ const NewServiceForm: React.FC<ServiceFormProps> = ({
         <div className="space-y-6">
           <ImageUploadComponent
             images={images}
-            onImagesChange={setImages}
+            onImagesChange={handleImagesChange}
             selectedImageIndex={selectedImageIndex}
             onSelectedImageChange={setSelectedImageIndex}
           />
-
-          <div className="bg-gray-50 p-4 rounded-lg">
-            <h3 className="text-lg font-semibold text-gray-700 mb-4">
-              Basic Information
-            </h3>
-            <div className="space-y-4">
+          {serviceType == "activity" && (
+            <div className="bg-gray-50 p-4 rounded-lg">
+              <h3 className="text-lg font-semibold text-gray-700 mb-4">
+                Basic Information
+              </h3>
               <InputField
-                label="Service Name"
+                label="Name of Activity Service"
                 value={formData.serviceName}
                 onChange={(value) => handleInputChange("serviceName", value)}
-                placeholder="Enter service name"
+                placeholder="Enter tour guide name"
                 required
               />
-
               <SelectField
-                label="Category"
-                value={formData.category}
-                onChange={(value) => handleInputChange("category", value)}
-                options={categories}
-                placeholder="Select category"
+                label="Activity Category"
+                options={[
+                  { value: "adventure", label: "Adventure" },
+                  { value: "water_sports", label: "Water Sports" },
+                  { value: "hiking", label: "Hiking & Trekking" },
+                  { value: "safari", label: "Safari Tours" },
+                ]}
+                value={formData.activityType}
+                onChange={(value) => handleInputChange("activityType", value)}
                 required
               />
+              <InputField
+                label="Activity Details"
+                value={formData.activityDetails}
+                onChange={(value) =>
+                  handleInputChange("activityDetails", value)
+                }
+                placeholder="Enter activity details"
+              />
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Description
-                </label>
-                <ReactQuill
-                  value={formData.description}
-                  onChange={(value) => handleInputChange("description", value)}
-                  placeholder="Enter service description"
+              <TextAreaField
+                label="Safety Instructions"
+                value={formData.safetyInstructions}
+                onChange={(value) =>
+                  handleInputChange("safetyInstructions", value)
+                }
+                placeholder="Enter safety instructions"
+                rows={4}
+              />
+            </div>
+          )}
+
+          {/* Activity Service Provider */}
+
+          <div className="bg-gray-50 p-4 rounded-lg w-full">
+            {/* <h3 className="text-lg font-semibold text-gray-700 mb-4">
+              Basic Information
+            </h3> */}
+            {serviceType == "tour-guides" && (
+              <div className="space-y-4">
+                        
+          
+            {/* <div>
+                <MultiSelectField
+                label="Select Policies"
+                options={policyOptions}
+                value={preferredPolicies}
+                onChange={setPreferredPolicies}
+                required
+                icon={<Globe size={16} />}
                 />
+            </div> */}
+         
+        
+        
+        
               </div>
-            </div>
-          </div>
+            )}
+            {/* <div className="space-y-4"> */}
+              
 
-          <div className="bg-gray-50 p-4 rounded-lg">
-            <h3 className="text-lg font-semibold text-gray-700 mb-4">
-              Pricing & Capacity
-            </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <InputField
-                label="Price ($)"
-                value={formData.price}
-                onChange={(value) => handleInputChange("price", value)}
-                type="number"
-                placeholder="0.00"
-                icon={<DollarSign className="h-4 w-4 text-gray-400" />}
-              />
-
-              <InputField
-                label="Duration"
-                value={formData.duration}
-                onChange={(value) => handleInputChange("duration", value)}
-                placeholder="e.g., 2 hours, 1 day"
-              />
-
-              <InputField
-                label="Capacity"
-                value={formData.capacity}
-                onChange={(value) => handleInputChange("capacity", value)}
-                placeholder="Maximum number of people"
-                icon={<Users className="h-4 w-4 text-gray-400" />}
-                className="md:col-span-2"
-              />
-            </div>
+             
+            {/* </div> */}
           </div>
         </div>
 
-        <div className="space-y-6">
-          <MapSelectorComponent
-            location={formData.location}
-            onLocationChange={(value) => handleInputChange("location", value)}
-            onLocationSelect={handleLocationSelect}
-            selectedCoordinates={selectedCoordinates}
-          />
+        <div className="space-y-0">
+          {serviceType == "activity" && (
+            <MapSelectorComponent
+              location={formData.locationBased.formattedAddress}
+              onLocationChange={(value) =>
+                handleInputChange("locationBased", {
+                  ...formData.locationBased,
+                  formattedAddress: value,
+                })
+              }
+              onLocationSelect={handleLocationSelect}
+              selectedCoordinates={selectedCoordinates}
+            />
+          )}
 
           <div className="bg-gray-50 p-4 rounded-lg">
-            <h3 className="text-lg font-semibold text-gray-700 mb-4">
+            {serviceType == "tour-guides" && (
+              <div className="space-y-4">
+                <InputField
+                  label="Name of Tour Guide"
+                  value={formData.serviceName}
+                  onChange={(value) => handleInputChange("serviceName", value)}
+                  placeholder="Enter tour guide name"
+                  required
+                />
+              </div>
+            )}
+            {serviceType == "tour-guides" && (
+              <>
+                <SelectField
+                  label="Guiding Category"
+                  options={[
+                    { value: "national", label: "National" },
+                    { value: "chauffer", label: "Chauffeur" },
+                    { value: "site", label: "Site" },
+                    { value: "area", label: "Area" },
+                  ]}
+                  value={formData.activityType}
+                  onChange={(value) => handleInputChange("activityType", value)}
+                  required
+                />
+              </>
+            )}
+            {serviceType == "tour-guides" && (
+              <MultiSelectField
+                label="Service Areas"
+                options={districtOptions}
+                value={preferredDistricts}
+                onChange={setPreferredDistricts}
+                required
+                icon={<Globe size={16} />}
+              />
+            )}
+            {serviceType == "tour-guides" && (
+              <MultiSelectField
+                label="Preferred Languages"
+                options={languageOptions}
+                value={preferredLanguages}
+                onChange={setPreferredLanguages}
+                required
+                icon={<Globe size={16} />}
+              />
+            )}
+            {/* <h3 className="text-lg font-semibold text-gray-700 mb-4 mt-5">
               Contact Information
-            </h3>
+            </h3> */}
             <div className="space-y-4">
               <InputField
                 label="Phone Number"
-                value={formData.contactPhone}
-                onChange={(value) => handleInputChange("contactPhone", value)}
+                value={formData.contactNo}
+                onChange={(value) => handleInputChange("contactNo", value)}
                 type="tel"
                 placeholder="+94 xxx xxx xxxx"
-                icon={<Phone className="h-4 w-4 text-gray-400" />}
               />
-
-              <InputField
-                label="Email"
-                value={formData.contactEmail}
-                onChange={(value) => handleInputChange("contactEmail", value)}
-                type="email"
-                placeholder="contact@example.com"
-                icon={<Mail className="h-4 w-4 text-gray-400" />}
-              />
-
-              <InputField
-                label="Website"
-                value={formData.website}
-                onChange={(value) => handleInputChange("website", value)}
-                type="url"
-                placeholder="https://example.com"
-                icon={<Globe className="h-4 w-4 text-gray-400" />}
-              />
+               
             </div>
-          </div>
-
-          <div className="bg-gray-50 p-4 rounded-lg">
-            <h3 className="text-lg font-semibold text-gray-700 mb-4">
-              Availability
-            </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <InputField
-                label="Start Date"
-                value={formData.startDate}
-                onChange={(value) => handleInputChange("startDate", value)}
-                type="date"
-                icon={<Calendar className="h-4 w-4 text-gray-400" />}
-              />
-
-              <InputField
-                label="End Date"
-                value={formData.endDate}
-                onChange={(value) => handleInputChange("endDate", value)}
-                type="date"
-                icon={<Calendar className="h-4 w-4 text-gray-400" />}
-              />
-            </div>
-          </div>
-
-          <div className="bg-gray-50 p-4 rounded-lg">
-            <h3 className="text-lg font-semibold text-gray-700 mb-4">
-              Additional Notes
-            </h3>
-            <ReactQuill
-              value={formData.notes}
-              onChange={(value) => handleInputChange("notes", value)}
-              placeholder="Any additional information or special instructions"
-            />
           </div>
         </div>
       </div>
@@ -281,19 +432,33 @@ const NewServiceForm: React.FC<ServiceFormProps> = ({
       <div className="mt-8 grid grid-cols-1 lg:grid-cols-2 gap-8">
         <ExpandableSectionComponent
           title="Tabs"
-          items={tabs}
-          onItemsChange={setTabs}
+          items={tabsSection}
+          onItemsChange={handleTabsChange}
           addButtonText="Add Tab"
           itemName="Tab"
         />
+        <div>
+  
+        {serviceType == "activity" && (
+                <MultiSelectField
+                  label="Available Policies"
+                  options={policyOptions}
+                  value={preferredPolicies}
+                  onChange={setPreferredPolicies}
+                  required
+                  icon={<Globe size={16} />}
+                />
+              )
 
+              }
         <ExpandableSectionComponent
           title="Policies"
-          items={policies}
-          onItemsChange={setPolicies}
+          items={policySection}
+          onItemsChange={handlePoliciesChange}
           addButtonText="Add Policy"
           itemName="Policy"
         />
+        </div>
       </div>
 
       <div className="mt-8 flex justify-end">

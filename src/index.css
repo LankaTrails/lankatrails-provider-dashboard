@@ -101,3 +101,20 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* for the AlertToast Component */
+/* Slide in from left bottom corner */
+@keyframes slide-in {
+  from {
+    transform: translateX(-200%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.animate-slide-in {
+  animation: slide-in 0.4s ease-out forwards;
+}

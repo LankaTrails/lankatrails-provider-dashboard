@@ -6,9 +6,10 @@ import {
   Marker,
   InfoWindow,
 } from "@react-google-maps/api";
-import { Search } from "lucide-react";
+import { Search, AlertCircle } from "lucide-react";
 import type { LocationData } from "@/types/serviceTypes";
 import { lankaTrailsMapStyle } from "@/utils/MapStyles";
+import type { n } from "node_modules/framer-motion/dist/types.d-B_QPEvFK";
 
 // Configuration constants
 const libraries: ("places" | "geocoding")[] = ["places", "geocoding"];
@@ -23,8 +24,12 @@ const SRI_LANKA_BOUNDS = {
 interface MapSelectorProps {
   location: string;
   onLocationChange: (location: string) => void;
-  onLocationSelect?: (locationData: LocationData) => void;
+  onLocationSelect?: (locationData: LocationBased) => void;
   selectedCoordinates?: { latitude: number; longitude: number };
+  error?: string;
+  label?: string | null;
+  required?: boolean;
+  heading?: string | null;
 }
 
 const MapSelectorComponent: React.FC<MapSelectorProps> = ({
@@ -32,6 +37,10 @@ const MapSelectorComponent: React.FC<MapSelectorProps> = ({
   onLocationChange,
   onLocationSelect,
   selectedCoordinates,
+  error,
+  label,
+  required = false,
+  heading = null,
 }) => {
   // State management
   const [autocomplete, setAutocomplete] =
@@ -53,7 +62,7 @@ const MapSelectorComponent: React.FC<MapSelectorProps> = ({
     result: google.maps.GeocoderResult,
     lat: number,
     lng: number
-  ): LocationData => {
+  ): LocationBased => {
     const components = result.address_components;
     const getComponent = (type: string) =>
       components.find((c) => c.types.includes(type))?.long_name || null;
@@ -63,11 +72,11 @@ const MapSelectorComponent: React.FC<MapSelectorProps> = ({
       city:
         getComponent("locality") ||
         getComponent("sublocality") ||
-        getComponent("administrative_area_level_2"),
-      district: getComponent("administrative_area_level_2"),
-      province: getComponent("administrative_area_level_1"),
-      country: getComponent("country"),
-      postalCode: getComponent("postal_code"),
+        getComponent("administrative_area_level_2")|| "",
+      district: getComponent("administrative_area_level_2") || "",
+      province: getComponent("administrative_area_level_1") || "",
+      country: getComponent("country") || "",
+      postalCode: getComponent("postal_code") || "",
       latitude: lat,
       longitude: lng,
     };
@@ -208,14 +217,17 @@ const MapSelectorComponent: React.FC<MapSelectorProps> = ({
       libraries={libraries}
       region="lk"
     >
-      <div className="bg-gray-50 p-4 rounded-lg">
-        <h3 className="text-lg font-semibold text-gray-700 mb-4">Location</h3>
-
+      <div className="bg-transparent rounded-lg">
+        {heading && (
+          <h3 className="text-lg font-semibold text-gray-700 mb-4">
+            {heading}
+          </h3>
+        )}
         <div className="space-y-4">
           {/* Search Input */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Location <span className="text-red-500">*</span>
+              {label} {required && <span className="text-red-500">*</span>}
             </label>
 
             <Autocomplete
@@ -228,7 +240,11 @@ const MapSelectorComponent: React.FC<MapSelectorProps> = ({
                   type="text"
                   value={location}
                   onChange={(e) => onLocationChange(e.target.value)}
-                  className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-400"
+                  className={`w-full px-3 py-2 pr-10 border rounded-md focus:outline-none focus:ring-2 ${
+                    error
+                      ? "border-red-500 focus:ring-red-400"
+                      : "border-gray-300 focus:ring-primary-400"
+                  }`}
                   placeholder="Search places in Sri Lanka"
                 />
                 <div className="absolute right-3 top-2.5">
@@ -236,11 +252,17 @@ const MapSelectorComponent: React.FC<MapSelectorProps> = ({
                 </div>
               </div>
             </Autocomplete>
+            {error && (
+              <div className="flex items-center gap-2 text-sm text-red-600  p-3 rounded-md">
+                <AlertCircle size={16} />
+                <span>{error}</span>
+              </div>
+            )}
           </div>
 
           {/* Map Container */}
           <div>
-            <div className="w-full h-72 border border-gray-300 rounded-lg overflow-hidden">
+            <div className="w-full h-48 border border-gray-300 rounded-lg overflow-hidden">
               <GoogleMap
                 mapContainerStyle={{ width: "100%", height: "100%" }}
                 center={markerPosition || DEFAULT_CENTER}
