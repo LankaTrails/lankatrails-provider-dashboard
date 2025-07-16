@@ -10,6 +10,7 @@ const tabs = [
   { label: "Transportation Services", slug: "transportation" },
   { label: "Food & Beverage Services", slug: "food-beverage" },
   { label: "Accommodation Providers", slug: "accommodation" },
+  { label: "Profile", slug: "profile" },
   { label: "Messages", slug: "messages" },
   { label: "Analytics", slug: "analytics" },
 ];
