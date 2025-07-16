@@ -14,7 +14,7 @@ const libraries: ("places" | "geocoding")[] = ["places", "geocoding"];
 interface MapSelectorProps {
   location: string;
   onLocationChange: (location: string) => void;
-  onLocationSelect?: (locationData: LocationBased) => void;
+  onLocationSelect?: (locationData: LocationData) => void;
   selectedCoordinates?: { latitude: number; longitude: number };
   error?: string;
   label?: string | null;
@@ -42,7 +42,7 @@ const MapSelectorComponent: React.FC<MapSelectorProps> = ({
     result: google.maps.GeocoderResult,
     lat: number,
     lng: number
-  ): LocationBased => {
+  ): LocationData => {
     const components = result.address_components;
 
     const getComponent = (type: string) =>

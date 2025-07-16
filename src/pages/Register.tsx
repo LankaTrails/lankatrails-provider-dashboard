@@ -59,7 +59,7 @@ const businessTypes: BusinessType[] = [
 const categories: Category[] = [
   { label: "Activity", value: "ACTIVITY" },
   { label: "Accommodation", value: "ACCOMMODATION" },
-  { label: "Food & Beverages", value: "FOOD_BEVERAGES" },
+  { label: "Food & Beverages", value: "FOOD_BEVERAGE" },
   { label: "Transport", value: "TRANSPORT" },
   { label: "Tour Guides", value: "TOUR_GUIDES" },
 ];
@@ -356,7 +356,7 @@ const RegisterProvider: React.FC = () => {
       const activityApprovalStatus = licenseCategories.has("ACTIVITY")
         ? "PENDING"
         : "NOT_REQUESTED";
-      const foodApprovalStatus = licenseCategories.has("FOOD_BEVERAGES")
+      const foodApprovalStatus = licenseCategories.has("FOOD_BEVERAGE")
         ? "PENDING"
         : "NOT_REQUESTED";
 

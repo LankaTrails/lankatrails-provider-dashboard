@@ -1,51 +1,35 @@
 import React, { useEffect, useState } from "react";
-import { Calendar, DollarSign, Users, Phone, Mail, Globe } from "lucide-react";
+import { Globe } from "lucide-react";
 import InputField from "@/components/forms/InputField";
 import SelectField from "@/components/forms/SelectField";
 import ExpandableSectionComponent from "@/components/forms/ExpandableSectionComponent";
 import ImageUploadComponent from "@/components/forms/ImageUploadComponent";
 import MapSelectorComponent from "@/components/forms/MapSelectorComponent";
-import ReactQuill from "react-quill";
-import "react-quill/dist/quill.snow.css";
 import MultiSelectField from "./forms/MultiSelectField";
 import TextAreaField from "./forms/TextAreaField";
 
 import type {
-  ImageData,
   TabSection,
   PolicySection,
   ServiceFormData,
-  LocationBased,
+  LocationData,
   TabData,
   PolicyData,
-  ImageFile,
+  ImageFiles,
+  OptionType,
+  ServiceFormProps,
 } from "@/types/serviceTypes";
-import { Value } from "@radix-ui/react-select";
 import { fetchAllPolicies } from "@/services/activityService";
-
-interface ServiceFormProps {
-  serviceType?: string; // Optional category prop for filtering or categorization
-  initialData?: ServiceFormData;
-  images?: ImageFile[]; // Optional initial images
-  onSubmit: (
-    data: ServiceFormData,
-    images: ImageFile[] | undefined // Adjusted to accept both ImageData and ImageFile
-  ) => void;
-}
-type OptionType = { label: string ,content: string, value: string };
 
 const NewServiceForm: React.FC<ServiceFormProps> = ({
   serviceType,
+  initialImages,
   initialData,
   onSubmit,
 }) => {
-  const [images, setImages] = useState<ImageFile[]>(
-    initialData?.images?.map((img) => ({
-      id: Math.random().toString(36).substr(2, 9),
-      file: new File([], img.imageUrl), // Placeholder, actual file handling should be done
-      url: img.imageUrl,
-    })) || []
-  );
+  const [images, setImages] = useState<ImageFiles>({
+    serviceImages: initialImages || [], // Initialize with initialImages if provided, otherwise an empty array
+  });
 
   const [selectedImageIndex, setSelectedImageIndex] = useState<number>(0);
 
@@ -60,45 +44,41 @@ const NewServiceForm: React.FC<ServiceFormProps> = ({
         }
       : undefined
   );
-  
-const [policyOptions, setPolicyOptions] = useState<OptionType[]>([]);
-const [preferredPolicies, setPreferredPolicies] = useState<string[]>([]);
 
-useEffect(() => {
-  const loadPolicies = async () => {
-    try {
-      const policies = await fetchAllPolicies();
-      console.log("Policies:", policies);
-      
-      const options = policies.map((p: any) => ({
-        label: p.heading,
-        value: p.id.toString(), // Assuming each policy has a unique id
-        content: p.policy,
+  const [policyOptions, setPolicyOptions] = useState<OptionType[]>([]);
+  const [preferredPolicies, setPreferredPolicies] = useState<string[]>([]);
+
+  useEffect(() => {
+    const loadPolicies = async () => {
+      try {
+        const policies = await fetchAllPolicies();
+        console.log("Policies:", policies);
+
+        const options = policies.map((p: any) => ({
+          label: p.heading,
+          value: p.id.toString(), // Assuming each policy has a unique id
+          content: p.policy,
+        }));
+
+        setPolicyOptions(options);
+      } catch (error) {
+        console.error("Failed to load policies", error);
+      }
+    };
+    loadPolicies();
+  }, []);
+
+  useEffect(() => {
+    const selectedPolicyObjects = policyOptions
+      .filter((option) => preferredPolicies.includes(option.value))
+      .map((option) => ({
+        id: option.value,
+        heading: option.label,
+        description: option.content || "", // Provide default empty string
+        isExpanded: true, // Default to expanded
       }));
-      
-      setPolicyOptions(options);
-      
-      // If you want to preselect some options, do it here:
-      // setPreferredPolicies(['1']); // Example: preselect option with value "1"
-    } catch (error) {
-      console.error("Failed to load policies", error);
-    }
-  };
-  loadPolicies();
-}, []);
-
-//look at preferredPolicies to see if it has any changes
-useEffect(()=>{
-  const selectedPolicyObjects = policyOptions
-    .filter((option)=> preferredPolicies.includes(option.value))
-    .map((option)=>({
-      id:option.value,
-      heading: option.label,
-      description: option.content,
-      isExpanded: true, // Default to expanded
-    }));
     setPolicySection(selectedPolicyObjects);
-    const backendPolicies:PolicySection[]= selectedPolicyObjects.map(
+    const backendPolicies: PolicySection[] = selectedPolicyObjects.map(
       ({ heading, description }) => ({
         heading,
         policy: description,
@@ -108,8 +88,7 @@ useEffect(()=>{
       ...prev,
       policySection: backendPolicies,
     }));
-}, [preferredPolicies, policyOptions]);
-
+  }, [preferredPolicies, policyOptions]);
 
   const [formData, setFormData] = useState<ServiceFormData>(
     initialData || {
@@ -131,11 +110,11 @@ useEffect(()=>{
       safetyInstructions: "",
       tabsSection: [{ heading: "", content: "" }],
       policySection: [{ heading: "", policy: "" }],
-      images: [{ imageUrl: "" }],
       serviceAreas: [],
       languages: [],
     }
   );
+
   const [preferredLanguages, setPreferredLanguages] = useState<string[]>(
     initialData?.languages ? initialData.languages : []
   );
@@ -169,7 +148,7 @@ useEffect(()=>{
     }));
   };
 
-  const handleLocationSelect = (locationData: LocationBased) => {
+  const handleLocationSelect = (locationData: LocationData) => {
     setSelectedCoordinates({
       latitude: locationData.latitude,
       longitude: locationData.longitude,
@@ -207,15 +186,15 @@ useEffect(()=>{
     }));
   };
 
-  const handleImagesChange = (imgs: ImageFile[]) => {
-    setImages(imgs); // for UI
+  const handleImagesChange = (imgs: ImageFiles) => {
+    setImages(imgs); // Update current images
   };
 
   const handleSubmit = () => {
     const updatedData: ServiceFormData = {
       ...formData,
-      // languages: preferredLanguages, // Use as array
       serviceAreas: preferredDistricts, // Always use array of strings
+      languages: preferredLanguages, // Update languages field
     };
 
     onSubmit(updatedData, images);
@@ -265,8 +244,10 @@ useEffect(()=>{
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         <div className="space-y-6">
           <ImageUploadComponent
-            images={images}
-            onImagesChange={handleImagesChange}
+            images={images.serviceImages}
+            onImagesChange={(images) =>
+              handleImagesChange({ serviceImages: images })
+            }
             selectedImageIndex={selectedImageIndex}
             onSelectedImageChange={setSelectedImageIndex}
           />
@@ -285,7 +266,7 @@ useEffect(()=>{
               <SelectField
                 label="Activity Category"
                 options={[
-                  { value: "adventure", label: "Adventure" },
+                  { value: "Adventures", label: "Adventure" },
                   { value: "water_sports", label: "Water Sports" },
                   { value: "hiking", label: "Hiking & Trekking" },
                   { value: "safari", label: "Safari Tours" },
@@ -323,9 +304,7 @@ useEffect(()=>{
             </h3> */}
             {serviceType == "tour-guides" && (
               <div className="space-y-4">
-                        
-          
-            {/* <div>
+                {/* <div>
                 <MultiSelectField
                 label="Select Policies"
                 options={policyOptions}
@@ -335,16 +314,10 @@ useEffect(()=>{
                 icon={<Globe size={16} />}
                 />
             </div> */}
-         
-        
-        
-        
               </div>
             )}
             {/* <div className="space-y-4"> */}
-              
 
-             
             {/* </div> */}
           </div>
         </div>
@@ -423,7 +396,6 @@ useEffect(()=>{
                 type="tel"
                 placeholder="+94 xxx xxx xxxx"
               />
-               
             </div>
           </div>
         </div>
@@ -438,26 +410,23 @@ useEffect(()=>{
           itemName="Tab"
         />
         <div>
-  
-        {serviceType == "activity" && (
-                <MultiSelectField
-                  label="Available Policies"
-                  options={policyOptions}
-                  value={preferredPolicies}
-                  onChange={setPreferredPolicies}
-                  required
-                  icon={<Globe size={16} />}
-                />
-              )
-
-              }
-        <ExpandableSectionComponent
-          title="Policies"
-          items={policySection}
-          onItemsChange={handlePoliciesChange}
-          addButtonText="Add Policy"
-          itemName="Policy"
-        />
+          {serviceType == "activity" && (
+            <MultiSelectField
+              label="Available Policies"
+              options={policyOptions}
+              value={preferredPolicies}
+              onChange={setPreferredPolicies}
+              required
+              icon={<Globe size={16} />}
+            />
+          )}
+          <ExpandableSectionComponent
+            title="Policies"
+            items={policySection}
+            onItemsChange={handlePoliciesChange}
+            addButtonText="Add Policy"
+            itemName="Policy"
+          />
         </div>
       </div>
 
