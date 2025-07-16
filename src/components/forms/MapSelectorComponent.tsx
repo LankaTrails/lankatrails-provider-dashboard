@@ -24,7 +24,7 @@ const SRI_LANKA_BOUNDS = {
 interface MapSelectorProps {
   location: string;
   onLocationChange: (location: string) => void;
-  onLocationSelect?: (locationData: LocationBased) => void;
+  onLocationSelect?: (locationData: LocationData) => void;
   selectedCoordinates?: { latitude: number; longitude: number };
   error?: string;
   label?: string | null;
@@ -62,7 +62,7 @@ const MapSelectorComponent: React.FC<MapSelectorProps> = ({
     result: google.maps.GeocoderResult,
     lat: number,
     lng: number
-  ): LocationBased => {
+  ): LocationData => {
     const components = result.address_components;
     const getComponent = (type: string) =>
       components.find((c) => c.types.includes(type))?.long_name || null;
