@@ -40,12 +40,14 @@ const AddServicePage: React.FC = () => {
     try {
       console.log("Add Service Data:", data);
       console.log("Add Service Files:", files);
-
+      
+      
       const result = await addNewService(
         serviceType || "activity",
         data,
         files
       );
+      
       console.log("Response:", result);
 
       setToast({
