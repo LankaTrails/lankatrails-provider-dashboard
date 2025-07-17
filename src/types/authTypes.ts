@@ -1,4 +1,22 @@
+import type { BusinessType } from "./registration";
+
 export type ApprovalStatus = 'NOT_REQUESTED' | 'PENDING' | 'APPROVED' | 'REJECTED';
+
+export interface ContactPerson {
+  name: string;
+  email: string;
+  phoneNumber: string;
+  position: string;
+  identityDocumentUrl: string;
+}
+
+export interface BusinessDetails {
+  providerId: number;
+  businessType: BusinessType;
+  businessRegistrationNumber: string;
+  businessRegistrationUrl: string;
+  contactPerson: ContactPerson;
+}
 
 export interface User {
   id: number;
