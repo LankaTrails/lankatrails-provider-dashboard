@@ -37,10 +37,57 @@ const ProviderTopBar = () => {
       { to: `/provider/analytics/overview`, label: "Overview" },
       { to: `/provider/analytics/performance`, label: "Performance" },
     ];
+  } else if (base === "profile") {
+    links = [
+      { to: `/provider/profile/details`, label: "Profile" },
+      { to: `/provider/profile/contact`, label: "Contact Person" },
+    ];
   } else {
     // Default empty or general links if needed
     links = [];
   }
+
+  // Helper function to determine if a link should be active
+  const shouldLinkBeActive = (
+    link: { to: string; label: string },
+    isActive: boolean
+  ) => {
+    const isBaseUrl = location.pathname === `/provider/${base}`;
+
+    // For service types, make List button active when at base URL or /list
+    if (
+      [
+        "activity",
+        "transportation",
+        "accommodation",
+        "food-beverage",
+        "tour-guides",
+      ].includes(base || "")
+    ) {
+      const isListButton = link.label === "List";
+      return isActive || (isListButton && isBaseUrl);
+    }
+
+    // For messages, make Inbox button active when at base URL or /inbox
+    if (base === "messages") {
+      const isInboxButton = link.label === "Inbox";
+      return isActive || (isInboxButton && isBaseUrl);
+    }
+
+    // For analytics, make Overview button active when at base URL or /overview
+    if (base === "analytics") {
+      const isOverviewButton = link.label === "Overview";
+      return isActive || (isOverviewButton && isBaseUrl);
+    }
+
+    // For profile, make Profile button active when at base URL or /details
+    if (base === "profile") {
+      const isProfileButton = link.label === "Profile";
+      return isActive || (isProfileButton && isBaseUrl);
+    }
+
+    return isActive;
+  };
 
   return (
     <div className="rounded-lg border bg-card sticky top-[72px] z-40">
@@ -50,10 +97,7 @@ const ProviderTopBar = () => {
             key={link.to}
             to={link.to}
             className={({ isActive }) => {
-              // Special handling for List button - make it active when at base URL or /list
-              const isListButton = link.label === "List";
-              const isBaseUrl = location.pathname === `/provider/${base}`;
-              const shouldBeActive = isActive || (isListButton && isBaseUrl);
+              const shouldBeActive = shouldLinkBeActive(link, isActive);
 
               return `py-2 px-3 text-sm font-medium ${
                 shouldBeActive

@@ -24,6 +24,15 @@ export interface ContactPerson {
     email: string;
     phoneNumber: string;
     position: string;
+    identityDocumentUrl?: string;
+}
+
+export interface BusinessDetails {
+    providerId: number;
+    businessType: string;
+    businessRegistrationNumber: string;
+    businessRegistrationUrl: string;
+    contactPerson: ContactPerson;
 }
 
 export interface License {
