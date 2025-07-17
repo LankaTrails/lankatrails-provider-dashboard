@@ -10,6 +10,7 @@ import { Trash2 } from "lucide-react";
 import ConfirmDeleteModal from "@/components/forms/ConfirmDeleteModal"; 
 import { fetchAllTransports } from "@/services/transportationService";
 import { fetchAllAccommodations } from "@/services/accomodation";
+import { fetchAllFoodAndBeverages } from "@/services/FoodBeverage";
 
 
 
@@ -97,6 +98,12 @@ type Accommodation ={
   status:boolean;
 }
 
+type FoodBeverage = {
+  serviceId: number;  
+  serviceName?: string;
+  status: boolean;
+}
+
 const ServiceListPage = () => {
   const { serviceType } = useParams();
   const navigate = useNavigate();
@@ -108,6 +115,8 @@ const ServiceListPage = () => {
   const [fetchedTransports, setFetchedTransports] = useState<Transportation[]>([]);
   //for Accommodation
   const [fetchedAccommodations, setFetchedAccommodations] = useState<Accommodation[]>([]);
+  //for food and beverage
+  const [fetchedFoodBeverages, setFetchedFoodBeverages] = useState<FoodBeverage[]>([]);
   
   const services =
   serviceType === "activity"
@@ -146,6 +155,16 @@ const ServiceListPage = () => {
         title: item.serviceName ?? "Unnamed Accommodation",
         type: "Accommodation",
         category: "accommodation",
+        bookings: "N/A", // replace if real data exists
+        rating: 2,
+        status: item.status ? "active" : "inactive",
+    }))
+       :serviceType === "food-beverage"
+    ? fetchedFoodBeverages.map((item)=>({
+      id: item.serviceId,
+        title: item.serviceName ?? "Unnamed Food/Beverage Service",
+        type: "food-beverage",
+        category: "food-beverage",
         bookings: "N/A", // replace if real data exists
         rating: 2,
         status: item.status ? "active" : "inactive",
@@ -208,6 +227,10 @@ const confirmDelete = () => {
         const result = await fetchAllAccommodations(0,3);
         console.log("Fetched accommodations",result);
         setFetchedAccommodations(result.content);
+    }else if(serviceType == "food-beverage"){
+        const result = await fetchAllFoodAndBeverages(0,3);
+        console.log("Fetched food and beverages", result);
+        setFetchedFoodBeverages(result.content);
     }
     
   };

@@ -2,6 +2,23 @@
 import api from "@/api/axiosInstance";
 import type { ImageFiles, ServiceFormData } from "@/types/serviceTypes";
 
+
+//fetch all food and beverage services
+export const fetchAllFoodAndBeverages = async (
+  pageNumber: number = 0,
+  pageSize: number = 10
+): Promise<any> => {
+  const response = await api.get(`/provider/food-beverage/getAll`, {
+    params: {
+      pageNumber,
+      pageSize,
+    },
+  });
+  console.log("fetch all", response.data.data);
+  return response.data.data; // Assuming the response contains an array of activities
+}
+
+
 //Add new food and beverage service
 export const addNewFoodBeverage = async (
   payload: ServiceFormData,
