@@ -1,5 +1,5 @@
 import api from "@/api/axiosInstance";
-import type { RegistrationRequestBody, RegistrationFiles } from "@/types/registration";
+import type { RegistrationRequestBody, RegistrationFiles, BusinessDetails } from "@/types/registration";
 
 export const registerProvider = async (
   requestBody: RegistrationRequestBody,
@@ -72,6 +72,68 @@ export const registerProvider = async (
     return response.data;
   } catch (error: any) {
     console.error('❌ Registration flow failed:', {
+      message: error.message,
+      status: error.response?.status,
+      statusText: error.response?.statusText,
+      url: error.config?.url,
+      method: error.config?.method,
+    });
+
+    if (error.response?.data) {
+      console.error('📦 Error response data:', error.response.data);
+    }
+
+    throw error;
+  }
+};
+
+export const getBusinessDetails = async (): Promise<BusinessDetails> => {
+  try {
+    console.log('🌐 Making GET request to /provider/business-details');
+
+    const response = await api.get("/provider/business-details");
+
+    console.log('✅ Business details API success:', {
+      status: response.status,
+      statusText: response.statusText,
+      hasData: !!response.data,
+    });
+
+    return response.data.data;
+  } catch (error: any) {
+    console.error('❌ Business details fetch failed:', {
+      message: error.message,
+      status: error.response?.status,
+      statusText: error.response?.statusText,
+      url: error.config?.url,
+      method: error.config?.method,
+    });
+
+    if (error.response?.data) {
+      console.error('📦 Error response data:', error.response.data);
+    }
+
+    throw error;
+  }
+};
+
+export const updateBusinessDetails = async (
+  businessDetails: Partial<BusinessDetails>
+): Promise<BusinessDetails> => {
+  try {
+    console.log('🌐 Making PUT request to /provider/business-details');
+
+    const response = await api.put("/provider/business-details", businessDetails);
+
+    console.log('✅ Business details update API success:', {
+      status: response.status,
+      statusText: response.statusText,
+      hasData: !!response.data,
+    });
+
+    return response.data.data;
+  } catch (error: any) {
+    console.error('❌ Business details update failed:', {
       message: error.message,
       status: error.response?.status,
       statusText: error.response?.statusText,
