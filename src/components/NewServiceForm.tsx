@@ -116,7 +116,8 @@ const NewServiceForm: React.FC<ServiceFormProps> = ({
       pricePerKm : 0,
       vehicleCapacity:0,
       vehicleQty:0,
-      vehicleCategory:""
+      vehicleCategory:"",
+      about:""
 
     }
   );
@@ -351,35 +352,50 @@ const NewServiceForm: React.FC<ServiceFormProps> = ({
           
             </div>
           )}
+          {/* Transportation */}
+          {/* Accommodation */}
+         
 
+          {/* Accommodation */}
           
 
           <div className="bg-gray-50 p-4 rounded-lg w-full">
+             {serviceType == "accommodation" && (
+            <>
+            <h3 className="text-lg font-semibold text-gray-700 mb-4">
+              Basic Information
+            </h3>
+              <InputField
+                  label="Name of Accommodation"
+                  value={formData.serviceName}
+                  onChange={(value) => handleInputChange("serviceName", value)}
+                  placeholder="Enter accommodation name"
+                  required
+              />
+            <TextAreaField
+                  label="About Us"
+                  value={formData.about}
+                  onChange={(value)=>
+                  handleInputChange("about",value)
+                  }
+                  placeholder = "Enter about section"
+                  className="mt-3"
+            />
+            </>
+          )
+          }
             {/* <h3 className="text-lg font-semibold text-gray-700 mb-4">
               Basic Information
-            </h3> */}
-            {serviceType == "tour-guides" && (
-              <div className="space-y-4">
-                {/* <div>
-                <MultiSelectField
-                label="Select Policies"
-                options={policyOptions}
-                value={preferredPolicies}
-                onChange={setPreferredPolicies}
-                required
-                icon={<Globe size={16} />}
-                />
-            </div> */}
-              </div>
-            )}
-            {/* <div className="space-y-4"> */}
+            </h3>
+            
+            <div className="space-y-4">
 
-            {/* </div> */}
+            </div> */}
           </div>
         </div>
 
         <div className="space-y-0">
-          {(serviceType == "activity"|| serviceType == "transportation") && (
+          {(serviceType == "activity"|| serviceType == "transportation" || serviceType == "accommodation") && (
             <MapSelectorComponent
               location={formData.locationBased.formattedAddress}
               onLocationChange={(value) =>
@@ -445,12 +461,16 @@ const NewServiceForm: React.FC<ServiceFormProps> = ({
               Contact Information
             </h3> */}
             <div className="space-y-4">
+              <h3 className="text-lg font-semibold text-gray-700 mb-4">
+              Contact Details
+            </h3>
               <InputField
                 label="Phone Number"
                 value={formData.contactNo}
                 onChange={(value) => handleInputChange("contactNo", value)}
                 type="tel"
                 placeholder="+94 xxx xxx xxxx"
+
               />
             </div>
           </div>

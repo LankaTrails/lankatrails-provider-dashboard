@@ -2,6 +2,7 @@ import api from "@/api/axiosInstance";
 import type { ImageFiles, ServiceFormData } from "@/types/serviceTypes";
 import { addNewTourGuide } from "@/services/guideService";
 import { addNewTransport } from "@/services/transportationService";
+import { addNewAccommodation } from "@/services/accomodation";
 
 //delete an activity service
 export const deleteActivityService = async (id: number): Promise<any> => {
@@ -151,6 +152,8 @@ export const addNewService = async (
 
   }else if (serviceType === 'transportation') {
     return await addNewTransport(payload, images);
+  }else if (serviceType === 'accommodation') {
+    return await addNewAccommodation(payload, images);
   } else {
     throw new Error(`Unsupported service type: ${serviceType}`);
   }
