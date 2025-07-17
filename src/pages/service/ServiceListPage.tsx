@@ -201,7 +201,7 @@ const confirmDelete = () => {
         console.log("Fetched guides", result);
         setFetchedGuides(result.content);
     }else if(serviceType == "transportation"){
-        const result = await fetchAllTransports(0,3);
+        const result = await fetchAllTransports(0,4);
         console.log("Fetched transports", result);
         setFetchedTransports(result.content);
     }else if (serviceType == "accommodation"){

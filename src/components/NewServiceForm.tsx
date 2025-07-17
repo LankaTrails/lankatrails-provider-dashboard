@@ -117,7 +117,8 @@ const NewServiceForm: React.FC<ServiceFormProps> = ({
       vehicleCapacity:0,
       vehicleQty:0,
       vehicleCategory:"",
-      about:""
+      about:"",
+      openHours:"",
 
     }
   );
@@ -354,10 +355,6 @@ const NewServiceForm: React.FC<ServiceFormProps> = ({
           )}
           {/* Transportation */}
           {/* Accommodation */}
-         
-
-          {/* Accommodation */}
-          
 
           <div className="bg-gray-50 p-4 rounded-lg w-full">
              {serviceType == "accommodation" && (
@@ -384,18 +381,44 @@ const NewServiceForm: React.FC<ServiceFormProps> = ({
             </>
           )
           }
-            {/* <h3 className="text-lg font-semibold text-gray-700 mb-4">
-              Basic Information
-            </h3>
-            
-            <div className="space-y-4">
+          {/* Accommodation */}
+          {/* Food-Beverage */}
+          {serviceType =="food-beverage" && (
+            <div className="bg-gray-50 p-4 rounded-lg">
+              <h3 className="text-lg font-semibold text-gray-700 mb-4">
+                Basic Information
+              </h3>
+               <InputField
+                  label="Name of Service"
+                  value={formData.serviceName}
+                  onChange={(value) => handleInputChange("serviceName", value)}
+                  placeholder="Enter service name"
+                  required
+              />
+              <TextAreaField
+                  label="Open hours"
+                  value={formData.openHours}
+                  onChange={(value)=>
+                  handleInputChange("openHours",value)
+                  }
+                  placeholder = "Enter Open Hours"
+                  className="mt-3"
+            />
+            </div>
+          )
 
-            </div> */}
+          }
+          {/* Food-Beverage */}
           </div>
         </div>
 
         <div className="space-y-0">
-          {(serviceType == "activity"|| serviceType == "transportation" || serviceType == "accommodation") && (
+          {(serviceType == "activity"|| 
+            serviceType == "transportation" || 
+            serviceType == "accommodation" ||
+            serviceType == "food-beverage"
+          
+          ) && (
             <MapSelectorComponent
               location={formData.locationBased.formattedAddress}
               onLocationChange={(value) =>
