@@ -8,6 +8,7 @@ import { deleteActivityService, fetchAllActivities, fetchAllTourGuides } from "@
 import { useState,useEffect } from "react";
 import { Trash2 } from "lucide-react";
 import ConfirmDeleteModal from "@/components/forms/ConfirmDeleteModal"; // adjust path
+import { fetchAllTransports } from "@/services/transportationService";
 
 
 
@@ -82,13 +83,22 @@ type TourGuide = {
   status: boolean;
 }
 
+type Transportation ={
+  serviceId: number;
+  serviceName?: string;
+  status: boolean;
+  
+}
+
 const ServiceListPage = () => {
   const { serviceType } = useParams();
   const navigate = useNavigate();
   //for activities
   const [fetchedActivities, setFetchedActivities] = useState<Activity[]>([]);
   //for tour guides
-  const [fetchedGuides, setFetchedGuides] = useState<Activity[]>([]);
+  const [fetchedGuides, setFetchedGuides] = useState<TourGuide[]>([]);
+  //for transportation
+  const [fetchedTransports, setFetchedTransports] = useState<Activity[]>([]);
   
   const services =
   serviceType === "activity"
@@ -107,6 +117,16 @@ const ServiceListPage = () => {
         title: item.serviceName ?? "Unnamed Guide",
         type: "Tour Guide",
         category: "tour-guide",
+        bookings: "N/A", // replace if real data exists
+        rating: 2,
+        status: item.status ? "active" : "inactive",
+    }))
+    :serviceType === "transportation"
+    ? fetchedTransports.map((item)=>({
+      id: item.serviceId,
+        title: item.serviceName ?? "Unnamed Transport",
+        type: "Transport",
+        category: "transportation",
         bookings: "N/A", // replace if real data exists
         rating: 2,
         status: item.status ? "active" : "inactive",
@@ -161,6 +181,10 @@ const confirmDelete = () => {
         const result = await fetchAllTourGuides(0, 3);
         console.log("Fetched guides", result);
         setFetchedGuides(result.content);
+    }else if(serviceType == "transportation"){
+        const result = await fetchAllTransports(0,3);
+        console.log("Fetched transports", result);
+        setFetchedTransports(result.content);
     }
     
   };
@@ -239,9 +263,9 @@ const confirmDelete = () => {
               )}
       </div>
       <ConfirmDeleteModal
-  isOpen={isDeleteModalOpen}
-  onClose={() => setDeleteModalOpen(false)}
-  onConfirm={confirmDelete}
+          isOpen={isDeleteModalOpen}
+          onClose={() => setDeleteModalOpen(false)}
+          onConfirm={confirmDelete}
 />
     </div>
   );

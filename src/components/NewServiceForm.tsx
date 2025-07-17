@@ -115,7 +115,8 @@ const NewServiceForm: React.FC<ServiceFormProps> = ({
       languages: [],
       pricePerKm : 0,
       vehicleCapacity:0,
-      vehicleQty:0
+      vehicleQty:0,
+      vehicleCategory:""
 
     }
   );
@@ -311,12 +312,26 @@ const NewServiceForm: React.FC<ServiceFormProps> = ({
                 Basic Information
               </h3>
               <InputField
-                label="Name of Transportation "
+                label="Name of the Service "
                 value={formData.serviceName}
                 onChange={(value) => handleInputChange("serviceName", value)}
-                placeholder="Enter tour transportation"
+                placeholder="Enter transport service name"
                 required
               />
+               
+                <SelectField
+                  label="Transport Category"
+                  options={[
+                    { value: "car", label: "Car" },
+                    { value: "bus", label: "Bus" },
+                    { value: "van", label: "Van" },
+                    
+                  ]}
+                  value={formData.vehicleCategory}
+                  onChange={(value) => handleInputChange("vehicleCategory", value)}
+                  required
+                />
+              
               <label>Capacity</label>
               <CounterInput value={capacity} onChange={setCapacity} min={1} max={10}  />
 

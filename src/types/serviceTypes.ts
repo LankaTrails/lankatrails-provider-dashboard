@@ -69,6 +69,7 @@ export interface ServiceFormData {
   pricePerKm : number;
   vehicleCapacity:number;
   vehicleQty:number;
+  vehicleCategory:string;
 }
 
 export interface ServiceFormProps {
