@@ -33,18 +33,21 @@ const AddServicePage: React.FC = () => {
     data: ServiceFormData,
     files: ImageFiles
   ): Promise<void> => {
+    console.log("Submitting data:", data);
     if (isSubmitting) return; // Prevent double submission
 
     setIsSubmitting(true);
     try {
       console.log("Add Service Data:", data);
       console.log("Add Service Files:", files);
-
+      
+      
       const result = await addNewService(
         serviceType || "activity",
         data,
         files
       );
+      
       console.log("Response:", result);
 
       setToast({

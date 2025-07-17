@@ -7,6 +7,7 @@ import ImageUploadComponent from "@/components/forms/ImageUploadComponent";
 import MapSelectorComponent from "@/components/forms/MapSelectorComponent";
 import MultiSelectField from "./forms/MultiSelectField";
 import TextAreaField from "./forms/TextAreaField";
+import CounterInput from "./forms/CounterInput";
 
 import type {
   TabSection,
@@ -112,6 +113,12 @@ const NewServiceForm: React.FC<ServiceFormProps> = ({
       policySection: [{ heading: "", policy: "" }],
       serviceAreas: [],
       languages: [],
+      pricePerKm : 0,
+      vehicleCapacity:0,
+      vehicleQty:0,
+      vehicleCategory:"",
+      about:""
+
     }
   );
 
@@ -195,8 +202,10 @@ const NewServiceForm: React.FC<ServiceFormProps> = ({
       ...formData,
       serviceAreas: preferredDistricts, // Always use array of strings
       languages: preferredLanguages, // Update languages field
+      vehicleCapacity:capacity,
+      vehicleQty:count,
     };
-
+    console.log("Submitting updated data:", updatedData);
     onSubmit(updatedData, images);
   };
 
@@ -238,7 +247,8 @@ const NewServiceForm: React.FC<ServiceFormProps> = ({
     { value: "trincomalee", label: "Trincomalee" },
     { value: "vavuniya", label: "Vavuniya" },
   ];
-
+  const [capacity, setCapacity] = useState(1);
+  const [count, setCount] = useState(1);
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -251,7 +261,7 @@ const NewServiceForm: React.FC<ServiceFormProps> = ({
             selectedImageIndex={selectedImageIndex}
             onSelectedImageChange={setSelectedImageIndex}
           />
-          {serviceType == "activity" && (
+          {serviceType == "activity"  && (
             <div className="bg-gray-50 p-4 rounded-lg">
               <h3 className="text-lg font-semibold text-gray-700 mb-4">
                 Basic Information
@@ -295,35 +305,97 @@ const NewServiceForm: React.FC<ServiceFormProps> = ({
               />
             </div>
           )}
-
           {/* Activity Service Provider */}
+          {/* Transportation */}
+          {serviceType == "transportation"  && (
+            <div className="bg-gray-50 p-4 rounded-lg">
+              <h3 className="text-lg font-semibold text-gray-700 mb-4">
+                Basic Information
+              </h3>
+              <InputField
+                label="Name of the Service "
+                value={formData.serviceName}
+                onChange={(value) => handleInputChange("serviceName", value)}
+                placeholder="Enter transport service name"
+                required
+              />
+               
+                <SelectField
+                  label="Transport Category"
+                  options={[
+                    { value: "car", label: "Car" },
+                    { value: "bus", label: "Bus" },
+                    { value: "van", label: "Van" },
+                    
+                  ]}
+                  value={formData.vehicleCategory}
+                  onChange={(value) => handleInputChange("vehicleCategory", value)}
+                  required
+                />
+              
+              <label>Capacity</label>
+              <CounterInput value={capacity} onChange={setCapacity} min={1} max={10}  />
+
+              <label>No. of Vehicles</label>
+              <CounterInput value={count} onChange={setCount} min={1} max={10}  />
+
+             
+              <InputField
+                label="Price per km"
+                value={formData.pricePerKm.toString()}
+                onChange={(value) =>
+                  handleInputChange("pricePerKm", Number(value))
+                }
+                placeholder="Enter price per km"
+              />
+
+          
+            </div>
+          )}
+          {/* Transportation */}
+          {/* Accommodation */}
+         
+
+          {/* Accommodation */}
+          
 
           <div className="bg-gray-50 p-4 rounded-lg w-full">
+             {serviceType == "accommodation" && (
+            <>
+            <h3 className="text-lg font-semibold text-gray-700 mb-4">
+              Basic Information
+            </h3>
+              <InputField
+                  label="Name of Accommodation"
+                  value={formData.serviceName}
+                  onChange={(value) => handleInputChange("serviceName", value)}
+                  placeholder="Enter accommodation name"
+                  required
+              />
+            <TextAreaField
+                  label="About Us"
+                  value={formData.about}
+                  onChange={(value)=>
+                  handleInputChange("about",value)
+                  }
+                  placeholder = "Enter about section"
+                  className="mt-3"
+            />
+            </>
+          )
+          }
             {/* <h3 className="text-lg font-semibold text-gray-700 mb-4">
               Basic Information
-            </h3> */}
-            {serviceType == "tour-guides" && (
-              <div className="space-y-4">
-                {/* <div>
-                <MultiSelectField
-                label="Select Policies"
-                options={policyOptions}
-                value={preferredPolicies}
-                onChange={setPreferredPolicies}
-                required
-                icon={<Globe size={16} />}
-                />
-            </div> */}
-              </div>
-            )}
-            {/* <div className="space-y-4"> */}
+            </h3>
+            
+            <div className="space-y-4">
 
-            {/* </div> */}
+            </div> */}
           </div>
         </div>
 
         <div className="space-y-0">
-          {serviceType == "activity" && (
+          {(serviceType == "activity"|| serviceType == "transportation" || serviceType == "accommodation") && (
             <MapSelectorComponent
               location={formData.locationBased.formattedAddress}
               onLocationChange={(value) =>
@@ -389,12 +461,16 @@ const NewServiceForm: React.FC<ServiceFormProps> = ({
               Contact Information
             </h3> */}
             <div className="space-y-4">
+              <h3 className="text-lg font-semibold text-gray-700 mb-4">
+              Contact Details
+            </h3>
               <InputField
                 label="Phone Number"
                 value={formData.contactNo}
                 onChange={(value) => handleInputChange("contactNo", value)}
                 type="tel"
                 placeholder="+94 xxx xxx xxxx"
+
               />
             </div>
           </div>

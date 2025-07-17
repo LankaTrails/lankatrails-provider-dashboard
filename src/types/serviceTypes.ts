@@ -66,6 +66,11 @@ export interface ServiceFormData {
   policySection: PolicySection[];
   serviceAreas: string[];
   languages: string[];
+  pricePerKm : number;
+  vehicleCapacity:number;
+  vehicleQty:number;
+  vehicleCategory:string;
+  about:string;
 }
 
 export interface ServiceFormProps {

@@ -4,13 +4,12 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Eye, Edit, Star, Package, Plus } from "lucide-react";
 import ProviderTopBar from "@/components/provider/ProviderTopBar";
-import {
-  deleteActivityService,
-  fetchAllActivities,
-} from "@/services/activityService";
-import { useState, useEffect } from "react";
+import { deleteActivityService, fetchAllActivities, fetchAllTourGuides } from "@/services/activityService";
+import { useState,useEffect } from "react";
 import { Trash2 } from "lucide-react";
-import ConfirmDeleteModal from "@/components/forms/ConfirmDeleteModal"; // adjust path
+import ConfirmDeleteModal from "@/components/forms/ConfirmDeleteModal"; 
+import { fetchAllTransports } from "@/services/transportationService";
+import { fetchAllAccommodations } from "@/services/accomodation";
 
 const mockServices = {
   activity: [
@@ -77,70 +76,171 @@ type Activity = {
   // add other properties if needed
 };
 
+type TourGuide = {
+  serviceId: number;
+  serviceName?: string;
+  status: boolean;
+}
+
+type Transportation ={
+  serviceId: number;
+  serviceName?: string;
+  status: boolean;
+  
+}
+
+type Accommodation ={
+  serviceId:number;
+  serviceName?: string;
+  status:boolean;
+}
 const ServiceListPage = () => {
   const { serviceType } = useParams();
   const navigate = useNavigate();
+  //for activities
   const [fetchedActivities, setFetchedActivities] = useState<Activity[]>([]);
+  //for tour guides
+  const [fetchedGuides, setFetchedGuides] = useState<TourGuide[]>([]);
+  //for transportation
+  const [fetchedTransports, setFetchedTransports] = useState<Transportation[]>([]);
+  //for Accommodation
+  const [fetchedAccommodations, setFetchedAccommodations] = useState<Accommodation[]>([]);
+  
   const services =
-    serviceType === "activity"
-      ? fetchedActivities.map((item, index) => ({
-          id: item.serviceId, // fallback since serviceId is null
-          title: item.serviceName ?? "Untitled Activity",
-          type: "Activity",
-          category: "activity",
-          bookings: "N/A",
-          rating: 2,
-          status: item.status ? "active" : "inactive",
-        }))
-      : mockServices[serviceType as keyof typeof mockServices] || [];
+  serviceType === "activity"
+    ? fetchedActivities.map((item) => ({
+        id: item.serviceId, // fallback since serviceId is null
+        title: item.serviceName ?? "Untitled Activity",
+        type: "Activity",
+        category: "activity",
+        bookings: "N/A",
+        rating: 2,
+        status: item.status ? "active" : "inactive",
+      }))
+    : serviceType === "tour-guides"
+    ? fetchedGuides.map((item)=>({
+      id: item.serviceId,
+        title: item.serviceName ?? "Unnamed Guide",
+        type: "Tour Guide",
+        category: "tour-guide",
+        bookings: "N/A", // replace if real data exists
+        rating: 2,
+        status: item.status ? "active" : "inactive",
+    }))
+    :serviceType === "transportation"
+    ? fetchedTransports.map((item)=>({
+      id: item.serviceId,
+        title: item.serviceName ?? "Unnamed Transport",
+        type: "Transport",
+        category: "transportation",
+        bookings: "N/A", // replace if real data exists
+        rating: 2,
+        status: item.status ? "active" : "inactive",
+    }))
+      :serviceType === "accommodation"
+    ? fetchedAccommodations.map((item)=>({
+      id: item.serviceId,
+        title: item.serviceName ?? "Unnamed Accommodation",
+        type: "Accommodation",
+        category: "accommodation",
+        bookings: "N/A", // replace if real data exists
+        rating: 2,
+        status: item.status ? "active" : "inactive",
+    }))
+    :mockServices[serviceType as keyof typeof mockServices] || [];
 
   const title = formatServiceTitle(serviceType);
 
   const [isDeleteModalOpen, setDeleteModalOpen] = useState(false);
-  const [selectedServiceId, setSelectedServiceId] = useState<number | null>(
-    null
-  );
-  //handle delete click
-  const handleDeleteClick = (id: number) => {
-    setSelectedServiceId(id);
-    setDeleteModalOpen(true);
-  };
-  //doing the backend process for deletion
-  const confirmDelete = () => {
-    if (selectedServiceId != null) {
-      console.log("Deleting service:", selectedServiceId);
-      // Call delete API here
-      const deleteService = async () => {
-        const result = await deleteActivityService(selectedServiceId);
-        console.log("Delete result:", result);
-      };
-      deleteService()
-        .then(() => {
-          console.log("Service deleted successfully");
-          // Optionally, refresh the service list or show a success message
-          setFetchedActivities((prev) =>
-            prev.filter((service) => service.serviceId != selectedServiceId)
-          );
-        })
-        .catch((error) => {
-          console.error("Error deleting service:", error);
-          // Optionally, show an error message
-        });
+// <<<<<<< feature/LT-18-ui-web-provider-profile
+//   const [selectedServiceId, setSelectedServiceId] = useState<number | null>(
+//     null
+//   );
+//   //handle delete click
+//   const handleDeleteClick = (id: number) => {
+//     setSelectedServiceId(id);
+//     setDeleteModalOpen(true);
+//   };
+//   //doing the backend process for deletion
+//   const confirmDelete = () => {
+//     if (selectedServiceId != null) {
+//       console.log("Deleting service:", selectedServiceId);
+//       // Call delete API here
+//       const deleteService = async () => {
+//         const result = await deleteActivityService(selectedServiceId);
+//         console.log("Delete result:", result);
+//       };
+//       deleteService()
+//         .then(() => {
+//           console.log("Service deleted successfully");
+//           // Optionally, refresh the service list or show a success message
+//           setFetchedActivities((prev) =>
+//             prev.filter((service) => service.serviceId != selectedServiceId)
+//           );
+//         })
+//         .catch((error) => {
+//           console.error("Error deleting service:", error);
+//           // Optionally, show an error message
+//         });
+// =======
+const [selectedServiceId, setSelectedServiceId] = useState<number | null>(null);
+//handle delete click
+const handleDeleteClick = (id:number)=>{
+  setSelectedServiceId(id);
+  setDeleteModalOpen(true);
+}
+
+
+//doing the backend process for deletion
+const confirmDelete = () => {
+  if (selectedServiceId != null) {
+    
+    console.log("Deleting service:", selectedServiceId);
+    // Call delete API here
+    const deleteService = async () => {
+      const result = await deleteActivityService(selectedServiceId);
+      console.log("Delete result:", result);
+    };
+    deleteService()
+      .then(() => {
+        console.log("Service deleted successfully");
+        // Optionally, refresh the service list or show a success message
+        setFetchedActivities((prev) => prev.filter((service) => service.serviceId != selectedServiceId));
+      })
+      .catch((error) => {
+        console.error("Error deleting service:", error);
+        // Optionally, show an error message
+      });
 
       setDeleteModalOpen(false);
     }
   };
 
-  //get all activities to display on the cards
+  //get respective services based on each category
   useEffect(() => {
-    const loadActivities = async () => {
-      const result = await fetchAllActivities(0, 3);
-      console.log("Fetched activities", result);
-      setFetchedActivities(result.content);
-    };
+  const loadServices = async () => {
+    if(serviceType == "activity"){
+        const result = await fetchAllActivities(0, 3);
+        console.log("Fetched activities", result);
+        setFetchedActivities(result.content);
+    }else if(serviceType == "tour-guides"){
+        const result = await fetchAllTourGuides(0, 3);
+        console.log("Fetched guides", result);
+        setFetchedGuides(result.content);
+    }else if(serviceType == "transportation"){
+        const result = await fetchAllTransports(0,3);
+        console.log("Fetched transports", result);
+        setFetchedTransports(result.content);
+    }else if (serviceType == "accommodation"){
+        const result = await fetchAllAccommodations(0,3);
+        console.log("Fetched accommodations",result);
+        setFetchedAccommodations(result.content);
+    }
+    
+  };
 
-    loadActivities();
-  }, []);
+  loadServices();
+}, [serviceType]);
 
   return (
     <div className="space-y-6">
@@ -234,10 +334,10 @@ const ServiceListPage = () => {
         )}
       </div>
       <ConfirmDeleteModal
-        isOpen={isDeleteModalOpen}
-        onClose={() => setDeleteModalOpen(false)}
-        onConfirm={confirmDelete}
-      />
+          isOpen={isDeleteModalOpen}
+          onClose={() => setDeleteModalOpen(false)}
+          onConfirm={confirmDelete}
+/>
     </div>
   );
 };
