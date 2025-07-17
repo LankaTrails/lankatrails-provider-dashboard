@@ -1,6 +1,23 @@
 import api from "@/api/axiosInstance";
 import type { ImageFiles, ServiceFormData } from "@/types/serviceTypes";
 
+//fetch all transportation services
+export const fetchAllAccommodations = async (
+  pageNumber: number = 0,
+  pageSize: number = 10
+): Promise<any> => {
+  const response = await api.get(`/provider/accommodation/getAll`, {
+    params: {
+      pageNumber,
+      pageSize,
+    },
+  });
+  console.log("fetch all", response.data.data);
+  return response.data.data; // Assuming the response contains an array of activities
+}
+
+
+//Add new accommodation service
 export const addNewAccommodation = async (
   payload: ServiceFormData,
   images: ImageFiles
