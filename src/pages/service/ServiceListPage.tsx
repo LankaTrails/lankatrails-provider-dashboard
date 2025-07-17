@@ -181,7 +181,6 @@ const handleDeleteClick = (id:number)=>{
   setDeleteModalOpen(true);
 }
 
-
 //doing the backend process for deletion
 const confirmDelete = () => {
   if (selectedServiceId != null) {
