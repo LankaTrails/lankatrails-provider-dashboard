@@ -70,6 +70,7 @@ export interface ServiceFormData {
   vehicleCapacity:number;
   vehicleQty:number;
   vehicleCategory:string;
+  about:string;
 }
 
 export interface ServiceFormProps {

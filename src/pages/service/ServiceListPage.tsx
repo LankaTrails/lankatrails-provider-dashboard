@@ -7,8 +7,9 @@ import ProviderTopBar from "@/components/provider/ProviderTopBar";
 import { deleteActivityService, fetchAllActivities, fetchAllTourGuides } from "@/services/activityService";
 import { useState,useEffect } from "react";
 import { Trash2 } from "lucide-react";
-import ConfirmDeleteModal from "@/components/forms/ConfirmDeleteModal"; // adjust path
+import ConfirmDeleteModal from "@/components/forms/ConfirmDeleteModal"; 
 import { fetchAllTransports } from "@/services/transportationService";
+import { fetchAllAccommodations } from "@/services/accomodation";
 
 
 
@@ -90,6 +91,12 @@ type Transportation ={
   
 }
 
+type Accommodation ={
+  serviceId:number;
+  serviceName?: string;
+  status:boolean;
+}
+
 const ServiceListPage = () => {
   const { serviceType } = useParams();
   const navigate = useNavigate();
@@ -98,7 +105,9 @@ const ServiceListPage = () => {
   //for tour guides
   const [fetchedGuides, setFetchedGuides] = useState<TourGuide[]>([]);
   //for transportation
-  const [fetchedTransports, setFetchedTransports] = useState<Activity[]>([]);
+  const [fetchedTransports, setFetchedTransports] = useState<Transportation[]>([]);
+  //for Accommodation
+  const [fetchedAccommodations, setFetchedAccommodations] = useState<Accommodation[]>([]);
   
   const services =
   serviceType === "activity"
@@ -127,6 +136,16 @@ const ServiceListPage = () => {
         title: item.serviceName ?? "Unnamed Transport",
         type: "Transport",
         category: "transportation",
+        bookings: "N/A", // replace if real data exists
+        rating: 2,
+        status: item.status ? "active" : "inactive",
+    }))
+      :serviceType === "accommodation"
+    ? fetchedAccommodations.map((item)=>({
+      id: item.serviceId,
+        title: item.serviceName ?? "Unnamed Accommodation",
+        type: "Accommodation",
+        category: "accommodation",
         bookings: "N/A", // replace if real data exists
         rating: 2,
         status: item.status ? "active" : "inactive",
@@ -185,6 +204,10 @@ const confirmDelete = () => {
         const result = await fetchAllTransports(0,3);
         console.log("Fetched transports", result);
         setFetchedTransports(result.content);
+    }else if (serviceType == "accommodation"){
+        const result = await fetchAllAccommodations(0,3);
+        console.log("Fetched accommodations",result);
+        setFetchedAccommodations(result.content);
     }
     
   };
