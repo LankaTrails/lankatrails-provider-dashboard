@@ -31,6 +31,7 @@ export interface TabSection {
 export interface PolicySection {
   heading: string;
   policy: string;
+  id:string;
 }
 
 export interface ImageData {
