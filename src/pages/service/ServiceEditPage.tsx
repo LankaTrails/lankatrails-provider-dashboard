@@ -9,7 +9,7 @@ const ServiceEditPage: React.FC = () => {
   const { id, serviceType } = useParams();
   const [initialData, setInitialData] = useState<ServiceFormData | undefined>();
   const [loading, setLoading] = useState(true);
-  // const [initialImages, setInitialImages] = useState<ImageData[]>([]);
+  const [initialImages, setInitialImages] = useState<ImageData[]>([]);
 
   useEffect(() => {
     const fetchActivityService = async () =>{
@@ -19,6 +19,7 @@ const ServiceEditPage: React.FC = () => {
         let data;
         if (serviceType === 'activity') {
           data = await findActivityById(id);
+          console.log("Fetched Activity Data:", data);
         }else if (serviceType === 'tour-guides') {
           data = await findGuideById(id);
         }
@@ -49,7 +50,7 @@ const ServiceEditPage: React.FC = () => {
     <div className="max-w-7xl mx-auto p-6 mt-4 bg-white">
       <div className="flex items-center mb-8">
         <BackButton onClick={handleBack} className="mr-4" />
-        <h1 className="text-3xl font-bold text-gray-800">Edit {serviceType} Service (ID: {id})</h1>
+        {/* <h1 className="text-3xl font-bold text-gray-800">Edit {serviceType} Service (ID: {id})</h1> */}
       </div>
 
       <ServiceForm

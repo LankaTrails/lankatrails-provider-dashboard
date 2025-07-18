@@ -71,6 +71,7 @@ export interface ServiceFormData {
   vehicleQty:number;
   vehicleCategory:string;
   about:string;
+  openHours:string;
 }
 
 export interface ServiceFormProps {

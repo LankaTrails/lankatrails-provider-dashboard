@@ -3,6 +3,7 @@ import type { ImageFiles, ServiceFormData } from "@/types/serviceTypes";
 import { addNewTourGuide } from "@/services/guideService";
 import { addNewTransport } from "@/services/transportationService";
 import { addNewAccommodation } from "@/services/accomodation";
+import { addNewFoodBeverage } from "./FoodBeverage";
 
 //delete an activity service
 export const deleteActivityService = async (id: number): Promise<any> => {
@@ -154,7 +155,9 @@ export const addNewService = async (
     return await addNewTransport(payload, images);
   }else if (serviceType === 'accommodation') {
     return await addNewAccommodation(payload, images);
-  } else {
+  } else if(serviceType === 'food-beverage') {
+    return await addNewFoodBeverage(payload,images);
+  }else {
     throw new Error(`Unsupported service type: ${serviceType}`);
   }
 };
