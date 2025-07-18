@@ -11,6 +11,7 @@ const tabs = [
   { label: "Food & Beverage Services", slug: "food-beverage" },
   { label: "Accommodation Providers", slug: "accommodation" },
   { label: "Messages", slug: "messages" },
+  { label: "Policy Management", slug: "policy" },
   { label: "Analytics", slug: "analytics" },
 ];
 

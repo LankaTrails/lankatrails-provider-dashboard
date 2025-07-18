@@ -42,6 +42,11 @@ const ProviderTopBar = () => {
       { to: `/provider/profile/details`, label: "Profile" },
       { to: `/provider/profile/contact`, label: "Contact Person" },
     ];
+  }else if (base === "policy") {
+    links = [
+      { to: `/provider/policy/all`, label: "All Policies" },
+      { to: `/provider/policy/add`, label: "New Policy" },
+    ];
   } else {
     // Default empty or general links if needed
     links = [];
@@ -83,6 +88,11 @@ const ProviderTopBar = () => {
     // For profile, make Profile button active when at base URL or /details
     if (base === "profile") {
       const isProfileButton = link.label === "Profile";
+      return isActive || (isProfileButton && isBaseUrl);
+    }
+
+    if (base === "policy") {
+      const isProfileButton = link.label === "All Policies";
       return isActive || (isProfileButton && isBaseUrl);
     }
 

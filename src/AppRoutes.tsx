@@ -19,6 +19,8 @@ import AnalyticsPage from "@/pages/provider/AnalyticsPage";
 import Profile from "@/pages/provider/Profile";
 import NotFound from "@/pages/NotFound";
 import ContactPerson from "./pages/provider/ContactPerson";
+import AllPolicy from "./pages/provider/AllPolicy";
+import AddPolicy from "./pages/provider/AddPolicy";
 
 const AppRoutes = () => {
   const { isLoading, restoreSession } = useAuth();
@@ -73,6 +75,11 @@ const AppRoutes = () => {
           <Route index element={<Profile />} />
           <Route path="details" element={<Profile />} />
           <Route path="contact" element={<ContactPerson />} />
+        </Route>
+        <Route path="policy">
+          <Route index element={<AllPolicy />} />
+          <Route path="all" element={<AllPolicy />} />
+          <Route path="add" element={<AddPolicy />} />
         </Route>
       </Route>
 
