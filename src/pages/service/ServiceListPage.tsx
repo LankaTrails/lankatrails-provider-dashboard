@@ -241,7 +241,7 @@ const confirmDelete = () => {
   useEffect(() => {
   const loadServices = async () => {
     if(serviceType == "activity"){
-        const result = await fetchAllActivities(0, 3);
+        const result = await fetchAllActivities(0, 4);
         console.log("Fetched activities", result);
         setFetchedActivities(result.content);
     }else if(serviceType == "tour-guides"){
