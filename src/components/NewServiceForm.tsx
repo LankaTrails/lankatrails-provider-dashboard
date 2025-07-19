@@ -59,6 +59,49 @@ const NewServiceForm: React.FC<ServiceFormProps> = ({
   const [policyOptions, setPolicyOptions] = useState<OptionType[]>([]);
   const [preferredPolicies, setPreferredPolicies] = useState<string[]>([]);
 
+  useEffect(() => {
+    const loadPolicies = async () => {
+      try {
+        const policies = await fetchAllPolicies();
+        console.log("Policies:", policies);
+
+        const options = policies.map((p: any) => ({
+          label: p.heading,
+          value: p.id.toString(), // Assuming each policy has a unique id
+          content: p.policy,
+        }));
+
+        setPolicyOptions(options);
+      } catch (error) {
+        console.error("Failed to load policies", error);
+      }
+    };
+    loadPolicies();
+  }, []);
+
+  useEffect(() => {
+    const selectedPolicyObjects = policyOptions
+      .filter((option) => preferredPolicies.includes(option.value))
+      .map((option) => ({
+        id: option.value,
+        heading: option.label,
+        description: option.content || "", // Provide default empty string
+        isExpanded: true, // Default to expanded
+      }));
+    setPolicySection(selectedPolicyObjects);
+    const backendPolicies: PolicySection[] = selectedPolicyObjects.map(
+      ({ id, heading, description }) => ({
+        id,
+        heading,
+        policy: description,
+      })
+    );
+    setFormData((prev) => ({
+      ...prev,
+      policySection: backendPolicies,
+    }));
+  }, [preferredPolicies, policyOptions]);
+
   // Initialize form data based on service type
   const initializeFormData = (): ServiceFormData => {
     const baseData: ServiceFormData = {
@@ -235,7 +278,8 @@ const NewServiceForm: React.FC<ServiceFormProps> = ({
   const handlePoliciesChange = (policies: PolicyData[]) => {
     setPolicySection(policies);
     const backendPolicies: PolicySection[] = policies.map(
-      ({ heading, description }) => ({
+      ({ id, heading, description }) => ({
+        id,
         heading,
         policy: description,
       })
