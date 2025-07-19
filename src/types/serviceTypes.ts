@@ -8,7 +8,13 @@ export type VehicleType = 'CAR' | 'VAN' | 'BUS' | 'TRUCK' | 'MOTORCYCLE' | 'BICY
 
 export type AccommodationType = 'HOTEL' | 'HOSTEL' | 'GUEST_HOUSE' | 'APARTMENT' | 'VILLA' | 'HOMESTAY' | 'CAMPING' | 'RESORT' | 'LODGE';
 
+export type FoodBeverageType = 'RESTAURANT' | 'CAFE' | 'BAR' | 'PUB' | 'FOOD_COURT' | 'FOOD_TRUCK' | 'BAKERY' | 'BREWERY' | 'WINERY' | 'DISTILLERY' | 'STREET_FOOD' | 'BUFFET';
+
 export type TourGuideType = 'NATIONAL' | 'CHAUFFEUR' | 'SITE' | 'AREA';
+
+export type FuelType = 'PETROL' | 'DIESEL' | 'ELECTRIC' | 'HYBRID';
+
+export type TransmissionType = 'MANUAL' | 'AUTOMATIC' | 'SEMI_AUTOMATIC';
 
 export interface TabData {
   id: number;
@@ -81,7 +87,18 @@ export interface ServiceFormData {
 
 export interface AccommodationFormData extends ServiceFormData {
   accommodationType: AccommodationType;
-  about: string;
+  numberOfRooms: number;
+  maxGuests: number;
+  parkingAvailable: boolean;
+  petFriendly: boolean;
+  freeWifi: boolean;
+  breakfastIncluded: boolean;
+  airConditioned: boolean;
+  swimmingPool: boolean;
+  laundryService: boolean;
+  roomService: boolean;
+  gymAccess: boolean;
+  spaServices: boolean;
 }
 
 export interface ActivityFormData extends ServiceFormData {
@@ -91,7 +108,14 @@ export interface ActivityFormData extends ServiceFormData {
 }
 
 export interface FoodBeverageFormData extends ServiceFormData {
+  foodAndBeverageType: FoodBeverageType;
   openHours: string;
+  cuisineType: string;
+  vegetarianOptions: boolean;
+  halalCertified: boolean;
+  alcoholServed: boolean;
+  outdoorSeating: boolean;
+  liveMusic: boolean;
 }
 
 export interface TourGuideFormData extends ServiceFormData {
@@ -102,8 +126,12 @@ export interface TourGuideFormData extends ServiceFormData {
 
 export interface TransportFormData extends ServiceFormData {
   vehicleCategory: VehicleType;
-  vehicleCapacity:number;
-  vehicleQty:number;
+  vehicleCapacity: number;
+  vehicleQty: number;
+  fuelType: FuelType;
+  transmissionType: TransmissionType;
+  airConditioned: boolean;
+  driverIncluded: boolean;
 }
 
 export interface ServiceFormProps {

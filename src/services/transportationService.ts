@@ -1,5 +1,5 @@
 import api from "@/api/axiosInstance";
-import type { ImageFiles, ServiceFormData, TransportFormData } from "@/types/serviceTypes";
+import type { ImageFiles, ServiceFormData } from "@/types/serviceTypes";
 
 
 //fetch all transportation services

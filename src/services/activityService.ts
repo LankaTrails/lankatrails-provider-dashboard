@@ -1,10 +1,5 @@
 import api from "@/api/axiosInstance";
-import type { ImageFiles, ServiceFormData, TourGuideFormData, TransportFormData, AccommodationFormData, ActivityFormData, FoodBeverageFormData } from "@/types/serviceTypes";
-import { addNewTourGuide } from "@/services/guideService";
-import { addNewTransport } from "@/services/transportationService";
-import { addNewAccommodation } from "@/services/accomodation";
-import { addNewFoodBeverage } from "./FoodBeverage";
-import type { A } from "node_modules/framer-motion/dist/types.d-B_QPEvFK";
+import type { ImageFiles, ServiceFormData } from "@/types/serviceTypes";
 
 //delete an activity service
 export const deleteActivityService = async (id: number): Promise<any> => {
