@@ -80,7 +80,8 @@ const NewServiceForm: React.FC<ServiceFormProps> = ({
       }));
     setPolicySection(selectedPolicyObjects);
     const backendPolicies: PolicySection[] = selectedPolicyObjects.map(
-      ({ heading, description }) => ({
+      ({ id, heading, description }) => ({
+        id,
         heading,
         policy: description,
       })
@@ -110,7 +111,7 @@ const NewServiceForm: React.FC<ServiceFormProps> = ({
       activityDetails: "",
       safetyInstructions: "",
       tabsSection: [{ heading: "", content: "" }],
-      policySection: [{ heading: "", policy: "" }],
+      policySection: [{ id: Math.random().toString(36).substr(2, 9), heading: "", policy: "" }],
       serviceAreas: [],
       languages: [],
       pricePerKm : 0,
@@ -183,7 +184,8 @@ const NewServiceForm: React.FC<ServiceFormProps> = ({
   const handlePoliciesChange = (policies: PolicyData[]) => {
     setPolicySection(policies); // for UI
     const backendPolicies: PolicySection[] = policies.map(
-      ({ heading, description }) => ({
+      ({ id, heading, description }) => ({
+        id,
         heading,
         policy: description,
       })

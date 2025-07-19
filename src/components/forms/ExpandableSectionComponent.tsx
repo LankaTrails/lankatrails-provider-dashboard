@@ -11,6 +11,9 @@ interface ExpandableSectionProps {
   onItemsChange: (items: TabData[] | PolicyData[]) => void;
   addButtonText: string;
   itemName: string;
+  canAddItems?: boolean;
+  showSubmitButton?: boolean;
+  onSave?: (items: TabData[] | PolicyData[]) => Promise<void>;
 }
 
 const ExpandableSectionComponent: React.FC<ExpandableSectionProps> = ({
@@ -19,15 +22,18 @@ const ExpandableSectionComponent: React.FC<ExpandableSectionProps> = ({
   onItemsChange,
   addButtonText,
   itemName,
+  canAddItems = true,
+  showSubmitButton = false,
+  onSave
 }) => {
-  const handleItemChange = (id: string, field: string, value: string) => {
+  const handleItemChange = (id: number, field: string, value: string) => {
     const updatedItems = items.map((item) =>
       item.id === id ? { ...item, [field]: value } : item
     );
     onItemsChange(updatedItems);
   };
 
-  const toggleExpanded = (id: string) => {
+  const toggleExpanded = (id: number) => {
     const updatedItems = items.map((item) =>
       item.id === id ? { ...item, isExpanded: !item.isExpanded } : item
     );
@@ -36,7 +42,7 @@ const ExpandableSectionComponent: React.FC<ExpandableSectionProps> = ({
 
   const addNewItem = () => {
     const newItem = {
-      id: Math.random().toString(36).substr(2, 9),
+      id: Math.random(),
       heading: "",
       description: "",
       isExpanded: true,
@@ -44,9 +50,15 @@ const ExpandableSectionComponent: React.FC<ExpandableSectionProps> = ({
     onItemsChange([...items, newItem]);
   };
 
-  const removeItem = (id: string) => {
+  const removeItem = (id: number) => {
     if (items.length > 1) {
       onItemsChange(items.filter((item) => item.id !== id));
+    }
+  };
+
+  const handleSaveClick = async () => {
+    if (onSave) {
+      await onSave(items);
     }
   };
 
@@ -54,14 +66,16 @@ const ExpandableSectionComponent: React.FC<ExpandableSectionProps> = ({
     <div>
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-lg font-semibold text-gray-700">{title}</h3>
-        <button
-          type="button"
-          onClick={addNewItem}
-          className="flex items-center px-3 py-1 text-sm bg-primary-500 text-white rounded-md hover:bg-primary-600"
-        >
-          <Plus className="w-4 h-4 mr-1" />
-          {addButtonText}
-        </button>
+        {canAddItems && (
+          <button
+            type="button"
+            onClick={addNewItem}
+            className="flex items-center px-3 py-1 text-sm bg-primary-500 text-white rounded-md hover:bg-primary-600"
+          >
+            <Plus className="w-4 h-4 mr-1" />
+            {addButtonText}
+          </button>
+        )}
       </div>
 
       <div className="space-y-3">
@@ -101,29 +115,42 @@ const ExpandableSectionComponent: React.FC<ExpandableSectionProps> = ({
             </div>
 
             {item.isExpanded && (
-              <div className="p-4 border-t border-gray-200 space-y-3">
-                <InputField
-                  label="Heading"
-                  value={item.heading}
-                  onChange={(value) =>
-                    handleItemChange(item.id, "heading", value)
-                  }
-                  placeholder="Enter heading"
-                />
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Description
-                  </label>
-                  <ReactQuill
-                    value={item.description}
+              <>
+                <div className="p-4 border-t border-gray-200 space-y-3">
+                  <InputField
+                    label="Heading"
+                    value={item.heading}
                     onChange={(value) =>
-                      handleItemChange(item.id, "description", value)
+                      handleItemChange(item.id, "heading", value)
                     }
-                    placeholder="Enter description"
+                    placeholder="Enter heading"
                   />
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Description
+                    </label>
+                    <ReactQuill
+                      value={item.description}
+                      onChange={(value) =>
+                        handleItemChange(item.id, "description", value)
+                      }
+                      placeholder="Enter description"
+                    />
+                  </div>
                 </div>
-              </div>
+                {showSubmitButton && (
+                  <div className="text-right mt-2 mb-5 px-4">
+                    <button
+                      type="button"
+                      className="px-4 py-2 bg-primary-500 text-white rounded hover:bg-primary-600"
+                      onClick={handleSaveClick}
+                    >
+                      Save
+                    </button>
+                  </div>
+                )}
+              </>
             )}
           </div>
         ))}

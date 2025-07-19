@@ -15,8 +15,20 @@ export async function createPolicy(policyData: PolicySection): Promise<PolicySec
   try {
     const response = await api.post("/provider/add/policy", policyData);
     return response.data;
-  } catch (error) {
-    console.error("Error creating policy:", error);
-    throw error;
+  } catch (error :any) {
+    if (error.response && error.response.data) {
+      const { code, message, details, userMessage } = error.response.data;
+      throw {
+        code,
+        message,
+        details,
+        userMessage,
+      };
+    }
+
+    throw {
+      message: 'Failed to add new activity',
+      code: 'UNKNOWN_ERROR',
+    };
   }
 }
