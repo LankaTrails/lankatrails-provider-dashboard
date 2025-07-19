@@ -1,12 +1,12 @@
 export interface TabData {
-  id: string;
+  id: number;
   heading: string;
   description: string;
   isExpanded: boolean;
 }
 
 export interface PolicyData {
-  id: string;
+  id: number;
   heading: string;
   description: string;
   isExpanded: boolean;

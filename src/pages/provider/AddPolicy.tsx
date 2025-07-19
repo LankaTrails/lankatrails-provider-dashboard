@@ -18,7 +18,7 @@ const AddPolicy = () => {
   const [policySection, setPolicySection] = useState<PolicyData[]>(
     (initialData?.policySection || [{ heading: "", policy: "" }]).map(
       (policy) => ({
-        id: Math.random().toString(36).substr(2, 9),
+        id: Math.random(),
         heading: policy.heading,
         description: policy.policy,
         isExpanded: true,
@@ -51,13 +51,20 @@ const AddPolicy = () => {
     } catch (error: any) {
          console.error("Error adding service:", error);
 
-      let message =
-        error.userMessage || error.message || "An unexpected error occurred";
+      // let message =
+      //   error.userMessage || error.message || "An unexpected error occurred";
 
-      if (error.details && typeof error.details === "object") {
-        const errorMessages = Object.values(error.details).join("\n");
-        message += `:\n${errorMessages}`;
-      }
+      // if (error.details && typeof error.details === "object") {
+      //   const errorMessages = Object.values(error.details).join("\n");
+      //   message += `:\n${errorMessages}`;
+      // }
+      let rawMessage = error.message ;
+      // || "Failed to save policies.";
+  
+  // Remove anything in quotes like "j5imunpcu"
+      let cleanedMessage = rawMessage.replace(/"[^"]*"/g, ''); // removes quoted text
+
+      let message=cleanedMessage.split(":")[0].trim();
 
       setToast({
         message,

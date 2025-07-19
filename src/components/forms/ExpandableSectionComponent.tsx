@@ -26,14 +26,14 @@ const ExpandableSectionComponent: React.FC<ExpandableSectionProps> = ({
   showSubmitButton = false,
   onSave
 }) => {
-  const handleItemChange = (id: string, field: string, value: string) => {
+  const handleItemChange = (id: number, field: string, value: string) => {
     const updatedItems = items.map((item) =>
       item.id === id ? { ...item, [field]: value } : item
     );
     onItemsChange(updatedItems);
   };
 
-  const toggleExpanded = (id: string) => {
+  const toggleExpanded = (id: number) => {
     const updatedItems = items.map((item) =>
       item.id === id ? { ...item, isExpanded: !item.isExpanded } : item
     );
@@ -42,7 +42,7 @@ const ExpandableSectionComponent: React.FC<ExpandableSectionProps> = ({
 
   const addNewItem = () => {
     const newItem = {
-      id: Math.random().toString(36).substr(2, 9),
+      id: Math.random(),
       heading: "",
       description: "",
       isExpanded: true,
@@ -50,7 +50,7 @@ const ExpandableSectionComponent: React.FC<ExpandableSectionProps> = ({
     onItemsChange([...items, newItem]);
   };
 
-  const removeItem = (id: string) => {
+  const removeItem = (id: number) => {
     if (items.length > 1) {
       onItemsChange(items.filter((item) => item.id !== id));
     }
