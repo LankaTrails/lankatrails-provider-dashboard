@@ -69,7 +69,7 @@ const Profile = () => {
               <div className="absolute inset-0 bg-black bg-opacity-30" />
             </div>
             {/* Profile header card */}
-            <Card className="p-4 md:p-4 lg:p-6 shadow-xl mb-8 relative overflow-visible -mt-24 flex-1">
+            <Card className="p-4 md:p-4 lg:p-6 shadow-xl relative overflow-visible -mt-24 flex-1">
               <div className="flex flex-col md:flex-row md:items-center md:space-x-6">
                 <div className="w-32 h-32 md:w-36 md:h-36 rounded-full overflow-hidden border-4 border-white shadow-lg flex-shrink-0">
                   <img
