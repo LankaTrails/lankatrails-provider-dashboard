@@ -1,9 +1,10 @@
 import api from "@/api/axiosInstance";
-import type { ImageFiles, ServiceFormData } from "@/types/serviceTypes";
+import type { ImageFiles, ServiceFormData, TourGuideFormData, TransportFormData, AccommodationFormData, ActivityFormData, FoodBeverageFormData } from "@/types/serviceTypes";
 import { addNewTourGuide } from "@/services/guideService";
 import { addNewTransport } from "@/services/transportationService";
 import { addNewAccommodation } from "@/services/accomodation";
 import { addNewFoodBeverage } from "./FoodBeverage";
+import type { A } from "node_modules/framer-motion/dist/types.d-B_QPEvFK";
 
 //delete an activity service
 export const deleteActivityService = async (id: number): Promise<any> => {
@@ -140,24 +141,4 @@ export const fetchAllServices = async (
   }
 };
 
-// Generic function to add any service type
-export const addNewService = async (
-  serviceType: string,
-  payload: ServiceFormData,
-  images: ImageFiles
-): Promise<string> => {
-  if (serviceType === 'tour-guides') {
-    return await addNewTourGuide(payload, images);
-  } else if (serviceType === 'activity') {
-    return await addNewActivity(payload, images);
 
-  }else if (serviceType === 'transportation') {
-    return await addNewTransport(payload, images);
-  }else if (serviceType === 'accommodation') {
-    return await addNewAccommodation(payload, images);
-  } else if(serviceType === 'food-beverage') {
-    return await addNewFoodBeverage(payload,images);
-  }else {
-    throw new Error(`Unsupported service type: ${serviceType}`);
-  }
-};

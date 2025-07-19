@@ -19,6 +19,16 @@ import type {
   ImageFiles,
   OptionType,
   ServiceFormProps,
+  AccommodationFormData,
+  ActivityFormData,
+  FoodBeverageFormData,
+  TourGuideFormData,
+  TransportFormData,
+  ActivityType,
+  VehicleType,
+  AccommodationType,
+  TourGuideType,
+  PriceType,
 } from "@/types/serviceTypes";
 import { fetchAllPolicies } from "@/services/activityService";
 
@@ -29,7 +39,7 @@ const NewServiceForm: React.FC<ServiceFormProps> = ({
   onSubmit,
 }) => {
   const [images, setImages] = useState<ImageFiles>({
-    serviceImages: initialImages || [], // Initialize with initialImages if provided, otherwise an empty array
+    serviceImages: initialImages || [],
   });
 
   const [selectedImageIndex, setSelectedImageIndex] = useState<number>(0);
@@ -49,6 +59,103 @@ const NewServiceForm: React.FC<ServiceFormProps> = ({
   const [policyOptions, setPolicyOptions] = useState<OptionType[]>([]);
   const [preferredPolicies, setPreferredPolicies] = useState<string[]>([]);
 
+  // Initialize form data based on service type
+  const initializeFormData = (): ServiceFormData => {
+    const baseData: ServiceFormData = {
+      serviceName: "",
+      locationBased: {
+        formattedAddress: "",
+        city: "",
+        district: "",
+        province: "",
+        country: "",
+        postalCode: "",
+        latitude: 0,
+        longitude: 0,
+      },
+      contactNo: "",
+      status: true,
+      price: 0,
+      priceType: "FIXED" as PriceType,
+      tabsSection: [{ heading: "", content: "" }],
+      policySection: [{ heading: "", policy: "" }],
+    };
+
+    if (serviceType === "activity") {
+      return {
+        ...baseData,
+        activityType: "ADVENTURE" as ActivityType,
+        activityDetails: "",
+        safetyInstructions: "",
+      } as ActivityFormData;
+    } else if (serviceType === "transportation") {
+      return {
+        ...baseData,
+        vehicleCategory: "CAR" as VehicleType,
+        vehicleCapacity: 1,
+        vehicleQty: 1,
+      } as TransportFormData;
+    } else if (serviceType === "accommodation") {
+      return {
+        ...baseData,
+        accommodationType: "HOTEL" as AccommodationType,
+        about: "",
+      } as AccommodationFormData;
+    } else if (serviceType === "food-beverage") {
+      return {
+        ...baseData,
+        openHours: "",
+      } as FoodBeverageFormData;
+    } else if (serviceType === "tour-guides") {
+      return {
+        ...baseData,
+        serviceAreas: [],
+        languages: [],
+        tourGuideType: "NATIONAL" as TourGuideType,
+      } as TourGuideFormData;
+    }
+
+    return baseData;
+  };
+
+  const [formData, setFormData] = useState<ServiceFormData>(
+    initialData || initializeFormData()
+  );
+
+  const [preferredLanguages, setPreferredLanguages] = useState<string[]>(
+    (formData as TourGuideFormData).languages || []
+  );
+  const [preferredDistricts, setPreferredDistricts] = useState<string[]>(
+    (formData as TourGuideFormData).serviceAreas || []
+  );
+
+  const [tabsSection, setTabsSection] = useState<TabData[]>(
+    (initialData?.tabsSection || [{ heading: "", content: "" }]).map((tab, index) => ({
+      id: index,
+      heading: tab.heading,
+      description: tab.content,
+      isExpanded: true,
+    }))
+  );
+
+  const [policySection, setPolicySection] = useState<PolicyData[]>(
+    (initialData?.policySection || [{ heading: "", policy: "" }]).map(
+      (policy, index) => ({
+        id: index,
+        heading: policy.heading,
+        description: policy.policy,
+        isExpanded: true,
+      })
+    )
+  );
+
+  const [capacity, setCapacity] = useState(
+    (formData as TransportFormData).vehicleCapacity || 1
+  );
+  const [count, setCount] = useState(
+    (formData as TransportFormData).vehicleQty || 1
+  );
+
   useEffect(() => {
     const loadPolicies = async () => {
       try {
@@ -57,7 +164,7 @@ const NewServiceForm: React.FC<ServiceFormProps> = ({
 
         const options = policies.map((p: any) => ({
           label: p.heading,
-          value: p.id.toString(), // Assuming each policy has a unique id
+          value: p.id.toString(),
           content: p.policy,
         }));
 
@@ -73,10 +180,10 @@ const NewServiceForm: React.FC<ServiceFormProps> = ({
     const selectedPolicyObjects = policyOptions
       .filter((option) => preferredPolicies.includes(option.value))
       .map((option) => ({
-        id: option.value,
+        id: parseInt(option.value),
         heading: option.label,
-        description: option.content || "", // Provide default empty string
-        isExpanded: true, // Default to expanded
+        description: option.content || "",
+        isExpanded: true,
       }));
     setPolicySection(selectedPolicyObjects);
     const backendPolicies: PolicySection[] = selectedPolicyObjects.map(
@@ -91,65 +198,10 @@ const NewServiceForm: React.FC<ServiceFormProps> = ({
     }));
   }, [preferredPolicies, policyOptions]);
 
-  const [formData, setFormData] = useState<ServiceFormData>(
-    initialData || {
-      serviceName: "",
-      locationBased: {
-        formattedAddress: "",
-        city: "",
-        district: "",
-        province: "",
-        country: "",
-        postalCode: "",
-        latitude: 0,
-        longitude: 0,
-      },
-      contactNo: "",
-      status: true,
-      activityType: "",
-      activityDetails: "",
-      safetyInstructions: "",
-      tabsSection: [{ heading: "", content: "" }],
-      policySection: [{ heading: "", policy: "" }],
-      serviceAreas: [],
-      languages: [],
-      pricePerKm : 0,
-      vehicleCapacity:0,
-      vehicleQty:0,
-      vehicleCategory:"",
-      about:"",
-      openHours:"",
-
-    }
-  );
-
-  const [preferredLanguages, setPreferredLanguages] = useState<string[]>(
-    initialData?.languages ? initialData.languages : []
-  );
-  const [preferredDistricts, setPreferredDistricts] = useState<string[]>(
-    initialData?.serviceAreas ? initialData.serviceAreas : []
-  );
-  const [tabsSection, setTabsSection] = useState<TabData[]>(
-    (initialData?.tabsSection || [{ heading: "", content: "" }]).map((tab) => ({
-      id: Math.random().toString(36).substr(2, 9),
-      heading: tab.heading,
-      description: tab.content,
-      isExpanded: true,
-    }))
-  );
-
-  const [policySection, setPolicySection] = useState<PolicyData[]>(
-    (initialData?.policySection || [{ heading: "", policy: "" }]).map(
-      (policy) => ({
-        id: Math.random().toString(36).substr(2, 9),
-        heading: policy.heading,
-        description: policy.policy,
-        isExpanded: true,
-      })
-    )
-  );
-
-  const handleInputChange = (field: keyof ServiceFormData, value: any) => {
+  const handleInputChange = (
+    field: keyof (ServiceFormData & ActivityFormData & TransportFormData & AccommodationFormData & FoodBeverageFormData & TourGuideFormData),
+    value: any
+  ) => {
     setFormData((prev) => ({
       ...prev,
       [field]: value,
@@ -169,7 +221,7 @@ const NewServiceForm: React.FC<ServiceFormProps> = ({
   };
 
   const handleTabsChange = (tabs: TabData[]) => {
-    setTabsSection(tabs); // for UI
+    setTabsSection(tabs);
     const backendTabs: TabSection[] = tabs.map(({ heading, description }) => ({
       heading,
       content: description,
@@ -181,7 +233,7 @@ const NewServiceForm: React.FC<ServiceFormProps> = ({
   };
 
   const handlePoliciesChange = (policies: PolicyData[]) => {
-    setPolicySection(policies); // for UI
+    setPolicySection(policies);
     const backendPolicies: PolicySection[] = policies.map(
       ({ heading, description }) => ({
         heading,
@@ -195,17 +247,27 @@ const NewServiceForm: React.FC<ServiceFormProps> = ({
   };
 
   const handleImagesChange = (imgs: ImageFiles) => {
-    setImages(imgs); // Update current images
+    setImages(imgs);
   };
 
   const handleSubmit = () => {
-    const updatedData: ServiceFormData = {
-      ...formData,
-      serviceAreas: preferredDistricts, // Always use array of strings
-      languages: preferredLanguages, // Update languages field
-      vehicleCapacity:capacity,
-      vehicleQty:count,
-    };
+    let updatedData: ServiceFormData = { ...formData };
+
+    // Update specific fields based on service type
+    if (serviceType === "tour-guides") {
+      updatedData = {
+        ...updatedData,
+        serviceAreas: preferredDistricts,
+        languages: preferredLanguages,
+      } as TourGuideFormData;
+    } else if (serviceType === "transportation") {
+      updatedData = {
+        ...updatedData,
+        vehicleCapacity: capacity,
+        vehicleQty: count,
+      } as TransportFormData;
+    }
+
     console.log("Submitting updated data:", updatedData);
     onSubmit(updatedData, images);
   };
@@ -248,8 +310,7 @@ const NewServiceForm: React.FC<ServiceFormProps> = ({
     { value: "trincomalee", label: "Trincomalee" },
     { value: "vavuniya", label: "Vavuniya" },
   ];
-  const [capacity, setCapacity] = useState(1);
-  const [count, setCount] = useState(1);
+
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -262,163 +323,254 @@ const NewServiceForm: React.FC<ServiceFormProps> = ({
             selectedImageIndex={selectedImageIndex}
             onSelectedImageChange={setSelectedImageIndex}
           />
-          {serviceType == "activity"  && (
+
+          {/* Activity Service Form */}
+          {serviceType === "activity" && (
             <div className="bg-gray-50 p-4 rounded-lg">
               <h3 className="text-lg font-semibold text-gray-700 mb-4">
-                Basic Information
+                Activity Information
               </h3>
               <InputField
-                label="Name of Activity Service"
+                label="Activity Name"
                 value={formData.serviceName}
                 onChange={(value) => handleInputChange("serviceName", value)}
-                placeholder="Enter tour guide name"
+                placeholder="Enter activity name"
                 required
               />
               <SelectField
-                label="Activity Category"
+                label="Activity Type"
                 options={[
-                  { value: "Adventures", label: "Adventure" },
-                  { value: "water_sports", label: "Water Sports" },
-                  { value: "hiking", label: "Hiking & Trekking" },
-                  { value: "safari", label: "Safari Tours" },
+                  { value: "ADVENTURE", label: "Adventure" },
+                  { value: "CULTURAL", label: "Cultural" },
+                  { value: "NATURE", label: "Nature" },
+                  { value: "RELAXATION", label: "Relaxation" },
+                  { value: "SPORTS", label: "Sports" },
+                  { value: "WATER_SPORTS", label: "Water Sports" },
+                  { value: "WELLNESS", label: "Wellness" },
+                  { value: "EDUCATIONAL", label: "Educational" },
+                  { value: "NIGHTLIFE", label: "Nightlife" },
                 ]}
-                value={formData.activityType}
+                value={(formData as ActivityFormData).activityType}
                 onChange={(value) => handleInputChange("activityType", value)}
                 required
               />
-              <InputField
+              <TextAreaField
                 label="Activity Details"
-                value={formData.activityDetails}
-                onChange={(value) =>
-                  handleInputChange("activityDetails", value)
-                }
+                value={(formData as ActivityFormData).activityDetails}
+                onChange={(value) => handleInputChange("activityDetails", value)}
                 placeholder="Enter activity details"
+                rows={3}
               />
-
               <TextAreaField
                 label="Safety Instructions"
-                value={formData.safetyInstructions}
-                onChange={(value) =>
-                  handleInputChange("safetyInstructions", value)
-                }
+                value={(formData as ActivityFormData).safetyInstructions}
+                onChange={(value) => handleInputChange("safetyInstructions", value)}
                 placeholder="Enter safety instructions"
                 rows={4}
               />
+              <InputField
+                label="Price"
+                value={formData.price.toString()}
+                onChange={(value) => handleInputChange("price", Number(value))}
+                placeholder="Enter price"
+                type="number"
+              />
+              <SelectField
+                label="Price Type"
+                options={[
+                  { value: "FIXED", label: "Fixed Price" },
+                  { value: "PER_PERSON", label: "Per Person" },
+                  { value: "PER_HOUR", label: "Per Hour" },
+                  { value: "PER_DAY", label: "Per Day" },
+                ]}
+                value={formData.priceType}
+                onChange={(value) => handleInputChange("priceType", value)}
+                required
+              />
             </div>
           )}
-          {/* Activity Service Provider */}
-          {/* Transportation */}
-          {serviceType == "transportation"  && (
+
+          {/* Transportation Service Form */}
+          {serviceType === "transportation" && (
             <div className="bg-gray-50 p-4 rounded-lg">
               <h3 className="text-lg font-semibold text-gray-700 mb-4">
-                Basic Information
+                Transportation Information
               </h3>
               <InputField
-                label="Name of the Service "
+                label="Service Name"
                 value={formData.serviceName}
                 onChange={(value) => handleInputChange("serviceName", value)}
                 placeholder="Enter transport service name"
                 required
               />
-               
-                <SelectField
-                  label="Transport Category"
-                  options={[
-                    { value: "car", label: "Car" },
-                    { value: "bus", label: "Bus" },
-                    { value: "van", label: "Van" },
-                    
-                  ]}
-                  value={formData.vehicleCategory}
-                  onChange={(value) => handleInputChange("vehicleCategory", value)}
-                  required
-                />
-              
-              <label>Capacity</label>
-              <CounterInput value={capacity} onChange={setCapacity} min={1} max={10}  />
-
-              <label>No. of Vehicles</label>
-              <CounterInput value={count} onChange={setCount} min={1} max={10}  />
-
-             
-              <InputField
-                label="Price per km"
-                value={formData.pricePerKm.toString()}
-                onChange={(value) =>
-                  handleInputChange("pricePerKm", Number(value))
-                }
-                placeholder="Enter price per km"
+              <SelectField
+                label="Vehicle Type"
+                options={[
+                  { value: "CAR", label: "Car" },
+                  { value: "VAN", label: "Van" },
+                  { value: "BUS", label: "Bus" },
+                  { value: "TRUCK", label: "Truck" },
+                  { value: "MOTORCYCLE", label: "Motorcycle" },
+                  { value: "BICYCLE", label: "Bicycle" },
+                  { value: "SCOOTER", label: "Scooter" },
+                  { value: "PICKUP", label: "Pickup" },
+                  { value: "SUV", label: "SUV" },
+                  { value: "TUK_TUK", label: "Tuk Tuk" },
+                ]}
+                value={(formData as TransportFormData).vehicleCategory}
+                onChange={(value) => handleInputChange("vehicleCategory", value)}
+                required
               />
-
-          
+              <div className="space-y-2">
+                <label className="block text-sm font-medium text-gray-700">
+                  Vehicle Capacity
+                </label>
+                <CounterInput 
+                  value={capacity} 
+                  onChange={setCapacity} 
+                  min={1} 
+                  max={50} 
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="block text-sm font-medium text-gray-700">
+                  Number of Vehicles
+                </label>
+                <CounterInput 
+                  value={count} 
+                  onChange={setCount} 
+                  min={1} 
+                  max={20} 
+                />
+              </div>
+              <InputField
+                label="Price"
+                value={formData.price.toString()}
+                onChange={(value) => handleInputChange("price", Number(value))}
+                placeholder="Enter price"
+                type="number"
+              />
+              <SelectField
+                label="Price Type"
+                options={[
+                  { value: "FIXED", label: "Fixed Price" },
+                  { value: "PER_KM", label: "Per KM" },
+                  { value: "PER_HOUR", label: "Per Hour" },
+                  { value: "PER_DAY", label: "Per Day" },
+                ]}
+                value={formData.priceType}
+                onChange={(value) => handleInputChange("priceType", value)}
+                required
+              />
             </div>
           )}
-          {/* Transportation */}
-          {/* Accommodation */}
 
-          <div className="bg-gray-50 p-4 rounded-lg w-full">
-             {serviceType == "accommodation" && (
-            <>
-            <h3 className="text-lg font-semibold text-gray-700 mb-4">
-              Basic Information
-            </h3>
-              <InputField
-                  label="Name of Accommodation"
-                  value={formData.serviceName}
-                  onChange={(value) => handleInputChange("serviceName", value)}
-                  placeholder="Enter accommodation name"
-                  required
-              />
-            <TextAreaField
-                  label="About Us"
-                  value={formData.about}
-                  onChange={(value)=>
-                  handleInputChange("about",value)
-                  }
-                  placeholder = "Enter about section"
-                  className="mt-3"
-            />
-            </>
-          )
-          }
-          {/* Accommodation */}
-          {/* Food-Beverage */}
-          {serviceType =="food-beverage" && (
+          {/* Accommodation Service Form */}
+          {serviceType === "accommodation" && (
             <div className="bg-gray-50 p-4 rounded-lg">
               <h3 className="text-lg font-semibold text-gray-700 mb-4">
-                Basic Information
+                Accommodation Information
               </h3>
-               <InputField
-                  label="Name of Service"
-                  value={formData.serviceName}
-                  onChange={(value) => handleInputChange("serviceName", value)}
-                  placeholder="Enter service name"
-                  required
+              <InputField
+                label="Accommodation Name"
+                value={formData.serviceName}
+                onChange={(value) => handleInputChange("serviceName", value)}
+                placeholder="Enter accommodation name"
+                required
+              />
+              <SelectField
+                label="Accommodation Type"
+                options={[
+                  { value: "HOTEL", label: "Hotel" },
+                  { value: "HOSTEL", label: "Hostel" },
+                  { value: "GUEST_HOUSE", label: "Guest House" },
+                  { value: "APARTMENT", label: "Apartment" },
+                  { value: "VILLA", label: "Villa" },
+                  { value: "HOMESTAY", label: "Homestay" },
+                  { value: "CAMPING", label: "Camping" },
+                  { value: "RESORT", label: "Resort" },
+                  { value: "LODGE", label: "Lodge" },
+                ]}
+                value={(formData as AccommodationFormData).accommodationType}
+                onChange={(value) => handleInputChange("accommodationType", value)}
+                required
               />
               <TextAreaField
-                  label="Open hours"
-                  value={formData.openHours}
-                  onChange={(value)=>
-                  handleInputChange("openHours",value)
-                  }
-                  placeholder = "Enter Open Hours"
-                  className="mt-3"
-            />
+                label="About Us"
+                value={(formData as AccommodationFormData).about}
+                onChange={(value) => handleInputChange("about", value)}
+                placeholder="Enter about section"
+                rows={4}
+              />
+              <InputField
+                label="Price"
+                value={formData.price.toString()}
+                onChange={(value) => handleInputChange("price", Number(value))}
+                placeholder="Enter price"
+                type="number"
+              />
+              <SelectField
+                label="Price Type"
+                options={[
+                  { value: "PER_NIGHT", label: "Per Night" },
+                  { value: "PER_WEEK", label: "Per Week" },
+                  { value: "PER_MONTH", label: "Per Month" },
+                  { value: "FIXED", label: "Fixed Price" },
+                ]}
+                value={formData.priceType}
+                onChange={(value) => handleInputChange("priceType", value)}
+                required
+              />
             </div>
-          )
+          )}
 
-          }
-          {/* Food-Beverage */}
-          </div>
+          {/* Food & Beverage Service Form */}
+          {serviceType === "food-beverage" && (
+            <div className="bg-gray-50 p-4 rounded-lg">
+              <h3 className="text-lg font-semibold text-gray-700 mb-4">
+                Food & Beverage Information
+              </h3>
+              <InputField
+                label="Restaurant/Service Name"
+                value={formData.serviceName}
+                onChange={(value) => handleInputChange("serviceName", value)}
+                placeholder="Enter service name"
+                required
+              />
+              <TextAreaField
+                label="Opening Hours"
+                value={(formData as FoodBeverageFormData).openHours}
+                onChange={(value) => handleInputChange("openHours", value)}
+                placeholder="Enter opening hours (e.g., Mon-Sun: 8:00 AM - 10:00 PM)"
+                rows={3}
+              />
+              <InputField
+                label="Price"
+                value={formData.price.toString()}
+                onChange={(value) => handleInputChange("price", Number(value))}
+                placeholder="Enter average price"
+                type="number"
+              />
+              <SelectField
+                label="Price Type"
+                options={[
+                  { value: "FIXED", label: "Fixed Price" },
+                  { value: "PER_PERSON", label: "Per Person" },
+                ]}
+                value={formData.priceType}
+                onChange={(value) => handleInputChange("priceType", value)}
+                required
+              />
+            </div>
+          )}
         </div>
 
-        <div className="space-y-0">
-          {(serviceType == "activity"|| 
-            serviceType == "transportation" || 
-            serviceType == "accommodation" ||
-            serviceType == "food-beverage"
-          
-          ) && (
+        <div className="space-y-6">
+          {/* Map Component for location-based services */}
+          {(serviceType === "activity" || 
+            serviceType === "transportation" || 
+            serviceType === "accommodation" ||
+            serviceType === "food-beverage") && (
             <MapSelectorComponent
               location={formData.locationBased.formattedAddress}
               onLocationChange={(value) =>
@@ -432,35 +584,31 @@ const NewServiceForm: React.FC<ServiceFormProps> = ({
             />
           )}
 
-          <div className="bg-gray-50 p-4 rounded-lg">
-            {serviceType == "tour-guides" && (
-              <div className="space-y-4">
-                <InputField
-                  label="Name of Tour Guide"
-                  value={formData.serviceName}
-                  onChange={(value) => handleInputChange("serviceName", value)}
-                  placeholder="Enter tour guide name"
-                  required
-                />
-              </div>
-            )}
-            {serviceType == "tour-guides" && (
-              <>
-                <SelectField
-                  label="Guiding Category"
-                  options={[
-                    { value: "national", label: "National" },
-                    { value: "chauffer", label: "Chauffeur" },
-                    { value: "site", label: "Site" },
-                    { value: "area", label: "Area" },
-                  ]}
-                  value={formData.activityType}
-                  onChange={(value) => handleInputChange("activityType", value)}
-                  required
-                />
-              </>
-            )}
-            {serviceType == "tour-guides" && (
+          {/* Tour Guide specific fields */}
+          {serviceType === "tour-guides" && (
+            <div className="bg-gray-50 p-4 rounded-lg">
+              <h3 className="text-lg font-semibold text-gray-700 mb-4">
+                Tour Guide Information
+              </h3>
+              <InputField
+                label="Tour Guide Name"
+                value={formData.serviceName}
+                onChange={(value) => handleInputChange("serviceName", value)}
+                placeholder="Enter tour guide name"
+                required
+              />
+              <SelectField
+                label="Guide Type"
+                options={[
+                  { value: "NATIONAL", label: "National Guide" },
+                  { value: "CHAUFFEUR", label: "Chauffeur Guide" },
+                  { value: "SITE", label: "Site Guide" },
+                  { value: "AREA", label: "Area Guide" },
+                ]}
+                value={(formData as TourGuideFormData).tourGuideType}
+                onChange={(value) => handleInputChange("tourGuideType", value)}
+                required
+              />
               <MultiSelectField
                 label="Service Areas"
                 options={districtOptions}
@@ -469,37 +617,53 @@ const NewServiceForm: React.FC<ServiceFormProps> = ({
                 required
                 icon={<Globe size={16} />}
               />
-            )}
-            {serviceType == "tour-guides" && (
               <MultiSelectField
-                label="Preferred Languages"
+                label="Languages"
                 options={languageOptions}
                 value={preferredLanguages}
                 onChange={setPreferredLanguages}
                 required
                 icon={<Globe size={16} />}
               />
-            )}
-            {/* <h3 className="text-lg font-semibold text-gray-700 mb-4 mt-5">
-              Contact Information
-            </h3> */}
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold text-gray-700 mb-4">
-              Contact Details
-            </h3>
               <InputField
-                label="Phone Number"
-                value={formData.contactNo}
-                onChange={(value) => handleInputChange("contactNo", value)}
-                type="tel"
-                placeholder="+94 xxx xxx xxxx"
-
+                label="Price"
+                value={formData.price.toString()}
+                onChange={(value) => handleInputChange("price", Number(value))}
+                placeholder="Enter price"
+                type="number"
+              />
+              <SelectField
+                label="Price Type"
+                options={[
+                  { value: "PER_HOUR", label: "Per Hour" },
+                  { value: "PER_DAY", label: "Per Day" },
+                  { value: "FIXED", label: "Fixed Price" },
+                ]}
+                value={formData.priceType}
+                onChange={(value) => handleInputChange("priceType", value)}
+                required
               />
             </div>
+          )}
+
+          {/* Contact Information */}
+          <div className="bg-gray-50 p-4 rounded-lg">
+            <h3 className="text-lg font-semibold text-gray-700 mb-4">
+              Contact Details
+            </h3>
+            <InputField
+              label="Phone Number"
+              value={formData.contactNo}
+              onChange={(value) => handleInputChange("contactNo", value)}
+              type="tel"
+              placeholder="+94 xxx xxx xxxx"
+              required
+            />
           </div>
         </div>
       </div>
 
+      {/* Tabs and Policies Section */}
       <div className="mt-8 grid grid-cols-1 lg:grid-cols-2 gap-8">
         <ExpandableSectionComponent
           title="Tabs"
@@ -509,13 +673,12 @@ const NewServiceForm: React.FC<ServiceFormProps> = ({
           itemName="Tab"
         />
         <div>
-          {serviceType == "activity" && (
+          {serviceType === "activity" && (
             <MultiSelectField
               label="Available Policies"
               options={policyOptions}
               value={preferredPolicies}
               onChange={setPreferredPolicies}
-              required
               icon={<Globe size={16} />}
             />
           )}
@@ -529,6 +692,7 @@ const NewServiceForm: React.FC<ServiceFormProps> = ({
         </div>
       </div>
 
+      {/* Submit Button */}
       <div className="mt-8 flex justify-end">
         <button
           type="button"
