@@ -35,11 +35,15 @@ const Header = () => {
             {showUser ? (
               <>
                 <button
-                  onClick={() => navigate("/profile")}
+                  onClick={() => navigate("/provider/profile")}
                   className="flex items-center space-x-2 hover:opacity-80"
                 >
                   <img
-                    src={"/default-avatar.png"}
+                    src={
+                      user && user.profilePictureUrl
+                        ? `http://localhost:8080${user.profilePictureUrl}`
+                        : "/default-avatar.png"
+                    }
                     alt="avatar"
                     className="w-10 h-10 rounded-full object-cover border"
                   />
@@ -47,14 +51,14 @@ const Header = () => {
                     {(user?.businessName && user.businessName) || "Provider"}
                   </span> */}
                 </button>
-                <Button
+                {/* <Button
                   size="sm"
                   variant="outline"
                   onClick={handleLogout}
                   className="flex items-center gap-1"
                 >
                   <LogOut className="w-4 h-4" /> Logout
-                </Button>
+                </Button> */}
               </>
             ) : (
               <>

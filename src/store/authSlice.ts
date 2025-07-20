@@ -1,21 +1,11 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import type { PayloadAction } from '@reduxjs/toolkit';
 import api, { setAccessToken } from '@/api/axiosInstance';
-
-interface ProviderUser {
-  id: number;
-  email: string;
-  role: string;
-  emailVerified: boolean;
-  businessName?: string;
-  businessDescription?: string;
-  logoUrl?: string | null;
-  profilePictureUrl?: string | null;
-}
+import type { User } from '@/types/authTypes';
 
 interface AuthState {
   isAuthenticated: boolean;
-  user: ProviderUser | null;
+  user: User | null;
   isLoading: boolean;
   error: string | null;
 }
@@ -36,7 +26,7 @@ export const login = createAsyncThunk(
       setAccessToken(jwtToken);
       const profileRes = await api.get('/auth/logged-user');
       console.log('Profile fetched after login:', profileRes.data.data);
-      return profileRes.data.data as ProviderUser;
+      return profileRes.data.data as User;
     } catch (err: any) {
       return rejectWithValue(err.response?.data?.message || 'Login failed');
     }
@@ -63,7 +53,7 @@ export const fetchProfile = createAsyncThunk(
     try {
       const res = await api.get('/auth/logged-user');
       console.log('Fetched profile:', res.data.data);
-      return res.data.data as ProviderUser;
+      return res.data.data as User;
     } catch {
       return rejectWithValue('Failed to fetch profile');
     }
@@ -102,17 +92,17 @@ const authSlice = createSlice({
       state.isAuthenticated = false;
       state.user = null;
       state.error = 'Session expired';
-    }, 
-    setAuthState: (state, action: PayloadAction<{ isAuthenticated: boolean; user: ProviderUser | null }>) => {
+    },
+    setAuthState: (state, action: PayloadAction<{ isAuthenticated: boolean; user: User | null }>) => {
       state.isAuthenticated = action.payload.isAuthenticated;
       state.user = action.payload.user;
     },
   },
   extraReducers: builder => {
     builder
-      .addCase(login.pending, state => { 
-        state.isLoading = true; 
-        state.error = null; 
+      .addCase(login.pending, state => {
+        state.isLoading = true;
+        state.error = null;
       })
       .addCase(login.fulfilled, (state, action) => {
         state.isAuthenticated = true;

@@ -8,16 +8,19 @@ import ProtectedRoute from "@/components/ProtectedRoutes";
 import DashboardLayout from "@/components/provider/ProviderDashboard";
 import ServiceListPage from "@/pages/service/ServiceListPage";
 import AddServicePage from "./pages/service/AddServicePage";
-import ServiceBookingsPage from "@/pages/service/ServiceBookingsPage"; 
-import ServiceReviewsPage from "@/pages/service/ServiceReviewsPage"; 
-import ServiceAnalyticsPage from "@/pages/service/ServiceAnalyticsPage"; 
+import ServiceBookingsPage from "@/pages/service/ServiceBookingsPage";
+import ServiceReviewsPage from "@/pages/service/ServiceReviewsPage";
+import ServiceAnalyticsPage from "@/pages/service/ServiceAnalyticsPage";
 import ProviderDashboardPage from "@/pages/provider/ProviderDashboardPage";
 import ServiceEditPage from "@/pages/service/ServiceEditPage";
 import ServiceViewPage from "@/pages/service/ServiceViewPage";
 import MessagesPage from "@/pages/provider/MessagePage";
 import AnalyticsPage from "@/pages/provider/AnalyticsPage";
-import Profile from "@/pages/Profile";
+import Profile from "@/pages/provider/Profile";
 import NotFound from "@/pages/NotFound";
+import ContactPerson from "./pages/provider/ContactPerson";
+import AllPolicy from "./pages/provider/AllPolicy";
+import AddPolicy from "./pages/provider/AddPolicy";
 
 const AppRoutes = () => {
   const { isLoading, restoreSession } = useAuth();
@@ -62,12 +65,22 @@ const AppRoutes = () => {
           <Route path="bookings" element={<ServiceBookingsPage />} />
           <Route path="reviews" element={<ServiceReviewsPage />} />
           <Route path="analytics" element={<ServiceAnalyticsPage />} />
-          <Route path=":id" element={<ServiceViewPage />} /> 
+          <Route path=":id" element={<ServiceViewPage />} />
           <Route path="edit/:id" element={<ServiceEditPage />} />
         </Route>
 
         <Route path="messages" element={<MessagesPage />} />
         <Route path="analytics" element={<AnalyticsPage />} />
+        <Route path="profile">
+          <Route index element={<Profile />} />
+          <Route path="details" element={<Profile />} />
+          <Route path="contact" element={<ContactPerson />} />
+        </Route>
+        <Route path="policy">
+          <Route index element={<AllPolicy />} />
+          <Route path="all" element={<AllPolicy />} />
+          <Route path="add" element={<AddPolicy />} />
+        </Route>
       </Route>
 
       <Route

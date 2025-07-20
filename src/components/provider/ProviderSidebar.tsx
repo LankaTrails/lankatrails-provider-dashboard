@@ -11,11 +11,12 @@ const tabs = [
   { label: "Food & Beverage Services", slug: "food-beverage" },
   { label: "Accommodation Providers", slug: "accommodation" },
   { label: "Messages", slug: "messages" },
+  { label: "Policy Management", slug: "policy" },
   { label: "Analytics", slug: "analytics" },
 ];
 
 const ProviderSidebar = () => {
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -30,17 +31,30 @@ const ProviderSidebar = () => {
     return location.pathname.includes(slug);
   };
 
+  const handleLogout = async () => {
+    await logout();
+    navigate("/login");
+  };
+
   return (
     <aside className="lg:w-64 w-full lg:sticky lg:top-28 lg:self-start mb-8 lg:mb-0">
       <Card className="shadow-lg">
         <CardHeader
-          onClick={() => navigate("/profile")}
+          onClick={() => navigate("/provider/profile")}
           className="items-center text-center pb-0 cursor-pointer hover:bg-gray-50  transition-colors"
         >
           <img
-            src={user?.profilePictureUrl || "/default-avatar.png"}
+            src={
+              user && user.profilePictureUrl
+                ? `http://localhost:8080${user.profilePictureUrl}`
+                : "/default-avatar.png"
+            }
             alt="avatar"
-            className="w-24 h-24 rounded-full object-cover border-4 border-white -mt-12 mx-auto shadow-md"
+            className={`w-24 h-24 rounded-full object-cover border-4 -mt-12 mx-auto shadow-md ${
+              location.pathname === "/provider/profile"
+                ? "border-primary-500"
+                : "border-white"
+            }`}
           />
           <CardTitle className="mt-2 text-xl">{user?.businessName}</CardTitle>
         </CardHeader>
@@ -57,6 +71,15 @@ const ProviderSidebar = () => {
                 </Button>
               </li>
             ))}
+            <li>
+              <Button
+                variant="outline"
+                className="w-full justify-start capitalize"
+                onClick={handleLogout}
+              >
+                Logout
+              </Button>
+            </li>
           </ul>
         </CardContent>
       </Card>
