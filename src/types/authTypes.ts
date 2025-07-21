@@ -29,7 +29,7 @@ export interface User {
   businessDescription?: string;
   logoUrl?: string;
   coverImageUrl?: string;
-  location?: Location;
+  location?: LocationData;
   accommodationApprovalStatus?: ApprovalStatus;
   tourGuideApprovalStatus?: ApprovalStatus;
   transportApprovalStatus?: ApprovalStatus;
@@ -37,13 +37,14 @@ export interface User {
   foodApprovalStatus?: ApprovalStatus;
 }
 
-export interface Location {
+export interface LocationData {
+  locationId: number;
   formattedAddress: string;
-  city: string | null;
-  district: string | null;
-  province: string | null;
-  country: string | null;
-  postalCode: string | null;
+  city: string;
+  district: string;
+  province: string;
+  country: string;
+  postalCode: string;
   latitude: number;
   longitude: number;
 }

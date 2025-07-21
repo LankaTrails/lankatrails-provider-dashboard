@@ -67,6 +67,7 @@ const NewServiceForm: React.FC<ServiceFormProps> = ({
     const baseData: ServiceFormData = {
       serviceName: "",
       locationBased: {
+        locationId: 0,
         formattedAddress: "",
         city: "",
         district: "",
@@ -76,6 +77,7 @@ const NewServiceForm: React.FC<ServiceFormProps> = ({
         latitude: 0,
         longitude: 0,
       },
+      locationId: null,
       contactNo: "",
       status: true,
       price: 0,
@@ -239,7 +241,16 @@ const NewServiceForm: React.FC<ServiceFormProps> = ({
     }));
   };
 
-  const handleLocationSelect = (locationData: LocationData) => {
+  const handleLocationSelect = (locationData: LocationData | undefined) => {
+    if (!locationData) {
+      // Handle case where business location is used (locationData is undefined)
+      setFormData((prev) => ({
+        ...prev,
+        locationBased: null,
+      }));
+      return;
+    }
+
     setSelectedCoordinates({
       latitude: locationData.latitude,
       longitude: locationData.longitude,
@@ -248,6 +259,15 @@ const NewServiceForm: React.FC<ServiceFormProps> = ({
     setFormData((prev) => ({
       ...prev,
       locationBased: locationData,
+      locationId: null, // Clear locationId when using custom location
+    }));
+  };
+
+  const handleLocationIdSelect = (locationId: number) => {
+    setFormData((prev) => ({
+      ...prev,
+      locationId: locationId,
+      locationBased: null, // Clear locationBased when using business location
     }));
   };
 
@@ -349,754 +369,744 @@ const NewServiceForm: React.FC<ServiceFormProps> = ({
   ];
 
   return (
-      <div className="max-w-7xl mx-auto">
-        {/* Main Form Container */}
-        <div className="bg-white rounded-xl shadow-lg p-6 mb-8">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 min-h-[800px]">
-            {/* Left Column */}
-            <div className="flex flex-col space-y-6">
-              {/* Image Upload - Fixed Height */}
-              <div className="bg-gradient-to-r from-primary-50 to-primary-50 p-4 rounded-xl border border-primary-100">
-                <h3 className="text-xl font-semibold text-gray-800 mb-6 flex items-center">
-                  {/* <span className="w-2 h-2 bg-primary-500 rounded-full mr-3"></span> */}
-                  Service Images
-                </h3>
-                <ImageUploadComponent
-                  images={images.serviceImages}
-                  onImagesChange={(images) =>
-                    handleImagesChange({ serviceImages: images })
-                  }
-                  selectedImageIndex={selectedImageIndex}
-                  onSelectedImageChange={setSelectedImageIndex}
-                />
-              </div>
-
-              {/* Contact Information - Fixed Height */}
-              <div className="bg-gradient-to-r from-primary-50 to-primary-50 p-4 rounded-xl border border-primary-100">
-                <h3 className="text-xl font-semibold text-gray-800 mb-6 flex items-center">
-                  {/* <span className="w-2 h-2 bg-primary-500 rounded-full mr-3"></span> */}
-                  Contact Details
-                </h3>
-                <InputField
-                  label="Phone Number"
-                  value={formData.contactNo}
-                  onChange={(value) => handleInputChange("contactNo", value)}
-                  type="tel"
-                  placeholder="+94 xxx xxx xxxx"
-                  required
-                />
-              </div>
-
-              {/* Tabs and Policies - Flexible Height */}
-              <div className="flex-1 space-y-8">
-                <div className="bg-gradient-to-r from-primary-50 to-primary-50 p-4 rounded-xl border border-primary-100">
-                  <ExpandableSectionComponent
-                    title="Tabs"
-                    items={tabsSection}
-                    onItemsChange={handleTabsChange}
-                    addButtonText="Add Tab"
-                    itemName="Tab"
-                  />
-                </div>
-
-                <div className="bg-gradient-to-r from-primary-50 to-primary-50 p-4 rounded-xl border border-primary-100">
-                  {serviceType === "activity" && (
-                    <div className="mb-6">
-                      <MultiSelectField
-                        label="Available Policies"
-                        options={policyOptions}
-                        value={preferredPolicies}
-                        onChange={setPreferredPolicies}
-                        icon={<Globe size={16} />}
-                      />
-                    </div>
-                  )}
-                  <ExpandableSectionComponent
-                    title="Policies"
-                    items={policySection}
-                    onItemsChange={handlePoliciesChange}
-                    addButtonText="Add Policy"
-                    itemName="Policy"
-                  />
-                </div>
-              </div>
+    <div className="max-w-7xl mx-auto">
+      {/* Main Form Container */}
+      <div className="bg-white rounded-xl shadow-lg p-6 mb-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 min-h-[800px]">
+          {/* Left Column */}
+          <div className="flex flex-col space-y-6">
+            {/* Image Upload - Fixed Height */}
+            <div className="bg-gradient-to-r from-primary-50 to-primary-50 p-4 rounded-xl border border-primary-100">
+              <h3 className="text-xl font-semibold text-gray-800 mb-6 flex items-center">
+                {/* <span className="w-2 h-2 bg-primary-500 rounded-full mr-3"></span> */}
+                Service Images
+              </h3>
+              <ImageUploadComponent
+                images={images.serviceImages}
+                onImagesChange={(images) =>
+                  handleImagesChange({ serviceImages: images })
+                }
+                selectedImageIndex={selectedImageIndex}
+                onSelectedImageChange={setSelectedImageIndex}
+              />
             </div>
 
-            {/* Right Column */}
-            <div className="flex flex-col space-y-6">
-              {/* Map Component - Fixed Height */}
-              {(serviceType === "activity" ||
-                serviceType === "transportation" ||
-                serviceType === "accommodation" ||
-                serviceType === "food-beverage") && (
-                <div className="bg-gradient-to-r from-primary-50 to-primary-50 p-4 rounded-xl border border-primary-100 h-[400px]">
-                  <h3 className="text-xl font-semibold text-gray-800 mb-6 flex items-center">
-                    {/* <span className="w-2 h-2 bg-primary-500 rounded-full mr-3"></span> */}
-                    Location
-                  </h3>
-                  <MapSelectorComponent
-                    location={formData.locationBased.formattedAddress}
-                    onLocationChange={(value) =>
+            {/* Contact Information - Fixed Height */}
+            <div className="bg-gradient-to-r from-primary-50 to-primary-50 p-4 rounded-xl border border-primary-100">
+              <h3 className="text-xl font-semibold text-gray-800 mb-6 flex items-center">
+                {/* <span className="w-2 h-2 bg-primary-500 rounded-full mr-3"></span> */}
+                Contact Details
+              </h3>
+              <InputField
+                label="Phone Number"
+                value={formData.contactNo}
+                onChange={(value) => handleInputChange("contactNo", value)}
+                type="tel"
+                placeholder="+94 xxx xxx xxxx"
+                required
+              />
+            </div>
+
+            {/* Tabs and Policies - Flexible Height */}
+            <div className="flex-1 space-y-8">
+              <div className="bg-gradient-to-r from-primary-50 to-primary-50 p-4 rounded-xl border border-primary-100">
+                <ExpandableSectionComponent
+                  title="Tabs"
+                  items={tabsSection}
+                  onItemsChange={handleTabsChange}
+                  addButtonText="Add Tab"
+                  itemName="Tab"
+                />
+              </div>
+
+              <div className="bg-gradient-to-r from-primary-50 to-primary-50 p-4 rounded-xl border border-primary-100">
+                {serviceType === "activity" && (
+                  <div className="mb-6">
+                    <MultiSelectField
+                      label="Available Policies"
+                      options={policyOptions}
+                      value={preferredPolicies}
+                      onChange={setPreferredPolicies}
+                      icon={<Globe size={16} />}
+                    />
+                  </div>
+                )}
+                <ExpandableSectionComponent
+                  title="Policies"
+                  items={policySection}
+                  onItemsChange={handlePoliciesChange}
+                  addButtonText="Add Policy"
+                  itemName="Policy"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Right Column */}
+          <div className="flex flex-col space-y-6">
+            {/* Map Component - Fixed Height */}
+            {(serviceType === "activity" ||
+              serviceType === "transportation" ||
+              serviceType === "accommodation" ||
+              serviceType === "food-beverage") && (
+              <div className="bg-gradient-to-r from-primary-50 to-primary-50 p-4 rounded-xl border border-primary-100 h-[400px]">
+                <h3 className="text-xl font-semibold text-gray-800 mb-6 flex items-center">
+                  {/* <span className="w-2 h-2 bg-primary-500 rounded-full mr-3"></span> */}
+                  Location
+                </h3>
+                <MapSelectorComponent
+                  location={formData.locationBased?.formattedAddress || ""}
+                  onLocationChange={(value) => {
+                    if (formData.locationBased) {
                       handleInputChange("locationBased", {
                         ...formData.locationBased,
                         formattedAddress: value,
-                      })
+                      });
                     }
-                    onLocationSelect={handleLocationSelect}
-                    selectedCoordinates={selectedCoordinates}
-                  />
-                </div>
+                  }}
+                  onLocationSelect={handleLocationSelect}
+                  onLocationIdSelect={handleLocationIdSelect}
+                  selectedCoordinates={selectedCoordinates}
+                  showBusinessLocationOption={true}
+                />
+              </div>
+            )}
+
+            {/* Service Information - Flexible Height */}
+            <div className="flex-1 bg-gradient-to-r from-primary-50 to-primary-50 p-4 rounded-xl border border-primary-100">
+              {/* Activity Service Form */}
+              {serviceType === "activity" && (
+                <>
+                  <h3 className="text-xl font-semibold text-gray-800 mb-6 flex items-center">
+                    <span className="w-2 h-2 bg-primary-600 rounded-full mr-3"></span>
+                    Activity Information
+                  </h3>
+                  <div className="space-y-5">
+                    <InputField
+                      label="Activity Name"
+                      value={formData.serviceName}
+                      onChange={(value) =>
+                        handleInputChange("serviceName", value)
+                      }
+                      placeholder="Enter activity name"
+                      required
+                    />
+                    <SelectField
+                      label="Activity Type"
+                      options={[
+                        { value: "ADVENTURE", label: "Adventure" },
+                        { value: "CULTURAL", label: "Cultural" },
+                        { value: "NATURE", label: "Nature" },
+                        { value: "RELAXATION", label: "Relaxation" },
+                        { value: "SPORTS", label: "Sports" },
+                        { value: "WATER_SPORTS", label: "Water Sports" },
+                        { value: "WELLNESS", label: "Wellness" },
+                        { value: "EDUCATIONAL", label: "Educational" },
+                        { value: "NIGHTLIFE", label: "Nightlife" },
+                      ]}
+                      value={(formData as ActivityFormData).activityType}
+                      onChange={(value) =>
+                        handleInputChange("activityType", value)
+                      }
+                      required
+                    />
+                    <TextAreaField
+                      label="Activity Details"
+                      value={(formData as ActivityFormData).activityDetails}
+                      onChange={(value) =>
+                        handleInputChange("activityDetails", value)
+                      }
+                      placeholder="Enter activity details"
+                      rows={3}
+                    />
+                    <TextAreaField
+                      label="Safety Instructions"
+                      value={(formData as ActivityFormData).safetyInstructions}
+                      onChange={(value) =>
+                        handleInputChange("safetyInstructions", value)
+                      }
+                      placeholder="Enter safety instructions"
+                      rows={4}
+                    />
+                    <div className="grid grid-cols-2 gap-4">
+                      <InputField
+                        label="Price"
+                        value={formData.price.toString()}
+                        onChange={(value) =>
+                          handleInputChange("price", Number(value))
+                        }
+                        placeholder="Enter price"
+                        type="number"
+                      />
+                      <SelectField
+                        label="Price Type"
+                        options={[
+                          { value: "FIXED", label: "Fixed Price" },
+                          { value: "PER_PERSON", label: "Per Person" },
+                          { value: "PER_HOUR", label: "Per Hour" },
+                          { value: "PER_DAY", label: "Per Day" },
+                        ]}
+                        value={formData.priceType}
+                        onChange={(value) =>
+                          handleInputChange("priceType", value)
+                        }
+                        required
+                      />
+                    </div>
+                  </div>
+                </>
               )}
 
-              {/* Service Information - Flexible Height */}
-              <div className="flex-1 bg-gradient-to-r from-primary-50 to-primary-50 p-4 rounded-xl border border-primary-100">
-                {/* Activity Service Form */}
-                {serviceType === "activity" && (
-                  <>
-                    <h3 className="text-xl font-semibold text-gray-800 mb-6 flex items-center">
-                      <span className="w-2 h-2 bg-primary-600 rounded-full mr-3"></span>
-                      Activity Information
-                    </h3>
-                    <div className="space-y-5">
-                      <InputField
-                        label="Activity Name"
-                        value={formData.serviceName}
+              {/* Transportation Service Form */}
+              {serviceType === "transportation" && (
+                <>
+                  <h3 className="text-xl font-semibold text-gray-800 mb-6 flex items-center">
+                    {/* <span className="w-2 h-2 bg-primary-500 rounded-full mr-3"></span> */}
+                    Transportation Information
+                  </h3>
+                  <div className="space-y-5">
+                    <InputField
+                      label="Service Name"
+                      value={formData.serviceName}
+                      onChange={(value) =>
+                        handleInputChange("serviceName", value)
+                      }
+                      placeholder="Enter transport service name"
+                      required
+                    />
+                    <div className="grid grid-cols-2 gap-4">
+                      <SelectField
+                        label="Vehicle Type"
+                        options={[
+                          { value: "CAR", label: "Car" },
+                          { value: "VAN", label: "Van" },
+                          { value: "BUS", label: "Bus" },
+                          { value: "TRUCK", label: "Truck" },
+                          { value: "MOTORCYCLE", label: "Motorcycle" },
+                          { value: "BICYCLE", label: "Bicycle" },
+                          { value: "SCOOTER", label: "Scooter" },
+                          { value: "PICKUP", label: "Pickup" },
+                          { value: "SUV", label: "SUV" },
+                          { value: "TUK_TUK", label: "Tuk Tuk" },
+                        ]}
+                        value={(formData as TransportFormData).vehicleCategory}
                         onChange={(value) =>
-                          handleInputChange("serviceName", value)
+                          handleInputChange("vehicleCategory", value)
                         }
-                        placeholder="Enter activity name"
                         required
                       />
                       <SelectField
-                        label="Activity Type"
+                        label="Fuel Type"
                         options={[
-                          { value: "ADVENTURE", label: "Adventure" },
-                          { value: "CULTURAL", label: "Cultural" },
-                          { value: "NATURE", label: "Nature" },
-                          { value: "RELAXATION", label: "Relaxation" },
-                          { value: "SPORTS", label: "Sports" },
-                          { value: "WATER_SPORTS", label: "Water Sports" },
-                          { value: "WELLNESS", label: "Wellness" },
-                          { value: "EDUCATIONAL", label: "Educational" },
-                          { value: "NIGHTLIFE", label: "Nightlife" },
+                          { value: "PETROL", label: "Petrol" },
+                          { value: "DIESEL", label: "Diesel" },
+                          { value: "ELECTRIC", label: "Electric" },
+                          { value: "HYBRID", label: "Hybrid" },
                         ]}
-                        value={(formData as ActivityFormData).activityType}
+                        value={(formData as TransportFormData).fuelType}
                         onChange={(value) =>
-                          handleInputChange("activityType", value)
+                          handleInputChange("fuelType", value)
                         }
                         required
                       />
-                      <TextAreaField
-                        label="Activity Details"
-                        value={(formData as ActivityFormData).activityDetails}
-                        onChange={(value) =>
-                          handleInputChange("activityDetails", value)
-                        }
-                        placeholder="Enter activity details"
-                        rows={3}
-                      />
-                      <TextAreaField
-                        label="Safety Instructions"
-                        value={
-                          (formData as ActivityFormData).safetyInstructions
-                        }
-                        onChange={(value) =>
-                          handleInputChange("safetyInstructions", value)
-                        }
-                        placeholder="Enter safety instructions"
-                        rows={4}
-                      />
-                      <div className="grid grid-cols-2 gap-4">
-                        <InputField
-                          label="Price"
-                          value={formData.price.toString()}
-                          onChange={(value) =>
-                            handleInputChange("price", Number(value))
-                          }
-                          placeholder="Enter price"
-                          type="number"
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <label className="block text-sm font-medium text-gray-700">
+                          Vehicle Capacity
+                        </label>
+                        <CounterInput
+                          value={capacity}
+                          onChange={setCapacity}
+                          min={1}
+                          max={50}
                         />
-                        <SelectField
-                          label="Price Type"
-                          options={[
-                            { value: "FIXED", label: "Fixed Price" },
-                            { value: "PER_PERSON", label: "Per Person" },
-                            { value: "PER_HOUR", label: "Per Hour" },
-                            { value: "PER_DAY", label: "Per Day" },
-                          ]}
-                          value={formData.priceType}
-                          onChange={(value) =>
-                            handleInputChange("priceType", value)
-                          }
-                          required
+                      </div>
+                      <div className="space-y-2">
+                        <label className="block text-sm font-medium text-gray-700">
+                          Number of Vehicles
+                        </label>
+                        <CounterInput
+                          value={count}
+                          onChange={setCount}
+                          min={1}
+                          max={20}
                         />
                       </div>
                     </div>
-                  </>
-                )}
-
-                {/* Transportation Service Form */}
-                {serviceType === "transportation" && (
-                  <>
-                    <h3 className="text-xl font-semibold text-gray-800 mb-6 flex items-center">
-                      {/* <span className="w-2 h-2 bg-primary-500 rounded-full mr-3"></span> */}
-                      Transportation Information
-                    </h3>
-                    <div className="space-y-5">
+                    <SelectField
+                      label="Transmission Type"
+                      options={[
+                        { value: "MANUAL", label: "Manual" },
+                        { value: "AUTOMATIC", label: "Automatic" },
+                        { value: "SEMI_AUTOMATIC", label: "Semi Automatic" },
+                      ]}
+                      value={(formData as TransportFormData).transmissionType}
+                      onChange={(value) =>
+                        handleInputChange("transmissionType", value)
+                      }
+                      required
+                    />
+                    <div className="grid grid-cols-2 gap-6">
+                      <CheckboxField
+                        label="Air Conditioned"
+                        checked={(formData as TransportFormData).airConditioned}
+                        onChange={(value: boolean) =>
+                          handleInputChange("airConditioned", value)
+                        }
+                      />
+                      <CheckboxField
+                        label="Driver Included"
+                        checked={(formData as TransportFormData).driverIncluded}
+                        onChange={(value: boolean) =>
+                          handleInputChange("driverIncluded", value)
+                        }
+                      />
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
                       <InputField
-                        label="Service Name"
-                        value={formData.serviceName}
+                        label="Price"
+                        value={formData.price.toString()}
                         onChange={(value) =>
-                          handleInputChange("serviceName", value)
+                          handleInputChange("price", Number(value))
                         }
-                        placeholder="Enter transport service name"
-                        required
+                        placeholder="Enter price"
+                        type="number"
                       />
-                      <div className="grid grid-cols-2 gap-4">
-                        <SelectField
-                          label="Vehicle Type"
-                          options={[
-                            { value: "CAR", label: "Car" },
-                            { value: "VAN", label: "Van" },
-                            { value: "BUS", label: "Bus" },
-                            { value: "TRUCK", label: "Truck" },
-                            { value: "MOTORCYCLE", label: "Motorcycle" },
-                            { value: "BICYCLE", label: "Bicycle" },
-                            { value: "SCOOTER", label: "Scooter" },
-                            { value: "PICKUP", label: "Pickup" },
-                            { value: "SUV", label: "SUV" },
-                            { value: "TUK_TUK", label: "Tuk Tuk" },
-                          ]}
-                          value={
-                            (formData as TransportFormData).vehicleCategory
-                          }
-                          onChange={(value) =>
-                            handleInputChange("vehicleCategory", value)
-                          }
-                          required
-                        />
-                        <SelectField
-                          label="Fuel Type"
-                          options={[
-                            { value: "PETROL", label: "Petrol" },
-                            { value: "DIESEL", label: "Diesel" },
-                            { value: "ELECTRIC", label: "Electric" },
-                            { value: "HYBRID", label: "Hybrid" },
-                          ]}
-                          value={(formData as TransportFormData).fuelType}
-                          onChange={(value) =>
-                            handleInputChange("fuelType", value)
-                          }
-                          required
-                        />
-                      </div>
-                      <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                          <label className="block text-sm font-medium text-gray-700">
-                            Vehicle Capacity
-                          </label>
-                          <CounterInput
-                            value={capacity}
-                            onChange={setCapacity}
-                            min={1}
-                            max={50}
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <label className="block text-sm font-medium text-gray-700">
-                            Number of Vehicles
-                          </label>
-                          <CounterInput
-                            value={count}
-                            onChange={setCount}
-                            min={1}
-                            max={20}
-                          />
-                        </div>
-                      </div>
                       <SelectField
-                        label="Transmission Type"
+                        label="Price Type"
                         options={[
-                          { value: "MANUAL", label: "Manual" },
-                          { value: "AUTOMATIC", label: "Automatic" },
-                          { value: "SEMI_AUTOMATIC", label: "Semi Automatic" },
+                          { value: "FIXED", label: "Fixed Price" },
+                          { value: "PER_KM", label: "Per KM" },
+                          { value: "PER_HOUR", label: "Per Hour" },
+                          { value: "PER_DAY", label: "Per Day" },
                         ]}
-                        value={(formData as TransportFormData).transmissionType}
+                        value={formData.priceType}
                         onChange={(value) =>
-                          handleInputChange("transmissionType", value)
+                          handleInputChange("priceType", value)
                         }
                         required
                       />
-                      <div className="grid grid-cols-2 gap-6">
+                    </div>
+                  </div>
+                </>
+              )}
+
+              {/* Accommodation Service Form */}
+              {serviceType === "accommodation" && (
+                <>
+                  <h3 className="text-xl font-semibold text-gray-800 mb-6 flex items-center">
+                    {/* <span className="w-2 h-2 bg-primary-500 rounded-full mr-3"></span> */}
+                    Accommodation Information
+                  </h3>
+                  <div className="space-y-5">
+                    <InputField
+                      label="Accommodation Name"
+                      value={formData.serviceName}
+                      onChange={(value) =>
+                        handleInputChange("serviceName", value)
+                      }
+                      placeholder="Enter accommodation name"
+                      required
+                    />
+                    <SelectField
+                      label="Accommodation Type"
+                      options={[
+                        { value: "HOTEL", label: "Hotel" },
+                        { value: "HOSTEL", label: "Hostel" },
+                        { value: "GUEST_HOUSE", label: "Guest House" },
+                        { value: "APARTMENT", label: "Apartment" },
+                        { value: "VILLA", label: "Villa" },
+                        { value: "HOMESTAY", label: "Homestay" },
+                        { value: "CAMPING", label: "Camping" },
+                        { value: "RESORT", label: "Resort" },
+                        { value: "LODGE", label: "Lodge" },
+                      ]}
+                      value={
+                        (formData as AccommodationFormData).accommodationType
+                      }
+                      onChange={(value) =>
+                        handleInputChange("accommodationType", value)
+                      }
+                      required
+                    />
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <label className="block text-sm font-medium text-gray-700">
+                          Number of Rooms
+                        </label>
+                        <CounterInput
+                          value={numberOfRooms}
+                          onChange={setNumberOfRooms}
+                          min={1}
+                          max={100}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <label className="block text-sm font-medium text-gray-700">
+                          Maximum Guests
+                        </label>
+                        <CounterInput
+                          value={maxGuests}
+                          onChange={setMaxGuests}
+                          min={1}
+                          max={200}
+                        />
+                      </div>
+                    </div>
+
+                    <div className="space-y-4">
+                      <h4 className="text-lg font-medium text-gray-700 border-b pb-2">
+                        Amenities
+                      </h4>
+                      <div className="grid grid-cols-2 gap-4">
+                        <CheckboxField
+                          label="Parking Available"
+                          checked={
+                            (formData as AccommodationFormData).parkingAvailable
+                          }
+                          onChange={(value: boolean) =>
+                            handleInputChange("parkingAvailable", value)
+                          }
+                        />
+                        <CheckboxField
+                          label="Pet Friendly"
+                          checked={
+                            (formData as AccommodationFormData).petFriendly
+                          }
+                          onChange={(value: boolean) =>
+                            handleInputChange("petFriendly", value)
+                          }
+                        />
+                        <CheckboxField
+                          label="Free WiFi"
+                          checked={(formData as AccommodationFormData).freeWifi}
+                          onChange={(value: boolean) =>
+                            handleInputChange("freeWifi", value)
+                          }
+                        />
+                        <CheckboxField
+                          label="Breakfast Included"
+                          checked={
+                            (formData as AccommodationFormData)
+                              .breakfastIncluded
+                          }
+                          onChange={(value: boolean) =>
+                            handleInputChange("breakfastIncluded", value)
+                          }
+                        />
                         <CheckboxField
                           label="Air Conditioned"
                           checked={
-                            (formData as TransportFormData).airConditioned
+                            (formData as AccommodationFormData).airConditioned
                           }
                           onChange={(value: boolean) =>
                             handleInputChange("airConditioned", value)
                           }
                         />
                         <CheckboxField
-                          label="Driver Included"
+                          label="Swimming Pool"
                           checked={
-                            (formData as TransportFormData).driverIncluded
+                            (formData as AccommodationFormData).swimmingPool
                           }
                           onChange={(value: boolean) =>
-                            handleInputChange("driverIncluded", value)
+                            handleInputChange("swimmingPool", value)
                           }
                         />
-                      </div>
-                      <div className="grid grid-cols-2 gap-4">
-                        <InputField
-                          label="Price"
-                          value={formData.price.toString()}
-                          onChange={(value) =>
-                            handleInputChange("price", Number(value))
+                        <CheckboxField
+                          label="Laundry Service"
+                          checked={
+                            (formData as AccommodationFormData).laundryService
                           }
-                          placeholder="Enter price"
-                          type="number"
+                          onChange={(value: boolean) =>
+                            handleInputChange("laundryService", value)
+                          }
                         />
-                        <SelectField
-                          label="Price Type"
-                          options={[
-                            { value: "FIXED", label: "Fixed Price" },
-                            { value: "PER_KM", label: "Per KM" },
-                            { value: "PER_HOUR", label: "Per Hour" },
-                            { value: "PER_DAY", label: "Per Day" },
-                          ]}
-                          value={formData.priceType}
-                          onChange={(value) =>
-                            handleInputChange("priceType", value)
+                        <CheckboxField
+                          label="Room Service"
+                          checked={
+                            (formData as AccommodationFormData).roomService
                           }
-                          required
+                          onChange={(value: boolean) =>
+                            handleInputChange("roomService", value)
+                          }
+                        />
+                        <CheckboxField
+                          label="Gym Access"
+                          checked={
+                            (formData as AccommodationFormData).gymAccess
+                          }
+                          onChange={(value: boolean) =>
+                            handleInputChange("gymAccess", value)
+                          }
+                        />
+                        <CheckboxField
+                          label="Spa Services"
+                          checked={
+                            (formData as AccommodationFormData).spaServices
+                          }
+                          onChange={(value: boolean) =>
+                            handleInputChange("spaServices", value)
+                          }
                         />
                       </div>
                     </div>
-                  </>
-                )}
 
-                {/* Accommodation Service Form */}
-                {serviceType === "accommodation" && (
-                  <>
-                    <h3 className="text-xl font-semibold text-gray-800 mb-6 flex items-center">
-                      {/* <span className="w-2 h-2 bg-primary-500 rounded-full mr-3"></span> */}
-                      Accommodation Information
-                    </h3>
-                    <div className="space-y-5">
+                    <div className="grid grid-cols-2 gap-4">
                       <InputField
-                        label="Accommodation Name"
-                        value={formData.serviceName}
+                        label="Price"
+                        value={formData.price.toString()}
                         onChange={(value) =>
-                          handleInputChange("serviceName", value)
+                          handleInputChange("price", Number(value))
                         }
-                        placeholder="Enter accommodation name"
-                        required
+                        placeholder="Enter price"
+                        type="number"
                       />
                       <SelectField
-                        label="Accommodation Type"
+                        label="Price Type"
                         options={[
-                          { value: "HOTEL", label: "Hotel" },
-                          { value: "HOSTEL", label: "Hostel" },
-                          { value: "GUEST_HOUSE", label: "Guest House" },
-                          { value: "APARTMENT", label: "Apartment" },
-                          { value: "VILLA", label: "Villa" },
-                          { value: "HOMESTAY", label: "Homestay" },
-                          { value: "CAMPING", label: "Camping" },
-                          { value: "RESORT", label: "Resort" },
-                          { value: "LODGE", label: "Lodge" },
+                          { value: "PER_NIGHT", label: "Per Night" },
+                          { value: "PER_WEEK", label: "Per Week" },
+                          { value: "PER_MONTH", label: "Per Month" },
+                          { value: "FIXED", label: "Fixed Price" },
                         ]}
-                        value={
-                          (formData as AccommodationFormData).accommodationType
-                        }
+                        value={formData.priceType}
                         onChange={(value) =>
-                          handleInputChange("accommodationType", value)
+                          handleInputChange("priceType", value)
                         }
                         required
                       />
-                      <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                          <label className="block text-sm font-medium text-gray-700">
-                            Number of Rooms
-                          </label>
-                          <CounterInput
-                            value={numberOfRooms}
-                            onChange={setNumberOfRooms}
-                            min={1}
-                            max={100}
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <label className="block text-sm font-medium text-gray-700">
-                            Maximum Guests
-                          </label>
-                          <CounterInput
-                            value={maxGuests}
-                            onChange={setMaxGuests}
-                            min={1}
-                            max={200}
-                          />
-                        </div>
-                      </div>
+                    </div>
+                  </div>
+                </>
+              )}
 
-                      <div className="space-y-4">
-                        <h4 className="text-lg font-medium text-gray-700 border-b pb-2">
-                          Amenities
-                        </h4>
-                        <div className="grid grid-cols-2 gap-4">
-                          <CheckboxField
-                            label="Parking Available"
-                            checked={
-                              (formData as AccommodationFormData)
-                                .parkingAvailable
-                            }
-                            onChange={(value: boolean) =>
-                              handleInputChange("parkingAvailable", value)
-                            }
-                          />
-                          <CheckboxField
-                            label="Pet Friendly"
-                            checked={
-                              (formData as AccommodationFormData).petFriendly
-                            }
-                            onChange={(value: boolean) =>
-                              handleInputChange("petFriendly", value)
-                            }
-                          />
-                          <CheckboxField
-                            label="Free WiFi"
-                            checked={
-                              (formData as AccommodationFormData).freeWifi
-                            }
-                            onChange={(value: boolean) =>
-                              handleInputChange("freeWifi", value)
-                            }
-                          />
-                          <CheckboxField
-                            label="Breakfast Included"
-                            checked={
-                              (formData as AccommodationFormData)
-                                .breakfastIncluded
-                            }
-                            onChange={(value: boolean) =>
-                              handleInputChange("breakfastIncluded", value)
-                            }
-                          />
-                          <CheckboxField
-                            label="Air Conditioned"
-                            checked={
-                              (formData as AccommodationFormData).airConditioned
-                            }
-                            onChange={(value: boolean) =>
-                              handleInputChange("airConditioned", value)
-                            }
-                          />
-                          <CheckboxField
-                            label="Swimming Pool"
-                            checked={
-                              (formData as AccommodationFormData).swimmingPool
-                            }
-                            onChange={(value: boolean) =>
-                              handleInputChange("swimmingPool", value)
-                            }
-                          />
-                          <CheckboxField
-                            label="Laundry Service"
-                            checked={
-                              (formData as AccommodationFormData).laundryService
-                            }
-                            onChange={(value: boolean) =>
-                              handleInputChange("laundryService", value)
-                            }
-                          />
-                          <CheckboxField
-                            label="Room Service"
-                            checked={
-                              (formData as AccommodationFormData).roomService
-                            }
-                            onChange={(value: boolean) =>
-                              handleInputChange("roomService", value)
-                            }
-                          />
-                          <CheckboxField
-                            label="Gym Access"
-                            checked={
-                              (formData as AccommodationFormData).gymAccess
-                            }
-                            onChange={(value: boolean) =>
-                              handleInputChange("gymAccess", value)
-                            }
-                          />
-                          <CheckboxField
-                            label="Spa Services"
-                            checked={
-                              (formData as AccommodationFormData).spaServices
-                            }
-                            onChange={(value: boolean) =>
-                              handleInputChange("spaServices", value)
-                            }
-                          />
-                        </div>
-                      </div>
+              {/* Food & Beverage Service Form */}
+              {serviceType === "food-beverage" && (
+                <>
+                  <h3 className="text-xl font-semibold text-gray-800 mb-6 flex items-center">
+                    {/* <span className="w-2 h-2 bg-primary-500 rounded-full mr-3"></span> */}
+                    Food & Beverage Information
+                  </h3>
+                  <div className="space-y-5">
+                    <InputField
+                      label="Restaurant/Service Name"
+                      value={formData.serviceName}
+                      onChange={(value) =>
+                        handleInputChange("serviceName", value)
+                      }
+                      placeholder="Enter service name"
+                      required
+                    />
+                    <SelectField
+                      label="Food & Beverage Type"
+                      options={[
+                        { value: "RESTAURANT", label: "Restaurant" },
+                        { value: "CAFE", label: "Cafe" },
+                        { value: "BAR", label: "Bar" },
+                        { value: "PUB", label: "Pub" },
+                        { value: "FOOD_COURT", label: "Food Court" },
+                        { value: "FOOD_TRUCK", label: "Food Truck" },
+                        { value: "BAKERY", label: "Bakery" },
+                        { value: "BREWERY", label: "Brewery" },
+                        { value: "WINERY", label: "Winery" },
+                        { value: "DISTILLERY", label: "Distillery" },
+                        { value: "STREET_FOOD", label: "Street Food" },
+                        { value: "BUFFET", label: "Buffet" },
+                      ]}
+                      value={
+                        (formData as FoodBeverageFormData).foodAndBeverageType
+                      }
+                      onChange={(value) =>
+                        handleInputChange("foodAndBeverageType", value)
+                      }
+                      required
+                    />
+                    <TextAreaField
+                      label="Opening Hours"
+                      value={(formData as FoodBeverageFormData).openHours}
+                      onChange={(value) =>
+                        handleInputChange("openHours", value)
+                      }
+                      placeholder="Enter opening hours (e.g., Mon-Sun: 8:00 AM - 10:00 PM)"
+                      rows={3}
+                    />
+                    <InputField
+                      label="Cuisine Type"
+                      value={(formData as FoodBeverageFormData).cuisineType}
+                      onChange={(value) =>
+                        handleInputChange("cuisineType", value)
+                      }
+                      placeholder="Enter cuisine type (e.g., Italian, Sri Lankan, Chinese)"
+                    />
 
+                    <div className="space-y-4">
+                      <h4 className="text-lg font-medium text-gray-700 border-b pb-2">
+                        Restaurant Features
+                      </h4>
                       <div className="grid grid-cols-2 gap-4">
-                        <InputField
-                          label="Price"
-                          value={formData.price.toString()}
-                          onChange={(value) =>
-                            handleInputChange("price", Number(value))
+                        <CheckboxField
+                          label="Vegetarian Options"
+                          checked={
+                            (formData as FoodBeverageFormData).vegetarianOptions
                           }
-                          placeholder="Enter price"
-                          type="number"
+                          onChange={(value: boolean) =>
+                            handleInputChange("vegetarianOptions", value)
+                          }
                         />
-                        <SelectField
-                          label="Price Type"
-                          options={[
-                            { value: "PER_NIGHT", label: "Per Night" },
-                            { value: "PER_WEEK", label: "Per Week" },
-                            { value: "PER_MONTH", label: "Per Month" },
-                            { value: "FIXED", label: "Fixed Price" },
-                          ]}
-                          value={formData.priceType}
-                          onChange={(value) =>
-                            handleInputChange("priceType", value)
+                        <CheckboxField
+                          label="Halal Certified"
+                          checked={
+                            (formData as FoodBeverageFormData).halalCertified
                           }
-                          required
+                          onChange={(value: boolean) =>
+                            handleInputChange("halalCertified", value)
+                          }
+                        />
+                        <CheckboxField
+                          label="Alcohol Served"
+                          checked={
+                            (formData as FoodBeverageFormData).alcoholServed
+                          }
+                          onChange={(value: boolean) =>
+                            handleInputChange("alcoholServed", value)
+                          }
+                        />
+                        <CheckboxField
+                          label="Outdoor Seating"
+                          checked={
+                            (formData as FoodBeverageFormData).outdoorSeating
+                          }
+                          onChange={(value: boolean) =>
+                            handleInputChange("outdoorSeating", value)
+                          }
+                        />
+                        <CheckboxField
+                          label="Live Music"
+                          checked={(formData as FoodBeverageFormData).liveMusic}
+                          onChange={(value: boolean) =>
+                            handleInputChange("liveMusic", value)
+                          }
                         />
                       </div>
                     </div>
-                  </>
-                )}
 
-                {/* Food & Beverage Service Form */}
-                {serviceType === "food-beverage" && (
-                  <>
-                    <h3 className="text-xl font-semibold text-gray-800 mb-6 flex items-center">
-                      {/* <span className="w-2 h-2 bg-primary-500 rounded-full mr-3"></span> */}
-                      Food & Beverage Information
-                    </h3>
-                    <div className="space-y-5">
+                    <div className="grid grid-cols-2 gap-4">
                       <InputField
-                        label="Restaurant/Service Name"
-                        value={formData.serviceName}
+                        label="Price"
+                        value={formData.price.toString()}
                         onChange={(value) =>
-                          handleInputChange("serviceName", value)
+                          handleInputChange("price", Number(value))
                         }
-                        placeholder="Enter service name"
-                        required
+                        placeholder="Enter average price"
+                        type="number"
                       />
                       <SelectField
-                        label="Food & Beverage Type"
+                        label="Price Type"
                         options={[
-                          { value: "RESTAURANT", label: "Restaurant" },
-                          { value: "CAFE", label: "Cafe" },
-                          { value: "BAR", label: "Bar" },
-                          { value: "PUB", label: "Pub" },
-                          { value: "FOOD_COURT", label: "Food Court" },
-                          { value: "FOOD_TRUCK", label: "Food Truck" },
-                          { value: "BAKERY", label: "Bakery" },
-                          { value: "BREWERY", label: "Brewery" },
-                          { value: "WINERY", label: "Winery" },
-                          { value: "DISTILLERY", label: "Distillery" },
-                          { value: "STREET_FOOD", label: "Street Food" },
-                          { value: "BUFFET", label: "Buffet" },
+                          { value: "FIXED", label: "Fixed Price" },
+                          { value: "PER_PERSON", label: "Per Person" },
                         ]}
-                        value={
-                          (formData as FoodBeverageFormData).foodAndBeverageType
-                        }
+                        value={formData.priceType}
                         onChange={(value) =>
-                          handleInputChange("foodAndBeverageType", value)
+                          handleInputChange("priceType", value)
                         }
                         required
                       />
-                      <TextAreaField
-                        label="Opening Hours"
-                        value={(formData as FoodBeverageFormData).openHours}
-                        onChange={(value) =>
-                          handleInputChange("openHours", value)
-                        }
-                        placeholder="Enter opening hours (e.g., Mon-Sun: 8:00 AM - 10:00 PM)"
-                        rows={3}
-                      />
-                      <InputField
-                        label="Cuisine Type"
-                        value={(formData as FoodBeverageFormData).cuisineType}
-                        onChange={(value) =>
-                          handleInputChange("cuisineType", value)
-                        }
-                        placeholder="Enter cuisine type (e.g., Italian, Sri Lankan, Chinese)"
-                      />
-
-                      <div className="space-y-4">
-                        <h4 className="text-lg font-medium text-gray-700 border-b pb-2">
-                          Restaurant Features
-                        </h4>
-                        <div className="grid grid-cols-2 gap-4">
-                          <CheckboxField
-                            label="Vegetarian Options"
-                            checked={
-                              (formData as FoodBeverageFormData)
-                                .vegetarianOptions
-                            }
-                            onChange={(value: boolean) =>
-                              handleInputChange("vegetarianOptions", value)
-                            }
-                          />
-                          <CheckboxField
-                            label="Halal Certified"
-                            checked={
-                              (formData as FoodBeverageFormData).halalCertified
-                            }
-                            onChange={(value: boolean) =>
-                              handleInputChange("halalCertified", value)
-                            }
-                          />
-                          <CheckboxField
-                            label="Alcohol Served"
-                            checked={
-                              (formData as FoodBeverageFormData).alcoholServed
-                            }
-                            onChange={(value: boolean) =>
-                              handleInputChange("alcoholServed", value)
-                            }
-                          />
-                          <CheckboxField
-                            label="Outdoor Seating"
-                            checked={
-                              (formData as FoodBeverageFormData).outdoorSeating
-                            }
-                            onChange={(value: boolean) =>
-                              handleInputChange("outdoorSeating", value)
-                            }
-                          />
-                          <CheckboxField
-                            label="Live Music"
-                            checked={
-                              (formData as FoodBeverageFormData).liveMusic
-                            }
-                            onChange={(value: boolean) =>
-                              handleInputChange("liveMusic", value)
-                            }
-                          />
-                        </div>
-                      </div>
-
-                      <div className="grid grid-cols-2 gap-4">
-                        <InputField
-                          label="Price"
-                          value={formData.price.toString()}
-                          onChange={(value) =>
-                            handleInputChange("price", Number(value))
-                          }
-                          placeholder="Enter average price"
-                          type="number"
-                        />
-                        <SelectField
-                          label="Price Type"
-                          options={[
-                            { value: "FIXED", label: "Fixed Price" },
-                            { value: "PER_PERSON", label: "Per Person" },
-                          ]}
-                          value={formData.priceType}
-                          onChange={(value) =>
-                            handleInputChange("priceType", value)
-                          }
-                          required
-                        />
-                      </div>
                     </div>
-                  </>
-                )}
+                  </div>
+                </>
+              )}
 
-                {/* Tour Guide Service Form */}
-                {serviceType === "tour-guides" && (
-                  <>
-                    <h3 className="text-xl font-semibold text-gray-800 mb-6 flex items-center">
-                      {/* <span className="w-2 h-2 bg-primary-500 rounded-full mr-3"></span> */}
-                      Tour Guide Information
-                    </h3>
-                    <div className="space-y-5">
+              {/* Tour Guide Service Form */}
+              {serviceType === "tour-guides" && (
+                <>
+                  <h3 className="text-xl font-semibold text-gray-800 mb-6 flex items-center">
+                    {/* <span className="w-2 h-2 bg-primary-500 rounded-full mr-3"></span> */}
+                    Tour Guide Information
+                  </h3>
+                  <div className="space-y-5">
+                    <InputField
+                      label="Tour Guide Name"
+                      value={formData.serviceName}
+                      onChange={(value) =>
+                        handleInputChange("serviceName", value)
+                      }
+                      placeholder="Enter tour guide name"
+                      required
+                    />
+                    <SelectField
+                      label="Guide Type"
+                      options={[
+                        { value: "NATIONAL", label: "National Guide" },
+                        { value: "CHAUFFEUR", label: "Chauffeur Guide" },
+                        { value: "SITE", label: "Site Guide" },
+                        { value: "AREA", label: "Area Guide" },
+                      ]}
+                      value={(formData as TourGuideFormData).tourGuideType}
+                      onChange={(value) =>
+                        handleInputChange("tourGuideType", value)
+                      }
+                      required
+                    />
+                    <MultiSelectField
+                      label="Service Areas"
+                      options={districtOptions}
+                      value={preferredDistricts}
+                      onChange={setPreferredDistricts}
+                      required
+                      icon={<Globe size={16} />}
+                    />
+                    <MultiSelectField
+                      label="Languages"
+                      options={languageOptions}
+                      value={preferredLanguages}
+                      onChange={setPreferredLanguages}
+                      required
+                      icon={<Globe size={16} />}
+                    />
+                    <div className="grid grid-cols-2 gap-4">
                       <InputField
-                        label="Tour Guide Name"
-                        value={formData.serviceName}
+                        label="Price"
+                        value={formData.price.toString()}
                         onChange={(value) =>
-                          handleInputChange("serviceName", value)
+                          handleInputChange("price", Number(value))
                         }
-                        placeholder="Enter tour guide name"
-                        required
+                        placeholder="Enter price"
+                        type="number"
                       />
                       <SelectField
-                        label="Guide Type"
+                        label="Price Type"
                         options={[
-                          { value: "NATIONAL", label: "National Guide" },
-                          { value: "CHAUFFEUR", label: "Chauffeur Guide" },
-                          { value: "SITE", label: "Site Guide" },
-                          { value: "AREA", label: "Area Guide" },
+                          { value: "PER_HOUR", label: "Per Hour" },
+                          { value: "PER_DAY", label: "Per Day" },
+                          { value: "FIXED", label: "Fixed Price" },
                         ]}
-                        value={(formData as TourGuideFormData).tourGuideType}
+                        value={formData.priceType}
                         onChange={(value) =>
-                          handleInputChange("tourGuideType", value)
+                          handleInputChange("priceType", value)
                         }
                         required
                       />
-                      <MultiSelectField
-                        label="Service Areas"
-                        options={districtOptions}
-                        value={preferredDistricts}
-                        onChange={setPreferredDistricts}
-                        required
-                        icon={<Globe size={16} />}
-                      />
-                      <MultiSelectField
-                        label="Languages"
-                        options={languageOptions}
-                        value={preferredLanguages}
-                        onChange={setPreferredLanguages}
-                        required
-                        icon={<Globe size={16} />}
-                      />
-                      <div className="grid grid-cols-2 gap-4">
-                        <InputField
-                          label="Price"
-                          value={formData.price.toString()}
-                          onChange={(value) =>
-                            handleInputChange("price", Number(value))
-                          }
-                          placeholder="Enter price"
-                          type="number"
-                        />
-                        <SelectField
-                          label="Price Type"
-                          options={[
-                            { value: "PER_HOUR", label: "Per Hour" },
-                            { value: "PER_DAY", label: "Per Day" },
-                            { value: "FIXED", label: "Fixed Price" },
-                          ]}
-                          value={formData.priceType}
-                          onChange={(value) =>
-                            handleInputChange("priceType", value)
-                          }
-                          required
-                        />
-                      </div>
                     </div>
-                  </>
-                )}
-              </div>
+                  </div>
+                </>
+              )}
             </div>
           </div>
-          {/* submit button */}
-            <div className="flex justify-end mt-6">
-              <button
-                type="button"
-                onClick={handleSubmit}
-                className="px-8 py-2 bg-gradient-to-r from-primary-500 to-primary-600 text-white text-lg font-semibold rounded-xl hover:from-primary-600 hover:to-primary-700 focus:outline-none focus:ring-4 focus:ring-primary-500 focus:ring-offset-2 transform hover:scale-105 transition-all duration-200 shadow-lg"
-              >
-                Add Service
-              </button>
-            </div>
+        </div>
+        {/* submit button */}
+        <div className="flex justify-end mt-6">
+          <button
+            type="button"
+            onClick={handleSubmit}
+            className="px-8 py-2 bg-gradient-to-r from-primary-500 to-primary-600 text-white text-lg font-semibold rounded-xl hover:from-primary-600 hover:to-primary-700 focus:outline-none focus:ring-4 focus:ring-primary-500 focus:ring-offset-2 transform hover:scale-105 transition-all duration-200 shadow-lg"
+          >
+            Add Service
+          </button>
         </div>
       </div>
+    </div>
   );
 };
 

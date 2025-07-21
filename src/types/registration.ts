@@ -9,6 +9,7 @@ export interface Category {
 }
 
 export interface LocationData {
+    locationId: number;
     formattedAddress: string;
     city: string | null;
     district: string | null;
