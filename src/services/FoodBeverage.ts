@@ -68,3 +68,15 @@ export const addNewFoodBeverage = async (
     };
   }
 };
+
+//find a food-beverage service by the Id
+export const findFoodBeverageById = async (id : any): Promise<any> =>{
+  try {
+    const response = await api.get(`/provider/food-beverage/${id}`);
+    console.log('findFoodBeverageById response: ',response);
+    return response.data.data;
+  } catch (error) {
+    console.error('Error fetch food-beverage by ID: ',error);
+    throw new Error('Failed to fetch food-beverage by ID');
+  }
+}

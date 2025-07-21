@@ -66,3 +66,15 @@ export const addNewAccommodation = async (
     };
   }
 };
+
+//find an accommodation service by the Id
+export const findAccommodationById = async (id : any): Promise<any> =>{
+  try {
+    const response = await api.get(`/provider/accommodation/${id}`);
+    console.log('findAccommodationById response: ',response);
+    return response.data.data;
+  } catch (error) {
+    console.error('Error fetch accommodation by ID: ',error);
+    throw new Error('Failed to fetch accommodation by ID');
+  }
+}

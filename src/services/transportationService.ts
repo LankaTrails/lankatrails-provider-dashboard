@@ -66,3 +66,15 @@ export const addNewTransport = async (
     };
   }
 };
+
+//find a transportation service by the Id
+export const findTransportationById = async (id : any): Promise<any> =>{
+  try {
+    const response = await api.get(`/provider/transport/${id}`);
+    console.log('findTransporationById response: ',response);
+    return response.data.data;
+  } catch (error) {
+    console.error('Error fetch transportation by ID: ',error);
+    throw new Error('Failed to fetch transporation by ID');
+  }
+}

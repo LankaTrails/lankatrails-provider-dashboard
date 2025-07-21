@@ -57,14 +57,14 @@ export interface ImageData {
   imageUrl: string;
 }
 
-export interface ImageUploadItem {
-  id: number;
-  file: File;
-  url: string;
+export interface ImageUploadItem  extends ImageFile{
+  // id: number;
+  // file: File;
+  // url: string;
 }
 
 export interface ImageFiles {
-  serviceImages: ImageUploadItem[];
+  serviceImages: ImageFile[];
 }
 
 export interface OptionType {
@@ -84,7 +84,13 @@ export interface ServiceFormData {
   tabsSection: TabSection[];
   policySection: PolicySection[];
 }
-
+// Add this to your existing types
+export interface ImageFile {
+  id: string;  // Changed from number to string to match your component
+  file?: File;  // Make optional since API images won't have File objects
+  url: string;
+  name?: string; // Optional name property
+}
 export interface AccommodationFormData extends ServiceFormData {
   accommodationType: AccommodationType;
   numberOfRooms: number;
