@@ -134,7 +134,7 @@ const Profile = () => {
                       width="100%"
                       height="100%"
                       frameBorder="0"
-                      src={`https://www.google.com/maps/embed/v1/place?key=AIzaSyA47Q-I515EK0DU4pvk5jgUcatYcdnf8cY&q=${user.location.latitude},${user.location.longitude}`}
+                      src={`https://www.google.com/maps/embed/v1/place?key=AIzaSyAFJ8_eIjeXNhtS5TeuDWwswREqxO4FsGU&q=${user.location.latitude},${user.location.longitude}`}
                       allowFullScreen
                       className="w-full h-full"
                     />

@@ -222,7 +222,7 @@ const MapSelectorComponent: React.FC<MapSelectorProps> = ({
 
   return (
     <LoadScript
-      googleMapsApiKey={"AIzaSyA47Q-I515EK0DU4pvk5jgUcatYcdnf8cY"}
+      googleMapsApiKey={"AIzaSyAFJ8_eIjeXNhtS5TeuDWwswREqxO4FsGU"}
       libraries={libraries}
       region="lk"
     >
