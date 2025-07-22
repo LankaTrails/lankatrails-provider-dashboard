@@ -57,7 +57,7 @@ export const fetchAllActivities = async (
   pageNumber: number = 0,
   pageSize: number = 10
 ): Promise<any> => {
-  const response = await api.get(`/tour-guide/getAll`, {
+  const response = await api.get(`/provider/tour-guide/getAll`, {
     params: {
       pageNumber,
       pageSize,

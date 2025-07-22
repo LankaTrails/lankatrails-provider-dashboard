@@ -1,5 +1,6 @@
 import api from "@/api/axiosInstance";
 import type { ImageFiles, ServiceFormData } from "@/types/serviceTypes";
+import { fetchAllTransports } from "./transportationService";
 
 //delete an activity service
 export const deleteActivityService = async (id: number): Promise<any> => {
@@ -95,7 +96,7 @@ export const findActivityById = async (id: any): Promise<any> => {
 //find a tourist guide by the serviceId
 export const findGuideById = async (id: any): Promise<any> => {
   try {
-    const response = await api.get(`/tour-guide/${id}`);
+    const response = await api.get(`/provider/tour-guide/${id}`);
     // Log response for debugging
     console.log('findGuideById response:', response);
     return response.data.data;
@@ -111,7 +112,7 @@ export const fetchAllTourGuides = async (
   pageNumber: number = 0,
   pageSize: number = 10
 ): Promise<any> => {
-  const response = await api.get(`/tour-guide/getAll`, {
+  const response = await api.get(`/provider/tour-guide/getAll`, {
     params: {
       pageNumber,
       pageSize,
@@ -131,6 +132,8 @@ export const fetchAllServices = async (
     return await fetchAllTourGuides(pageNumber, pageSize);
   } else if (serviceType === 'activity') {
     return await fetchAllActivities(pageNumber, pageSize);
+  } else if(serviceType=="transportation"){
+    return await fetchAllTransports(pageNumber,pageSize);
   } else {
     throw new Error(`Unsupported service type: ${serviceType}`);
   }
