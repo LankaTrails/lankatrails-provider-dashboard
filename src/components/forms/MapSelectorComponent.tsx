@@ -74,7 +74,6 @@ const MapSelectorComponent: React.FC<MapSelectorProps> = ({
       components.find((c) => c.types.includes(type))?.long_name || null;
 
     return {
-      locationId: 0, // Will be assigned by backend during creation
       formattedAddress: result.formatted_address,
       city:
         getComponent("locality") ||
@@ -117,7 +116,6 @@ const MapSelectorComponent: React.FC<MapSelectorProps> = ({
           const fallbackAddress = `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
           onLocationChange(fallbackAddress);
           onLocationSelect?.({
-            locationId: 0,
             formattedAddress: fallbackAddress,
             city: "",
             district: "",
@@ -222,7 +220,7 @@ const MapSelectorComponent: React.FC<MapSelectorProps> = ({
 
   return (
     <LoadScript
-      googleMapsApiKey={"AIzaSyA47Q-I515EK0DU4pvk5jgUcatYcdnf8cY"}
+      googleMapsApiKey={"AIzaSyAFJ8_eIjeXNhtS5TeuDWwswREqxO4FsGU"}
       libraries={libraries}
       region="lk"
     >

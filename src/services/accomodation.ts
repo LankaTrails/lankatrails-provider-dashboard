@@ -24,11 +24,13 @@ export const addNewAccommodation = async (
 ): Promise<string> => {
   try {
     const formData = new FormData();
+    console.log("📄 Payload:", payload);
 
     // JSON blob for 'service'
     const serviceBlob = new Blob([JSON.stringify(payload)], {
       type: 'application/json',
     });
+    console.log("📄 Service Blob:", serviceBlob);
     formData.append('service', serviceBlob);
 
     // Append all images under 'images' key with proper type checking
