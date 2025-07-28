@@ -4,14 +4,15 @@ import ExpandableSectionComponent from "@/components/forms/ExpandableSectionComp
 import type { PolicySection, PolicyData } from "@/types/serviceTypes";
 import ProviderTopBar from "@/components/provider/ProviderTopBar";
 import AddPolicy from "./AddPolicy"; // <-- Import AddPolicy
+import { fetchAllFoodAndBeverages } from "@/services/FoodBeverage";
 
-const AllPolicy = () => {
+const AddFoodBeveragePolicy = () => {
   const [structuredPolicies, setStructuredPolicies] = useState<PolicyData[]>([]);
 
   useEffect(() => {
     const loadPolicies = async () => {
       try {
-        const response = await fetchAllPolicies();
+        const response = await fetchAllFoodAndBeverages();
         console.log("Fetched Policies:", response);
         const structured = response.map((policy: PolicySection, index: number) => ({
           id: policy.id?.toString() || `policy-${index}`,
@@ -53,4 +54,4 @@ const AllPolicy = () => {
   );
 };
 
-export default AllPolicy;
+export default AddFoodBeveragePolicy;

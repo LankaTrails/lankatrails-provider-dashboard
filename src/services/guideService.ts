@@ -52,8 +52,8 @@ export const addNewTourGuide = async (
   }
 };
 
-//fetch all tour guides
-export const fetchAllActivities = async (
+// Fetch all tour guide services  
+export const fetchAllTourGuides = async (
   pageNumber: number = 0,
   pageSize: number = 10
 ): Promise<any> => {
@@ -63,6 +63,6 @@ export const fetchAllActivities = async (
       pageSize,
     },
   });
-  console.log("fetch all", response.data.data);
-  return response.data.data; // Assuming the response contains an array of activities
+  console.log("fetch all tour guides", response.data.data);
+  return response.data.data;
 }

@@ -9,11 +9,7 @@ export const deleteActivityService = async (id: number): Promise<any> => {
   return response.data.data;
 }
 
-//Fetch all the provider policies
-export const fetchAllPolicies = async (): Promise<any[]> => {
-  const response = await api.get('/provider/policies');
-  return response.data.data; // Assuming the response contains an array of policies
-};
+
 
 //fetch all activity services
 export const fetchAllActivities = async (
@@ -107,36 +103,6 @@ export const findGuideById = async (id: any): Promise<any> => {
 }
 
 
-// Fetch all tour guide services  
-export const fetchAllTourGuides = async (
-  pageNumber: number = 0,
-  pageSize: number = 10
-): Promise<any> => {
-  const response = await api.get(`/provider/tour-guide/getAll`, {
-    params: {
-      pageNumber,
-      pageSize,
-    },
-  });
-  console.log("fetch all tour guides", response.data.data);
-  return response.data.data;
-}
 
-// Generic function to fetch services based on type
-export const fetchAllServices = async (
-  serviceType: string,
-  pageNumber: number = 0,
-  pageSize: number = 10
-): Promise<any> => {
-  if (serviceType === 'tour-guides') {
-    return await fetchAllTourGuides(pageNumber, pageSize);
-  } else if (serviceType === 'activity') {
-    return await fetchAllActivities(pageNumber, pageSize);
-  } else if(serviceType=="transportation"){
-    return await fetchAllTransports(pageNumber,pageSize);
-  } else {
-    throw new Error(`Unsupported service type: ${serviceType}`);
-  }
-};
 
 

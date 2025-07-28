@@ -33,7 +33,7 @@ import type {
   TransmissionType,
   FoodBeverageType,
 } from "@/types/serviceTypes";
-import { fetchAllPolicies } from "@/services/activityService";
+import { fetchAllPolicies } from "@/services/services";
 
 const NewServiceForm: React.FC<ServiceFormProps> = ({
   serviceType,

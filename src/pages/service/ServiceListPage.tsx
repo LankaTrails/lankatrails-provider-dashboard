@@ -4,13 +4,14 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Eye, Edit, Star, Package, Plus } from "lucide-react";
 import ProviderTopBar from "@/components/provider/ProviderTopBar";
-import { deleteActivityService, fetchAllActivities, fetchAllTourGuides } from "@/services/activityService";
+import { deleteActivityService, fetchAllActivities } from "@/services/activityService";
 import { useState,useEffect } from "react";
 import { Trash2 } from "lucide-react";
 import ConfirmDeleteModal from "@/components/forms/ConfirmDeleteModal"; 
 import { fetchAllTransports } from "@/services/transportationService";
 import { fetchAllAccommodations } from "@/services/accomodation";
 import { fetchAllFoodAndBeverages } from "@/services/FoodBeverage";
+import { fetchAllTourGuides } from "@/services/guideService";
 
 const mockServices = {
   activity: [

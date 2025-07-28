@@ -80,11 +80,11 @@ const AddPolicy = () => {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl p-2 font-bold">Add policies</h1>
-        <ProviderTopBar />
+        {/* <h1 className="text-2xl p-2 font-bold">Add policies</h1> */}
+        {/* <ProviderTopBar /> */}
         <div className= "mt-8">
           <ExpandableSectionComponent
-            title="Policies"
+            title="New Policy"
             items={policySection}
             onItemsChange={handlePoliciesChange}
             addButtonText="Add Policy"

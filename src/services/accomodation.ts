@@ -1,7 +1,7 @@
 import api from "@/api/axiosInstance";
 import type { ImageFiles, ServiceFormData } from "@/types/serviceTypes";
 
-//fetch all transportation services
+//fetch all accommodations services
 export const fetchAllAccommodations = async (
   pageNumber: number = 0,
   pageSize: number = 10
