@@ -60,7 +60,7 @@ const Profile = () => {
               <img
                 src={
                   user.coverImageUrl
-                    ? `http://localhost:8080${user.coverImageUrl}`
+                    ? `http://localhost:8081${user.coverImageUrl}`
                     : "/background.png"
                 }
                 alt="Cover"
@@ -75,7 +75,7 @@ const Profile = () => {
                   <img
                     src={
                       user.profilePictureUrl
-                        ? `http://localhost:8080${user.profilePictureUrl}`
+                        ? `http://localhost:8081${user.profilePictureUrl}`
                         : "/default-avatar.png"
                     }
                     alt="Profile"

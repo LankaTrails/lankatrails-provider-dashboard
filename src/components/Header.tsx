@@ -41,7 +41,7 @@ const Header = () => {
                   <img
                     src={
                       user && user.profilePictureUrl
-                        ? `http://localhost:8080${user.profilePictureUrl}`
+                        ? `http://localhost:8081${user.profilePictureUrl}`
                         : "/default-avatar.png"
                     }
                     alt="avatar"

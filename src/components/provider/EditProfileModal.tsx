@@ -61,11 +61,11 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
   // Image preview states
   const [profilePreview, setProfilePreview] = useState<string | null>(
     user?.profilePictureUrl
-      ? `http://localhost:8080${user.profilePictureUrl}`
+      ? `http://localhost:8081${user.profilePictureUrl}`
       : null
   );
   const [coverPreview, setCoverPreview] = useState<string | null>(
-    user?.coverImageUrl ? `http://localhost:8080${user.coverImageUrl}` : null
+    user?.coverImageUrl ? `http://localhost:8081${user.coverImageUrl}` : null
   );
 
   const handleChange = (field: string, value: string) => {
@@ -129,11 +129,11 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
     });
     setProfilePreview(
       user?.profilePictureUrl
-        ? `http://localhost:8080${user.profilePictureUrl}`
+        ? `http://localhost:8081${user.profilePictureUrl}`
         : null
     );
     setCoverPreview(
-      user?.coverImageUrl ? `http://localhost:8080${user.coverImageUrl}` : null
+      user?.coverImageUrl ? `http://localhost:8081${user.coverImageUrl}` : null
     );
     setErrors({});
     onClose();

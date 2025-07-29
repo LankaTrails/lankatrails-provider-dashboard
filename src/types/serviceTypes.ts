@@ -28,6 +28,12 @@ export interface PolicyData {
   heading: string;
   description: string;
   isExpanded: boolean;
+  category?: string;
+  tags?: string[];
+  createdAt?: string;
+  updatedAt?: string;
+  version?: number;
+  status?: 'active' | 'draft' | 'archived';
 }
 
 export interface LocationData {
@@ -48,9 +54,59 @@ export interface TabSection {
 }
 
 export interface PolicySection {
+  id?: string;
   heading: string;
   policy: string;
-  // id:string;
+  category?: string;
+  tags?: string[];
+  createdAt?: string;
+  updatedAt?: string;
+  version?: number;
+  status?: 'active' | 'draft' | 'archived';
+}
+
+export interface PolicyFormData {
+  heading: string;
+  description: string;
+  category: string;
+  tags: string[];
+  status: 'active' | 'draft' | 'archived';
+}
+
+export interface PolicyFilters {
+  search?: string;
+  category?: string;
+  tags?: string[];
+  status?: 'active' | 'draft' | 'archived';
+  dateRange?: {
+    from: Date;
+    to: Date;
+  };
+}
+
+export interface PolicySearchResult {
+  policies: PolicySection[];
+  total: number;
+  page: number;
+  limit: number;
+}
+
+export interface PolicyAuditLog {
+  id: string;
+  policyId: string;
+  action: 'created' | 'updated' | 'deleted' | 'archived';
+  changes?: Record<string, any>;
+  userId: string;
+  timestamp: string;
+}
+
+export interface PolicyTemplate {
+  id: string;
+  name: string;
+  description: string;
+  category: string;
+  template: string;
+  isDefault: boolean;
 }
 
 export interface ImageData {

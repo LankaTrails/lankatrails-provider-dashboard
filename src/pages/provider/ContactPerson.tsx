@@ -82,7 +82,7 @@ const ContactPerson = () => {
     }
 
     // If it's a relative path, prepend the base URL
-    const baseUrl = "http://localhost:8080";
+    const baseUrl = "http://localhost:8081";
     return `${baseUrl}${url.startsWith("/") ? "" : "/"}${url}`;
   };
 
