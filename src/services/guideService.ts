@@ -1,5 +1,37 @@
 import api from "@/api/axiosInstance";
-import type { ImageFiles, ServiceFormData } from "@/types/serviceTypes";
+import type { ImageFiles, PolicySection, ServiceFormData } from "@/types/serviceTypes";
+
+
+//Add new policy for tour guide
+export async function createGuidePolicy(policyData: PolicySection): Promise<PolicySection> {
+  try {
+    const response = await api.post("/provider/policy/tour-guide", policyData);
+    console.log("Guide policy created successfully:", response.data);
+    return response.data;
+  } catch (error :any) {
+    if (error.response && error.response.data) {
+      const { code, message, details, userMessage } = error.response.data;
+      throw {
+        code,
+        message,
+        details,
+        userMessage,
+      };
+    }
+
+    throw {
+      message: 'Failed to add new activity',
+      code: 'UNKNOWN_ERROR',
+    };
+  }
+}
+//fetch all guide service policies by serviceType
+export const fetchAllAGuidePolicies = async (): Promise<any> => {
+  const response = await api.get(`/provider/policy/tour-guide`);
+  console.log("fetch all guide policies", response.data.data);
+  return response.data.data; // Assuming the response contains an array of activities
+}
+
 
 
 // Add new tour guide service
@@ -65,4 +97,17 @@ export const fetchAllTourGuides = async (
   });
   console.log("fetch all tour guides", response.data.data);
   return response.data.data;
+}
+
+//find a tourist guide by the serviceId
+export const findGuideById = async (id: any): Promise<any> => {
+  try {
+    const response = await api.get(`/provider/tour-guide/${id}`);
+    // Log response for debugging
+    console.log('findGuideById response:', response);
+    return response.data.data;
+  } catch (error) {
+    console.error('Error fetching guide by ID:', error);
+    throw new Error('Failed to fetch guide by ID');
+  }
 }

@@ -1,5 +1,35 @@
 import api from "@/api/axiosInstance";
-import type { ImageFiles, ServiceFormData } from "@/types/serviceTypes";
+import type { ImageFiles, PolicySection, ServiceFormData } from "@/types/serviceTypes";
+
+//Add new transport policy
+export async function createTransportPolicy(policyData: PolicySection): Promise<PolicySection> {
+  try {
+    const response = await api.post("/provider/policy/transport", policyData);
+    console.log("Transport policy created successfully:", response.data);
+    return response.data;
+  } catch (error :any) {
+    if (error.response && error.response.data) {
+      const { code, message, details, userMessage } = error.response.data;
+      throw {
+        code,
+        message,
+        details,
+        userMessage,
+      };
+    }
+
+    throw {
+      message: 'Failed to add new transport policy',
+      code: 'UNKNOWN_ERROR',
+    };
+  }
+}
+//fetch all transport service policies by serviceType
+export const fetchAllTransportPolicies = async (): Promise<any> => {
+  const response = await api.get(`/provider/policy/transport`);
+  console.log("fetch all transport policies", response.data.data);
+  return response.data.data; // Assuming the response contains an array of activities
+}
 
 
 //fetch all transportation services

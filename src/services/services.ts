@@ -11,6 +11,7 @@ export const fetchAllPolicies = async (): Promise<any[]> => {
   const response = await api.get('/provider/policies');
   return response.data.data; // Assuming the response contains an array of policies
 };
+
 // Generic function to add any service type
 export const addNewService = async (
   serviceType: string,

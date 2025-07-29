@@ -4,10 +4,12 @@ import ExpandableSectionComponent from "@/components/forms/ExpandableSectionComp
 import type { PolicySection, PolicyData } from "@/types/serviceTypes";
 import ProviderTopBar from "@/components/provider/ProviderTopBar";
 import AddPolicy from "./AddPolicy"; // <-- Import AddPolicy
+import { useParams } from "react-router-dom";
 
 const AllPolicy = () => {
   const [structuredPolicies, setStructuredPolicies] = useState<PolicyData[]>([]);
-
+  const { serviceType } = useParams();
+  console.log("Service Type:", serviceType);
   useEffect(() => {
     const loadPolicies = async () => {
       try {
@@ -47,7 +49,8 @@ const AllPolicy = () => {
 
       {/* AddPolicy component at the bottom */}
       <div className="mt-12">
-        <AddPolicy />
+        
+        <AddPolicy serviceType={serviceType}/>
       </div>
     </div>
   );
