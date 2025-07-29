@@ -67,7 +67,6 @@ const NewServiceForm: React.FC<ServiceFormProps> = ({
     const baseData: ServiceFormData = {
       serviceName: "",
       locationBased: {
-        locationId: 0,
         formattedAddress: "",
         city: "",
         district: "",

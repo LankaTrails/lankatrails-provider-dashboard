@@ -31,7 +31,7 @@ export interface PolicyData {
 }
 
 export interface LocationData {
-  locationId: number;
+  // locationId: number;
   formattedAddress: string;
   city: string;
   district: string;
