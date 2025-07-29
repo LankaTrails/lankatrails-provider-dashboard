@@ -22,7 +22,7 @@ const AddAccommodationPolicy = () => {
       const response = await fetchAllAccommodationPolicies();
       if (response.totalElements != 0) {
         const structured = response.map((policy: PolicySection, index: number) => ({
-          id: policy.id?.toString() || `policy-${index}`,
+          id: policy.heading ? policy.heading.toString() + index : `policy-${index}`,
           heading: policy.heading,
           description: policy.policy,
           isExpanded: false,

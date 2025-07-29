@@ -20,7 +20,7 @@ const AddTransportPolicy = () => {
       const response = await fetchAllTransportPolicies();
       if (response.totalElements != 0) {
         const structured = response.map((policy: PolicySection, index: number) => ({
-          id: policy.id?.toString() || `policy-${index}`,
+          id: `policy-${index}`,
           heading: policy.heading,
           description: policy.policy,
           isExpanded: false,

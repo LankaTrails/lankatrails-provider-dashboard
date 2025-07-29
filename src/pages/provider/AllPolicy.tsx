@@ -16,7 +16,7 @@ const AllPolicy = () => {
         const response = await fetchAllPolicies();
         console.log("Fetched Policies:", response);
         const structured = response.map((policy: PolicySection, index: number) => ({
-          id: policy.id?.toString() || `policy-${index}`,
+          id: index,
           heading: policy.heading,
           description: policy.policy,
           isExpanded: false,
