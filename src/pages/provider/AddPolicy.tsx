@@ -40,6 +40,7 @@ const AddPolicy: React.FC<AddPolicyProps> = ({ serviceType, onSuccess, resetTrig
     try {
       // You can use serviceType here if needed
       const policySection = {
+        id: Math.random(), // Generate a unique ID for the policy section
         heading: items.map((item) => item.heading).join(", "),
         policy: items.map((item) => item.description).join("\n"),
         serviceType, // Pass serviceType to backend if needed
@@ -49,18 +50,24 @@ const AddPolicy: React.FC<AddPolicyProps> = ({ serviceType, onSuccess, resetTrig
         case undefined:
           await createPolicy(policySection);
           navigate("/provider/policy/all");
+          break;
         case "activity":
           console.log("Creating activity policy with data:", policySection);
           await createActivityPolicy(policySection);
           navigate("/provider/policy/activity");
+          break;
         case "tour-guide":
           await createGuidePolicy(policySection);
+          break;
         case "transport":
           await createTransportPolicy(policySection);
+          break;
         case "food-beverage":
           await createFoodPolicy(policySection);
+          break;
         case "accommodation":
           await createAccommodationPolicy(policySection);
+          break;
       }
       if (onSuccess) onSuccess(); // Call the callback after success
      

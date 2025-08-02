@@ -48,6 +48,7 @@ export interface TabSection {
 }
 
 export interface PolicySection {
+  // id:number;
   heading: string;
   policy: string;
   // id:string;
