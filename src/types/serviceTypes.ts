@@ -48,6 +48,7 @@ export interface TabSection {
 }
 
 export interface PolicySection {
+  // id:number;
   heading: string;
   policy: string;
   // id:string;
@@ -147,3 +148,8 @@ export interface ServiceFormProps {
   initialImages?: ImageUploadItem[]; // fixed typo and type
   onSubmit: (data: ServiceFormData, images: ImageFiles) => void;
 }
+// export interface AddPolicyProps {
+//   serviceType: string;
+//   onSuccess: () => void;
+//   resetTrigger: number;
+// }

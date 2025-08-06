@@ -34,7 +34,7 @@ import type {
   TransmissionType,
   FoodBeverageType,
 } from "@/types/serviceTypes";
-import { fetchAllPolicies } from "@/services/activityService";
+import { fetchPoliciesByServiceType } from "@/services/services";
 
 const NewServiceForm: React.FC<ServiceFormProps> = ({
   serviceType,
@@ -191,7 +191,7 @@ const NewServiceForm: React.FC<ServiceFormProps> = ({
   useEffect(() => {
     const loadPolicies = async () => {
       try {
-        const policies = await fetchAllPolicies();
+        const policies = await fetchPoliciesByServiceType(serviceType ?? "");
         console.log("Policies:", policies);
 
         const options = policies.map((p: any) => ({
@@ -472,7 +472,11 @@ const NewServiceForm: React.FC<ServiceFormProps> = ({
               </div>
 
               <div className="bg-gradient-to-r from-primary-50 to-primary-50 p-4 rounded-xl border border-primary-100">
-                {serviceType === "activity" && (
+                {(serviceType === "activity"||
+                 serviceType === "transportation" ||
+                 serviceType === "accommodation" ||
+                 serviceType === "food-beverage"||
+                 serviceType === "tour-guides")&&(
                   <div className="mb-6">
                     <MultiSelectField
                       label="Available Policies"

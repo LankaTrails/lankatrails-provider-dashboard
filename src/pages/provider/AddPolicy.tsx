@@ -1,90 +1,102 @@
-import { useState } from "react";
-import ProviderTopBar from "@/components/provider/ProviderTopBar";
+import { useEffect, useState } from "react";
 import ExpandableSectionComponent from "@/components/forms/ExpandableSectionComponent";
 import { createPolicy } from "@/services/policyService";
 import { useNavigate } from "react-router-dom";
 import type { PolicyData, ServiceFormData } from "@/types/serviceTypes";
 import AlertToast from "@/components/forms/AlertToast";
+import { createActivityPolicy } from "@/services/activityService";
+import { createGuidePolicy } from "@/services/guideService";
+import { createTransportPolicy } from "@/services/transportationService";
+import { createFoodPolicy } from "@/services/FoodBeverage";
+import { createAccommodationPolicy } from "@/services/accomodation";
 
+// Add prop type for serviceType
+interface AddPolicyProps {
+  serviceType?: string;
+  onSuccess?: () => void;
+  resetTrigger?: any; // Add resetTrigger prop, type as needed
+}
 
 interface ToastState {
   message: string;
   type: "success" | "error";
 }
 
-const AddPolicy = () => {
-  const [initialData, setInitialData] = useState<ServiceFormData | undefined>();
+// Accept props in the component
+const AddPolicy: React.FC<AddPolicyProps> = ({ serviceType, onSuccess, resetTrigger }) => {
+  const [policySection, setPolicySection] = useState<PolicyData[]>([
+    { id: Math.random(), heading: "", description: "", isExpanded: true }
+  ]);
 
-  const [policySection, setPolicySection] = useState<PolicyData[]>(
-    (initialData?.policySection || [{ heading: "", policy: "" }]).map(
-      (policy) => ({
-        id: Math.random(),
-        heading: policy.heading,
-        description: policy.policy,
-        isExpanded: true,
-      })
-    )
-  );
-
-  const handlePoliciesChange = (newItems: PolicyData[]) => {
-    setPolicySection(newItems);
-  };
+  // Reset fields when resetTrigger changes
+  useEffect(() => {
+    setPolicySection([{ id: Math.random(), heading: "", description: "", isExpanded: true }]);
+  }, [resetTrigger]);
 
   const navigate = useNavigate();
   const [toast, setToast] = useState<ToastState | null>(null);
-  // const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
-  // const [responseData, setResponseData] = useState<String>();
+
   const handleSave = async (items: PolicyData[]) => {
-    // setIsSubmitting(true);
     try {
-      // Transform PolicyData[] to PolicySection
+      // You can use serviceType here if needed
       const policySection = {
-        heading: items.map(item => item.heading).join(", "),
-        policy: items.map(item => item.description).join("\n"),
-        // id: items.length > 0 ? items[0].id : "",
+        id: Math.random(), // Generate a unique ID for the policy section
+        heading: items.map((item) => item.heading).join(", "),
+        policy: items.map((item) => item.description).join("\n"),
+        serviceType, // Pass serviceType to backend if needed
       };
       
-      await createPolicy(policySection);
-      
-      navigate("/provider/policy/all");
-
+      switch(serviceType){
+        case undefined:
+          await createPolicy(policySection);
+          navigate("/provider/policy/all");
+          break;
+        case "activity":
+          console.log("Creating activity policy with data:", policySection);
+          await createActivityPolicy(policySection);
+          navigate("/provider/policy/activity");
+          break;
+        case "tour-guide":
+          await createGuidePolicy(policySection);
+          break;
+        case "transport":
+          await createTransportPolicy(policySection);
+          break;
+        case "food-beverage":
+          await createFoodPolicy(policySection);
+          break;
+        case "accommodation":
+          await createAccommodationPolicy(policySection);
+          break;
+      }
+      if (onSuccess) onSuccess(); // Call the callback after success
+     
     } catch (error: any) {
-         console.error("Error adding service:", error);
-
-      // let message =
-      //   error.userMessage || error.message || "An unexpected error occurred";
-
-      // if (error.details && typeof error.details === "object") {
-      //   const errorMessages = Object.values(error.details).join("\n");
-      //   message += `:\n${errorMessages}`;
-      // }
-      let rawMessage = error.message ;
-      // || "Failed to save policies.";
-  
-  // Remove anything in quotes like "j5imunpcu"
-      let cleanedMessage = rawMessage.replace(/"[^"]*"/g, ''); // removes quoted text
-
-      let message=cleanedMessage.split(":")[0].trim();
-
+      let rawMessage = error.message;
+      let cleanedMessage = rawMessage.replace(/"[^"]*"/g, "");
+      let message = cleanedMessage.split(":")[0].trim();
       setToast({
         message,
         type: "error",
       });
     }
-      
   };
+
   const handleCloseToast = (): void => {
     setToast(null);
+  };
+
+  // Add handler for ExpandableSectionComponent items change
+  const handlePoliciesChange = (items: PolicyData[]) => {
+    setPolicySection(items);
   };
 
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl p-2 font-bold">Add policies</h1>
-        <ProviderTopBar />
-        <div className= "mt-8">
+        <div className="mt-8">
           <ExpandableSectionComponent
-            title="Policies"
+            title="New Policy"
             items={policySection}
             onItemsChange={handlePoliciesChange}
             addButtonText="Add Policy"
@@ -95,7 +107,7 @@ const AddPolicy = () => {
           />
         </div>
       </div>
-       {toast && (
+      {toast && (
         <AlertToast
           message={toast.message}
           type={toast.type}
