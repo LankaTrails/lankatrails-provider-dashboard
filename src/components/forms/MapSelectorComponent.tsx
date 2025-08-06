@@ -74,7 +74,7 @@ const MapSelectorComponent: React.FC<MapSelectorProps> = ({
       components.find((c) => c.types.includes(type))?.long_name || null;
 
     return {
-      locationId: 0, // Will be assigned by backend during creation
+      locationId: null,
       formattedAddress: result.formatted_address,
       city:
         getComponent("locality") ||
@@ -97,6 +97,11 @@ const MapSelectorComponent: React.FC<MapSelectorProps> = ({
       const lng = latLng.lng();
       setMarkerPosition({ lat, lng });
 
+      // If a map location is selected, uncheck the business location checkbox
+      if (useBusinessLocation) {
+        setUseBusinessLocation(false);
+      }
+
       // Reverse geocode to get address
       new window.google.maps.Geocoder()
         .geocode({ location: latLng })
@@ -117,7 +122,7 @@ const MapSelectorComponent: React.FC<MapSelectorProps> = ({
           const fallbackAddress = `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
           onLocationChange(fallbackAddress);
           onLocationSelect?.({
-            locationId: 0,
+            locationId: null,
             formattedAddress: fallbackAddress,
             city: "",
             district: "",
@@ -129,7 +134,7 @@ const MapSelectorComponent: React.FC<MapSelectorProps> = ({
           });
         });
     },
-    [onLocationChange, onLocationSelect]
+    [onLocationChange, onLocationSelect, useBusinessLocation]
   );
 
   // Handle autocomplete place selection
@@ -222,7 +227,7 @@ const MapSelectorComponent: React.FC<MapSelectorProps> = ({
 
   return (
     <LoadScript
-      googleMapsApiKey={"AIzaSyA47Q-I515EK0DU4pvk5jgUcatYcdnf8cY"}
+      googleMapsApiKey={"AIzaSyAFJ8_eIjeXNhtS5TeuDWwswREqxO4FsGU"}
       libraries={libraries}
       region="lk"
     >
@@ -252,13 +257,22 @@ const MapSelectorComponent: React.FC<MapSelectorProps> = ({
                       setUseBusinessLocation(checked);
 
                       if (checked && user?.location) {
-                        // Use business location - cast to LocationData for compatibility
+                        // Use business location - pass the locationId to the parent
                         const businessLocation = user.location as any;
+                        console.log(
+                          "Business location data:",
+                          businessLocation
+                        );
+                        console.log(
+                          "Calling onLocationIdSelect with:",
+                          businessLocation.locationId
+                        );
+
                         onLocationChange(
                           businessLocation.formattedAddress || ""
                         );
+                        // Call onLocationIdSelect with the actual locationId
                         onLocationIdSelect?.(businessLocation.locationId || 0);
-                        onLocationSelect?.(undefined);
 
                         // Update map position
                         const businessPosition = {

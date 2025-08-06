@@ -60,12 +60,14 @@ export const addNewActivity = async (
   images: ImageFiles
 ): Promise<string> => {
   try {
+    console.log("Adding new activity with payload:", payload);
     const formData = new FormData();
 
     // JSON blob for 'service'
     const serviceBlob = new Blob([JSON.stringify(payload)], {
       type: 'application/json',
     });
+    console.log("Service Blob:", serviceBlob);
     formData.append('service', serviceBlob);
 
     // Append all images under 'images' key with proper type checking

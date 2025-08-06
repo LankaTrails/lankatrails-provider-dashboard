@@ -9,6 +9,7 @@ import MultiSelectField from "./forms/MultiSelectField";
 import TextAreaField from "./forms/TextAreaField";
 import CounterInput from "./forms/CounterInput";
 import CheckboxField from "./forms/CheckboxField";
+import { useAuth } from "@/hooks/useAuth";
 
 import type {
   TabSection,
@@ -41,6 +42,8 @@ const NewServiceForm: React.FC<ServiceFormProps> = ({
   initialData,
   onSubmit,
 }) => {
+  const { user } = useAuth(); // Move useAuth to component level
+
   const [images, setImages] = useState<ImageFiles>({
     serviceImages: initialImages || [],
   });
@@ -50,11 +53,11 @@ const NewServiceForm: React.FC<ServiceFormProps> = ({
   const [selectedCoordinates, setSelectedCoordinates] = useState<
     { latitude: number; longitude: number } | undefined
   >(
-    initialData?.locationBased?.latitude &&
-      initialData?.locationBased?.longitude
+    initialData?.locations?.[0]?.latitude &&
+      initialData?.locations?.[0]?.longitude
       ? {
-          latitude: initialData.locationBased.latitude,
-          longitude: initialData.locationBased.longitude,
+          latitude: initialData.locations[0].latitude,
+          longitude: initialData.locations[0].longitude,
         }
       : undefined
   );
@@ -66,18 +69,19 @@ const NewServiceForm: React.FC<ServiceFormProps> = ({
   const initializeFormData = (): ServiceFormData => {
     const baseData: ServiceFormData = {
       serviceName: "",
-      locationBased: {
-        locationId: 0,
-        formattedAddress: "",
-        city: "",
-        district: "",
-        province: "",
-        country: "",
-        postalCode: "",
-        latitude: 0,
-        longitude: 0,
-      },
-      locationId: null,
+      locations: [
+        {
+          locationId: null,
+          formattedAddress: "",
+          city: "",
+          district: "",
+          province: "",
+          country: "",
+          postalCode: "",
+          latitude: 0,
+          longitude: 0,
+        },
+      ],
       contactNo: "",
       status: true,
       price: 0,
@@ -244,10 +248,7 @@ const NewServiceForm: React.FC<ServiceFormProps> = ({
   const handleLocationSelect = (locationData: LocationData | undefined) => {
     if (!locationData) {
       // Handle case where business location is used (locationData is undefined)
-      setFormData((prev) => ({
-        ...prev,
-        locationBased: null,
-      }));
+      // Don't update locations array here, it will be handled by handleLocationIdSelect
       return;
     }
 
@@ -256,19 +257,69 @@ const NewServiceForm: React.FC<ServiceFormProps> = ({
       longitude: locationData.longitude,
     });
 
+    // Update the locations array with the new location data (locationId will be null)
     setFormData((prev) => ({
       ...prev,
-      locationBased: locationData,
-      locationId: null, // Clear locationId when using custom location
+      locations: [locationData],
     }));
   };
 
   const handleLocationIdSelect = (locationId: number) => {
-    setFormData((prev) => ({
-      ...prev,
-      locationId: locationId,
-      locationBased: null, // Clear locationBased when using business location
-    }));
+    console.log("handleLocationIdSelect called with locationId:", locationId);
+
+    if (locationId === 0) {
+      // Clear location when unchecked
+      setFormData((prev) => ({
+        ...prev,
+        locations: [
+          {
+            locationId: null,
+            formattedAddress: "",
+            city: "",
+            district: "",
+            province: "",
+            country: "",
+            postalCode: "",
+            latitude: 0,
+            longitude: 0,
+          },
+        ],
+      }));
+      setSelectedCoordinates(undefined);
+      return;
+    }
+
+    // Use business location - create LocationData with the business location's locationId
+    if (user?.location) {
+      const businessLocation = user.location as any;
+      const locationData: LocationData = {
+        locationId: businessLocation.locationId || locationId,
+        formattedAddress: businessLocation.formattedAddress || "",
+        city: businessLocation.city || "",
+        district: businessLocation.district || "",
+        province: businessLocation.province || "",
+        country: businessLocation.country || "",
+        postalCode: businessLocation.postalCode || "",
+        latitude: businessLocation.latitude || 0,
+        longitude: businessLocation.longitude || 0,
+      };
+
+      console.log(
+        "Setting location data with locationId:",
+        locationData.locationId
+      );
+      console.log("Full location data:", locationData);
+
+      setFormData((prev) => ({
+        ...prev,
+        locations: [locationData],
+      }));
+
+      setSelectedCoordinates({
+        latitude: locationData.latitude,
+        longitude: locationData.longitude,
+      });
+    }
   };
 
   const handleTabsChange = (tabs: TabData[]) => {
@@ -325,6 +376,7 @@ const NewServiceForm: React.FC<ServiceFormProps> = ({
       } as AccommodationFormData;
     }
 
+    console.log("Final form data locations:", updatedData.locations);
     console.log("Submitting updated data:", updatedData);
     onSubmit(updatedData, images);
   };
@@ -459,13 +511,15 @@ const NewServiceForm: React.FC<ServiceFormProps> = ({
                   Location
                 </h3>
                 <MapSelectorComponent
-                  location={formData.locationBased?.formattedAddress || ""}
+                  location={formData.locations?.[0]?.formattedAddress || ""}
                   onLocationChange={(value) => {
-                    if (formData.locationBased) {
-                      handleInputChange("locationBased", {
-                        ...formData.locationBased,
-                        formattedAddress: value,
-                      });
+                    if (formData.locations) {
+                      handleInputChange("locations", [
+                        {
+                          ...formData.locations[0],
+                          formattedAddress: value,
+                        },
+                      ]);
                     }
                   }}
                   onLocationSelect={handleLocationSelect}
