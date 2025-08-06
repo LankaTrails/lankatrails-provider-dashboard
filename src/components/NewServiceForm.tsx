@@ -88,6 +88,15 @@ const NewServiceForm: React.FC<ServiceFormProps> = ({
       priceType: "FIXED" as PriceType,
       tabsSection: [{ heading: "", content: "" }],
       policySection: [{ heading: "", policy: "" }],
+      weeklySchedule: {
+          Monday: { openingTime: "", closingTime: "" },
+          Tuesday: { openingTime: "", closingTime: "" },
+          Wednesday: { openingTime: "", closingTime: "" },
+          Thursday: { openingTime: "", closingTime: "" },
+          Friday: { openingTime: "", closingTime: "" },
+          Saturday: { openingTime: "", closingTime: "" },
+          Sunday: { openingTime: "", closingTime: "" },
+}
     };
 
     if (serviceType === "activity") {
@@ -354,7 +363,7 @@ const NewServiceForm: React.FC<ServiceFormProps> = ({
 
   const handleSubmit = () => {
     let updatedData: ServiceFormData = { ...formData };
-
+    console.log("Form Data Before Updation:", updatedData);
     // Update specific fields based on service type
     if (serviceType === "tour-guides") {
       updatedData = {
@@ -612,9 +621,11 @@ const NewServiceForm: React.FC<ServiceFormProps> = ({
                       />
                     </div>
                   </div>
+               
+
                 </>
               )}
-
+              
               {/* Transportation Service Form */}
               {serviceType === "transportation" && (
                 <>
@@ -1150,9 +1161,62 @@ const NewServiceForm: React.FC<ServiceFormProps> = ({
                   </div>
                 </>
               )}
+               <h2 className="mt-5 mb-3text-lg font-medium text-gray-700">Weekly Opening & Closing Hours</h2>
+<div className="space-y-3">
+  {[
+    "Monday",
+    "Tuesday",
+    "Wednesday",
+    "Thursday",
+    "Friday",
+    "Saturday",
+    "Sunday",
+  ].map((day) => (
+    <div key={day} className="grid grid-cols-3 gap-4 items-center">
+      <label className="font-medium text-gray-600">{day}</label>
+      <InputField
+        type="time"
+        label=""
+        value={
+          (formData as ActivityFormData).weeklySchedule?.[day]?.openingTime || ""
+        }
+        onChange={(value) =>
+          handleInputChange("weeklySchedule", {
+            ...(formData as ActivityFormData).weeklySchedule,
+            [day]: {
+              ...((formData as ActivityFormData).weeklySchedule?.[day] || {}),
+              openingTime: value,
+            },
+          })
+        }
+        required
+      />
+      <InputField
+        type="time"
+        label=""
+        value={
+          (formData as ActivityFormData).weeklySchedule?.[day]?.closingTime || ""
+        }
+        onChange={(value) =>
+          handleInputChange("weeklySchedule", {
+            ...(formData as ActivityFormData).weeklySchedule,
+            [day]: {
+              ...((formData as ActivityFormData).weeklySchedule?.[day] || {}),
+              closingTime: value,
+            },
+          })
+        }
+        required
+      />
+    </div>
+  ))}
+</div>
             </div>
+            
           </div>
+          
         </div>
+        
         {/* submit button */}
         <div className="flex justify-end mt-6">
           <button

@@ -85,6 +85,12 @@ export interface ServiceFormData {
   priceType: PriceType;
   tabsSection: TabSection[];
   policySection: PolicySection[];
+  weeklySchedule: {
+    [day: string]: {
+      openingTime: string;
+      closingTime: string;
+    };
+  };
 }
 // Add this to your existing types
 export interface ImageFile {

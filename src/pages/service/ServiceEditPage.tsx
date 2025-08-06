@@ -120,7 +120,7 @@ const ServiceEditPage: React.FC = () => {
       <ServiceForm
         serviceType={serviceType}
         initialData={initialData}
-        initialImages={initialImages}
+        // initialImages={initialImages}
         onSubmit={handleEditSubmit}
       />
     </div>
