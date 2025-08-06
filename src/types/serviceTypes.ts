@@ -31,7 +31,7 @@ export interface PolicyData {
 }
 
 export interface LocationData {
-  // locationId: number;
+  locationId: number | null;
   formattedAddress: string;
   city: string;
   district: string;
@@ -77,8 +77,7 @@ export interface OptionType {
 export interface ServiceFormData {
   // Common fields for all service types
   serviceName: string;
-  locationBased: LocationData | null;
-  locationId: number | null;
+  locations: LocationData[];
   contactNo: string;
   status: boolean;
   price: number;
