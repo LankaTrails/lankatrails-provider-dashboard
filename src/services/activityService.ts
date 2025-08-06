@@ -1,6 +1,37 @@
 import api from "@/api/axiosInstance";
-import type { ImageFiles, ServiceFormData } from "@/types/serviceTypes";
-import { fetchAllTransports } from "./transportationService";
+import type { ImageFiles, PolicySection, ServiceFormData } from "@/types/serviceTypes";
+
+
+//Add new activity policy
+export async function createActivityPolicy(policyData: PolicySection): Promise<PolicySection> {
+  try {
+    const response = await api.post("/provider/policy/activity", policyData);
+    console.log("Activity policy created successfully:", response.data);
+    return response.data;
+  } catch (error :any) {
+    if (error.response && error.response.data) {
+      const { code, message, details, userMessage } = error.response.data;
+      throw {
+        code,
+        message,
+        details,
+        userMessage,
+      };
+    }
+
+    throw {
+      message: 'Failed to add new activity',
+      code: 'UNKNOWN_ERROR',
+    };
+  }
+}
+//fetch all activity service policies by serviceType
+export const fetchAllActivityPolicies = async (): Promise<any> => {
+  const response = await api.get(`/provider/policy/activity`);
+  console.log("fetch all activity policies", response.data.data);
+  return response.data.data; // Assuming the response contains an array of activities
+}
+
 
 //delete an activity service
 export const deleteActivityService = async (id: number): Promise<any> => {
@@ -8,12 +39,6 @@ export const deleteActivityService = async (id: number): Promise<any> => {
   console.log("Deleting activity service with ID:", response);
   return response.data.data;
 }
-
-//Fetch all the provider policies
-export const fetchAllPolicies = async (): Promise<any[]> => {
-  const response = await api.get('/provider/policies');
-  return response.data.data; // Assuming the response contains an array of policies
-};
 
 //fetch all activity services
 export const fetchAllActivities = async (
@@ -95,50 +120,7 @@ export const findActivityById = async (id: any): Promise<any> => {
   }
 }
 
-//find a tourist guide by the serviceId
-export const findGuideById = async (id: any): Promise<any> => {
-  try {
-    const response = await api.get(`/provider/tour-guide/${id}`);
-    // Log response for debugging
-    console.log('findGuideById response:', response);
-    return response.data.data;
-  } catch (error) {
-    console.error('Error fetching guide by ID:', error);
-    throw new Error('Failed to fetch guide by ID');
-  }
-}
 
 
-// Fetch all tour guide services  
-export const fetchAllTourGuides = async (
-  pageNumber: number = 0,
-  pageSize: number = 10
-): Promise<any> => {
-  const response = await api.get(`/provider/tour-guide/getAll`, {
-    params: {
-      pageNumber,
-      pageSize,
-    },
-  });
-  console.log("fetch all tour guides", response.data.data);
-  return response.data.data;
-}
-
-// Generic function to fetch services based on type
-export const fetchAllServices = async (
-  serviceType: string,
-  pageNumber: number = 0,
-  pageSize: number = 10
-): Promise<any> => {
-  if (serviceType === 'tour-guides') {
-    return await fetchAllTourGuides(pageNumber, pageSize);
-  } else if (serviceType === 'activity') {
-    return await fetchAllActivities(pageNumber, pageSize);
-  } else if(serviceType=="transportation"){
-    return await fetchAllTransports(pageNumber,pageSize);
-  } else {
-    throw new Error(`Unsupported service type: ${serviceType}`);
-  }
-};
 
 

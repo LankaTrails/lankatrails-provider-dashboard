@@ -2,16 +2,14 @@ import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import ServiceForm from "@/components/NewServiceForm";
 import BackButton from "@/components/BackButton";
-import type {
-  ServiceFormData,
-  ImageData,
-  TabData,
-  PolicyData,
-} from "@/types/serviceTypes";
-import { findActivityById, findGuideById } from "@/services/activityService";
+
+import type { ServiceFormData, ImageData, TabData, PolicyData } from "@/types/serviceTypes";
+import { findActivityById} from "@/services/activityService";
+
 import { findAccommodationById } from "@/services/accomodation";
 import { findTransportationById } from "@/services/transportationService";
 import { findFoodBeverageById } from "@/services/FoodBeverage";
+import { findGuideById } from "@/services/guideService";
 
 const ServiceEditPage: React.FC = () => {
   const { id, serviceType } = useParams();

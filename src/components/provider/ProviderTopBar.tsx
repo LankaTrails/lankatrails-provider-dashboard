@@ -45,7 +45,12 @@ const ProviderTopBar = () => {
   }else if (base === "policy") {
     links = [
       { to: `/provider/policy/all`, label: "All Policies" },
-      { to: `/provider/policy/add`, label: "New Policy" },
+      // { to: `/provider/policy/add`, label: "New Policy" },
+      { to: `/provider/policy/activity`, label: "Activity" },
+      { to: `/provider/policy/tour-guide`, label: "Tour Guide" },
+      { to: `/provider/policy/transport`, label: "Transportation" },
+      { to: `/provider/policy/food-beverage`, label: "Food & Beverage" },
+      { to: `/provider/policy/accommodation`, label: "Accommodation" },
     ];
   } else {
     // Default empty or general links if needed
