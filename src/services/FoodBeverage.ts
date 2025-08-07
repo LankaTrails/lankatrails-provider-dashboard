@@ -1,7 +1,36 @@
 
 import api from "@/api/axiosInstance";
-import type { ImageFiles, ServiceFormData } from "@/types/serviceTypes";
+import type { ImageFiles, PolicySection, ServiceFormData } from "@/types/serviceTypes";
 
+//Add new activity policy
+export async function createFoodPolicy(policyData: PolicySection): Promise<PolicySection> {
+  try {
+    const response = await api.post("/provider/policy/food-beverage", policyData);
+    console.log("Food Beverage policy created successfully:", response.data);
+    return response.data;
+  } catch (error :any) {
+    if (error.response && error.response.data) {
+      const { code, message, details, userMessage } = error.response.data;
+      throw {
+        code,
+        message,
+        details,
+        userMessage,
+      };
+    }
+
+    throw {
+      message: 'Failed to add new policy',
+      code: 'UNKNOWN_ERROR',
+    };
+  }
+}
+//fetch all activity service policies by serviceType
+export const fetchAllFoodPolicies = async (): Promise<any> => {
+  const response = await api.get(`/provider/policy/food-beverage`);
+  console.log("fetch all food-beverage policies", response.data.data);
+  return response.data.data; // Assuming the response contains an array of activities
+}
 
 //fetch all food and beverage services
 export const fetchAllFoodAndBeverages = async (
