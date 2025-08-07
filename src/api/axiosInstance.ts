@@ -37,8 +37,10 @@ export const setAccessToken = (token: string | null) => {
   accessToken = token;
 };
 
+const baseUrl = import.meta.env.VITE_API_BASE_URL;
+
 const api = axios.create({
-  baseURL:  'http://localhost:8080/api',
+  baseURL:  baseUrl,
   withCredentials: true,
 });
 

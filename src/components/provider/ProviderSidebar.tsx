@@ -16,6 +16,7 @@ const tabs = [
 ];
 
 const ProviderSidebar = () => {
+  const baseUrl = import.meta.env.VITE_BASE_URL;
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
@@ -46,7 +47,7 @@ const ProviderSidebar = () => {
           <img
             src={
               user && user.profilePictureUrl
-                ? `http://localhost:8080${user.profilePictureUrl}`
+                ? `${baseUrl}${user.profilePictureUrl}`
                 : "/default-avatar.png"
             }
             alt="avatar"

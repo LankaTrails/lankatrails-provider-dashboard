@@ -7,13 +7,17 @@ interface ImageUploadProps {
   onImagesChange: (images: ImageFile[]) => void;
   selectedImageIndex: number;
   onSelectedImageChange: (index: number) => void;
+  onImageDelete?: (imageId: string, imageUrl?: string) => void; // Optional custom delete handler
 }
+
+const baseUrl = import.meta.env.VITE_BASE_URL;
 
 const ImageUploadComponent: React.FC<ImageUploadProps> = ({
   images,
   onImagesChange,
   selectedImageIndex,
-  onSelectedImageChange
+  onSelectedImageChange,
+  onImageDelete, // Custom delete handler
 }) => {
   const [isDragOver, setIsDragOver] = useState(false);
 
@@ -27,26 +31,29 @@ const ImageUploadComponent: React.FC<ImageUploadProps> = ({
     setIsDragOver(false);
   }, []);
 
-  const handleDrop = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragOver(false);
-    
-    const files = Array.from(e.dataTransfer.files);
-    const imageFiles = files.filter(file => file.type.startsWith('image/'));
-    
-    if (imageFiles.length > 0) {
-      const newImages: ImageFile[] = [];
-      imageFiles.forEach((file) => {
-        const id = Math.random().toString(36).substr(2, 9);
-        const url = URL.createObjectURL(file);
-        newImages.push({ id, file, url });
-      });
-      onImagesChange([...images, ...newImages]);
-      if (images.length === 0) {
-        onSelectedImageChange(0);
+  const handleDrop = useCallback(
+    (e: React.DragEvent) => {
+      e.preventDefault();
+      setIsDragOver(false);
+
+      const files = Array.from(e.dataTransfer.files);
+      const imageFiles = files.filter((file) => file.type.startsWith("image/"));
+
+      if (imageFiles.length > 0) {
+        const newImages: ImageFile[] = [];
+        imageFiles.forEach((file) => {
+          const id = Math.random().toString(36).substr(2, 9);
+          const url = URL.createObjectURL(file);
+          newImages.push({ id, file, url });
+        });
+        onImagesChange([...images, ...newImages]);
+        if (images.length === 0) {
+          onSelectedImageChange(0);
+        }
       }
-    }
-  }, [images, onImagesChange, onSelectedImageChange]);
+    },
+    [images, onImagesChange, onSelectedImageChange]
+  );
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
@@ -65,12 +72,19 @@ const ImageUploadComponent: React.FC<ImageUploadProps> = ({
   };
 
   const handleImageRemove = (imageId: string) => {
-    const newImages = images.filter(img => img.id !== imageId);
-    onImagesChange(newImages);
-    if (selectedImageIndex >= newImages.length && newImages.length > 0) {
-      onSelectedImageChange(newImages.length - 1);
-    } else if (newImages.length === 0) {
-      onSelectedImageChange(0);
+    if (onImageDelete) {
+      // Use custom delete handler if provided
+      const image = images.find((img) => img.id === imageId);
+      onImageDelete(imageId, image?.url);
+    } else {
+      // Default behavior - remove from images array
+      const newImages = images.filter((img) => img.id !== imageId);
+      onImagesChange(newImages);
+      if (selectedImageIndex >= newImages.length && newImages.length > 0) {
+        onSelectedImageChange(newImages.length - 1);
+      } else if (newImages.length === 0) {
+        onSelectedImageChange(0);
+      }
     }
   };
 
@@ -82,7 +96,7 @@ const ImageUploadComponent: React.FC<ImageUploadProps> = ({
         </label>
         <div
           className={`flex items-center justify-center w-full transition-colors ${
-            isDragOver ? 'bg-blue-50 border-blue-300' : 'bg-gray-50'
+            isDragOver ? "bg-blue-50 border-blue-300" : "bg-gray-50"
           }`}
           onDragOver={handleDragOver}
           onDragLeave={handleDragLeave}
@@ -92,7 +106,7 @@ const ImageUploadComponent: React.FC<ImageUploadProps> = ({
             {images.length > 0 ? (
               <div className="relative w-full h-full">
                 <img
-                  src={images[selectedImageIndex]?.url}
+                  src={baseUrl + images[selectedImageIndex]?.url}
                   alt="Preview"
                   className="w-full h-full object-cover rounded-lg"
                 />
@@ -104,9 +118,12 @@ const ImageUploadComponent: React.FC<ImageUploadProps> = ({
               <div className="flex flex-col items-center justify-center pt-5 pb-6">
                 <Upload className="w-10 h-10 mb-3 text-gray-400" />
                 <p className="mb-2 text-sm text-gray-500">
-                  <span className="font-semibold">Click to upload</span> or drag and drop
+                  <span className="font-semibold">Click to upload</span> or drag
+                  and drop
                 </p>
-                <p className="text-xs text-gray-500">PNG, JPG, GIF up to 10MB</p>
+                <p className="text-xs text-gray-500">
+                  PNG, JPG, GIF up to 10MB
+                </p>
               </div>
             )}
             <input
@@ -126,12 +143,14 @@ const ImageUploadComponent: React.FC<ImageUploadProps> = ({
             <div
               key={image.id}
               className={`relative flex-shrink-0 w-28 h-16 rounded-lg overflow-hidden cursor-pointer border-2 ${
-                index === selectedImageIndex ? 'border-primary-400' : 'border-gray-300'
+                index === selectedImageIndex
+                  ? "border-primary-400"
+                  : "border-gray-300"
               }`}
               onClick={() => onSelectedImageChange(index)}
             >
               <img
-                src={image.url}
+                src={baseUrl + image.url}
                 alt={`Thumbnail ${index + 1}`}
                 className="w-full h-full object-cover"
               />

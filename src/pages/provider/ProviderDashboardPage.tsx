@@ -11,7 +11,7 @@ import {
   MessageSquare,
   BarChart3,
 } from "lucide-react";
-import ServiceForm from "@/components/ServiceForm";
+// import ServiceForm from "@/components/ServiceForm"; // TODO: Update to use new service creation flow
 
 const stats = [
   {
@@ -90,7 +90,9 @@ const ProviderDashboardPage = () => {
                 <div>
                   <p className="text-sm opacity-90">{stat.title}</p>
                   <p className="text-2xl font-bold">{stat.value}</p>
-                  <p className="text-xs opacity-80">{stat.change} from last month</p>
+                  <p className="text-xs opacity-80">
+                    {stat.change} from last month
+                  </p>
                 </div>
                 <div className="p-2 bg-white/20 rounded-lg">{stat.icon}</div>
               </div>
@@ -167,7 +169,8 @@ const ProviderDashboardPage = () => {
       </Card>
 
       {/* Service form modal */}
-      <ServiceForm open={formOpen} onOpenChange={setFormOpen} />
+      {/* TODO: Update to use new service creation flow */}
+      {/* <ServiceForm open={formOpen} onOpenChange={setFormOpen} /> */}
     </div>
   );
 };
