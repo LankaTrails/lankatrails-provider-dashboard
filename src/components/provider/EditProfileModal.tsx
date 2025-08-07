@@ -57,15 +57,16 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const baseUrl = import.meta.env.VITE_BASE_URL;
 
   // Image preview states
   const [profilePreview, setProfilePreview] = useState<string | null>(
     user?.profilePictureUrl
-      ? `http://localhost:8080${user.profilePictureUrl}`
+      ? `${baseUrl}${user.profilePictureUrl}`
       : null
   );
   const [coverPreview, setCoverPreview] = useState<string | null>(
-    user?.coverImageUrl ? `http://localhost:8080${user.coverImageUrl}` : null
+    user?.coverImageUrl ? `${baseUrl}${user.coverImageUrl}` : null
   );
 
   const handleChange = (field: string, value: string) => {
@@ -76,7 +77,8 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
     }
   };
 
-  const handleLocationSelect = (locationData: LocationData) => {
+  const handleLocationSelect = (locationData: LocationData | undefined) => {
+    if (!locationData) return;
     setForm((prev) => ({
       ...prev,
       location: locationData.formattedAddress,
@@ -129,11 +131,11 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
     });
     setProfilePreview(
       user?.profilePictureUrl
-        ? `http://localhost:8080${user.profilePictureUrl}`
+        ? `${baseUrl}${user.profilePictureUrl}`
         : null
     );
     setCoverPreview(
-      user?.coverImageUrl ? `http://localhost:8080${user.coverImageUrl}` : null
+      user?.coverImageUrl ? `${baseUrl}${user.coverImageUrl}` : null
     );
     setErrors({});
     onClose();

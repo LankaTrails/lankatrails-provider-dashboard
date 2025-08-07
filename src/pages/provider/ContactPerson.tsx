@@ -82,7 +82,7 @@ const ContactPerson = () => {
     }
 
     // If it's a relative path, prepend the base URL
-    const baseUrl = "http://localhost:8080";
+    const baseUrl = import.meta.env.VITE_BASE_URL;
     return `${baseUrl}${url.startsWith("/") ? "" : "/"}${url}`;
   };
 

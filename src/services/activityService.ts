@@ -109,18 +109,13 @@ export const addNewActivity = async (
 //find an activity service by the serviceId
 export const findActivityById = async (id: any): Promise<any> => {
   try {
-    const response = await api.get(`/activity-service/${id}`);
+    const response = await api.get(`/provider/activity-service/${id}`);
     // Log response for debugging
-    console.log('findActivityById response:', response);
+    console.log('findActivityById response:', response.data.data);
     return response.data.data; // Assuming the response contains an array of activities
 
   } catch (error) {
     console.error('Error fetching activity by ID:', error);
     throw new Error('Failed to fetch activity by ID');
   }
-}
-
-
-
-
-
+};
