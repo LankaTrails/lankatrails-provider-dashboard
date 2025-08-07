@@ -85,12 +85,12 @@ export interface ServiceFormData {
   priceType: PriceType;
   tabsSection: TabSection[];
   policySection: PolicySection[];
-  weeklySchedule: {
-    [day: string]: {
-      openingTime: string;
-      closingTime: string;
-    };
-  };
+  availabilitySlots: {
+    dayOfWeek: string; 
+      openTime: string;
+      closeTime: string;
+    
+  }[];
 }
 // Add this to your existing types
 export interface ImageFile {
@@ -119,6 +119,7 @@ export interface ActivityFormData extends ServiceFormData {
   activityType: ActivityType;
   activityDetails: string;
   safetyInstructions: string;
+  duration: string; // e.g., "2 hours", "1 day"
 }
 
 export interface FoodBeverageFormData extends ServiceFormData {
