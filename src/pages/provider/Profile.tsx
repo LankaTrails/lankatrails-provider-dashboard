@@ -13,6 +13,7 @@ import ChangePasswordModal, {
 import DeactivateAccountModal from "@/components/provider/DeactivateAccountModal";
 
 const Profile = () => {
+  const baseUrl = import.meta.env.VITE_BASE_URL;
   const { user } = useAuth();
   const [editOpen, setEditOpen] = useState(false);
   const [changePasswordOpen, setChangePasswordOpen] = useState(false);
@@ -60,7 +61,7 @@ const Profile = () => {
               <img
                 src={
                   user.coverImageUrl
-                    ? `http://localhost:8080${user.coverImageUrl}`
+                    ? `${baseUrl}${user.coverImageUrl}`
                     : "/background.png"
                 }
                 alt="Cover"
@@ -75,7 +76,7 @@ const Profile = () => {
                   <img
                     src={
                       user.profilePictureUrl
-                        ? `http://localhost:8080${user.profilePictureUrl}`
+                        ? `${baseUrl}${user.profilePictureUrl}`
                         : "/default-avatar.png"
                     }
                     alt="Profile"

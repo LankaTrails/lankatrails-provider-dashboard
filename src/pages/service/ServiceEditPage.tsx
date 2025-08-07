@@ -4,38 +4,25 @@ import ServiceForm from "@/components/NewServiceForm";
 import BackButton from "@/components/BackButton";
 import type {
   ServiceFormData,
+  ImageUploadItem,
+  ImageFiles,
   ImageData,
-  TabData,
-  PolicyData,
 } from "@/types/serviceTypes";
-import { findActivityById, findGuideById } from "@/services/activityService";
-import { findAccommodationById } from "@/services/accomodation";
-import { findTransportationById } from "@/services/transportationService";
-import { findFoodBeverageById } from "@/services/FoodBeverage";
+import { findServiceById, updateService } from "@/services/services";
 
 const ServiceEditPage: React.FC = () => {
   const { id, serviceType } = useParams();
   const [initialData, setInitialData] = useState<ServiceFormData | undefined>();
   const [loading, setLoading] = useState(true);
-  const [initialImages, setInitialImages] = useState<ImageData[]>([]);
+  const [initialImages, setInitialImages] = useState<ImageUploadItem[]>([]);
+  const [existingImages, setExistingImages] = useState<ImageData[]>([]);
 
   useEffect(() => {
-    const fetchActivityService = async () => {
-      if (!id) return;
+    const fetchServiceData = async () => {
+      if (!id || !serviceType) return;
 
       try {
-        let data;
-        if (serviceType === "activity") {
-          data = await findActivityById(id);
-        } else if (serviceType === "tour-guides") {
-          data = await findGuideById(id);
-        } else if (serviceType === "accommodation") {
-          data = await findAccommodationById(id);
-        } else if (serviceType === "transportation") {
-          data = await findTransportationById(id);
-        } else if (serviceType === "food-beverage") {
-          data = await findFoodBeverageById(id);
-        }
+        const data = await findServiceById(serviceType, Number(id));
         // Map data to match the form structure
         if (data) {
           const mappedData = {
@@ -77,18 +64,27 @@ const ServiceEditPage: React.FC = () => {
           };
 
           if (data.images) {
+            // Set existing images for deletion tracking
+            setExistingImages(
+              data.images.map((img: any) => ({
+                id: img.id,
+                imageUrl: img.imageUrl,
+              }))
+            );
+
+            // Set initial images for preview (these will be shown as existing)
             setInitialImages(
               data.images.map((img: any, index: number) => ({
                 id: `img-${index}`, // Generate unique string ID
-                url: img.imageUrl, // Rename property
+                url: img.imageUrl, // Map imageUrl to url
                 name: `Image ${index + 1}`, // Optional but helpful
+                // file property is optional for existing images
               }))
             );
           }
 
-          data = mappedData;
+          setInitialData(mappedData);
         }
-        setInitialData(data);
       } catch (error) {
         console.error("Error fetching service data:", error);
       } finally {
@@ -96,16 +92,25 @@ const ServiceEditPage: React.FC = () => {
       }
     };
 
-    fetchActivityService();
+    fetchServiceData();
   }, [id, serviceType]);
 
   const handleBack = () => {
     console.log("Navigate back");
   };
 
-  const handleEditSubmit = (data: any) => {
-    console.log("Edit Service Data:", data);
-    // API call to update service
+  const handleEditSubmit = async (data: any, images: ImageFiles) => {
+    if (!id || !serviceType) return;
+
+    try {
+      console.log("Updating service with data:", data);
+      const result = await updateService(serviceType, Number(id), data, images);
+      console.log("Update result:", result);
+      // TODO: Add success notification and navigation
+    } catch (error) {
+      console.error("Error updating service:", error);
+      // TODO: Add error notification
+    }
   };
 
   if (loading) return <div>Loading...</div>;
@@ -123,6 +128,7 @@ const ServiceEditPage: React.FC = () => {
         serviceType={serviceType}
         initialData={initialData}
         initialImages={initialImages}
+        existingImages={existingImages}
         onSubmit={handleEditSubmit}
       />
     </div>

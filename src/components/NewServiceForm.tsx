@@ -19,6 +19,8 @@ import type {
   TabData,
   PolicyData,
   ImageFiles,
+  ImageFile,
+  ImageData,
   OptionType,
   ServiceFormProps,
   AccommodationFormData,
@@ -35,10 +37,12 @@ import type {
   FoodBeverageType,
 } from "@/types/serviceTypes";
 import { fetchAllPolicies } from "@/services/activityService";
+import { fetchAllGuidingAreas } from "@/services/guideService";
 
 const NewServiceForm: React.FC<ServiceFormProps> = ({
   serviceType,
   initialImages,
+  existingImages, // Add existingImages prop
   initialData,
   onSubmit,
 }) => {
@@ -47,6 +51,41 @@ const NewServiceForm: React.FC<ServiceFormProps> = ({
   const [images, setImages] = useState<ImageFiles>({
     serviceImages: initialImages || [],
   });
+
+  // Track existing images and which ones to delete
+  const [displayImages, setDisplayImages] = useState<ImageFile[]>([]);
+  const [deleteImages, setDeleteImages] = useState<ImageData[]>([]);
+
+  // Initialize display images from existing and new images
+  useEffect(() => {
+    const existingImagesAsFiles: ImageFile[] =
+      existingImages?.map((img, index) => ({
+        id: `existing-${img.id}`, // Prefix to identify existing images
+        url: img.imageUrl,
+        name: `Existing Image ${index + 1}`,
+        // No file property for existing images
+      })) || [];
+
+    setDisplayImages([...existingImagesAsFiles, ...images.serviceImages]);
+  }, [existingImages, images.serviceImages]);
+
+  const handleImageDelete = (imageId: string, imageUrl?: string) => {
+    if (imageId.startsWith("existing-")) {
+      // This is an existing image, add it to delete list
+      const originalId = parseInt(imageId.replace("existing-", ""));
+      if (imageUrl) {
+        setDeleteImages((prev) => [...prev, { id: originalId, imageUrl }]);
+      }
+      // Remove from display
+      setDisplayImages((prev) => prev.filter((img) => img.id !== imageId));
+    } else {
+      // This is a new image, remove it from serviceImages
+      setImages((prev) => ({
+        ...prev,
+        serviceImages: prev.serviceImages.filter((img) => img.id !== imageId),
+      }));
+    }
+  };
 
   const [selectedImageIndex, setSelectedImageIndex] = useState<number>(0);
 
@@ -64,6 +103,10 @@ const NewServiceForm: React.FC<ServiceFormProps> = ({
 
   const [policyOptions, setPolicyOptions] = useState<OptionType[]>([]);
   const [preferredPolicies, setPreferredPolicies] = useState<string[]>([]);
+  const [guidingAreas, setGuidingAreas] = useState<LocationData[]>([]);
+  const [selectedGuidingAreas, setSelectedGuidingAreas] = useState<
+    LocationData[]
+  >([]);
 
   // Initialize form data based on service type
   const initializeFormData = (): ServiceFormData => {
@@ -149,9 +192,6 @@ const NewServiceForm: React.FC<ServiceFormProps> = ({
   const [preferredLanguages, setPreferredLanguages] = useState<string[]>(
     (formData as TourGuideFormData).languages || []
   );
-  const [preferredDistricts, setPreferredDistricts] = useState<string[]>(
-    (formData as TourGuideFormData).serviceAreas || []
-  );
 
   const [tabsSection, setTabsSection] = useState<TabData[]>(
     (initialData?.tabsSection || [{ heading: "", content: "" }]).map(
@@ -209,6 +249,22 @@ const NewServiceForm: React.FC<ServiceFormProps> = ({
   }, []);
 
   useEffect(() => {
+    // Fetch guiding areas for tour guides
+    if (serviceType === "tour-guides") {
+      const loadGuidingAreas = async () => {
+        try {
+          const areas = await fetchAllGuidingAreas();
+          console.log("Guiding areas:", areas);
+          setGuidingAreas(areas);
+        } catch (error) {
+          console.error("Failed to load guiding areas", error);
+        }
+      };
+      loadGuidingAreas();
+    }
+  }, [serviceType]);
+
+  useEffect(() => {
     const selectedPolicyObjects = policyOptions
       .filter((option) => preferredPolicies.includes(option.value))
       .map((option) => ({
@@ -229,6 +285,20 @@ const NewServiceForm: React.FC<ServiceFormProps> = ({
       policySection: backendPolicies,
     }));
   }, [preferredPolicies, policyOptions]);
+
+  // Initialize selectedGuidingAreas for tour guides when editing
+  useEffect(() => {
+    if (serviceType === "tour-guides" && initialData && initialData.locations) {
+      console.log(
+        "Initializing selectedGuidingAreas with:",
+        initialData.locations
+      );
+      // For tour guides, all locations in the array are service areas
+      // They all have locationIds and represent the areas where the guide operates
+      setSelectedGuidingAreas(initialData.locations);
+      console.log("Set selectedGuidingAreas to:", initialData.locations);
+    }
+  }, [serviceType, initialData]);
 
   const handleInputChange = (
     field: keyof (ServiceFormData &
@@ -355,12 +425,18 @@ const NewServiceForm: React.FC<ServiceFormProps> = ({
   const handleSubmit = () => {
     let updatedData: ServiceFormData = { ...formData };
 
+    // Add delete images to form data
+    if (deleteImages.length > 0) {
+      updatedData.deleteImages = deleteImages;
+    }
+
     // Update specific fields based on service type
     if (serviceType === "tour-guides") {
       updatedData = {
         ...updatedData,
-        serviceAreas: preferredDistricts,
+        locations: selectedGuidingAreas, // All selected areas are the locations for tour guides
         languages: preferredLanguages,
+        tourGuideType: (formData as TourGuideFormData).tourGuideType,
       } as TourGuideFormData;
     } else if (serviceType === "transportation") {
       updatedData = {
@@ -378,7 +454,34 @@ const NewServiceForm: React.FC<ServiceFormProps> = ({
 
     console.log("Final form data locations:", updatedData.locations);
     console.log("Submitting updated data:", updatedData);
+    console.log("Images to delete:", deleteImages);
     onSubmit(updatedData, images);
+  };
+
+  // Handle guiding area selection for tour guides
+  const handleGuidingAreaSelection = (selectedValues: string[]) => {
+    console.log("Selected district values:", selectedValues);
+    console.log("Available guiding areas:", guidingAreas);
+
+    const selectedAreas = guidingAreas.filter((area) =>
+      selectedValues.includes(area.district)
+    );
+
+    console.log("Filtered selected areas:", selectedAreas);
+    setSelectedGuidingAreas(selectedAreas);
+  };
+
+  // Get guiding area options for MultiSelect
+  const getGuidingAreaOptions = (): OptionType[] => {
+    return guidingAreas.map((area) => ({
+      label: area.district,
+      value: area.district,
+    }));
+  };
+
+  // Get selected guiding area values
+  const getSelectedGuidingAreaValues = (): string[] => {
+    return selectedGuidingAreas.map((area) => area.district);
   };
 
   const languageOptions = [
@@ -389,35 +492,6 @@ const NewServiceForm: React.FC<ServiceFormProps> = ({
     { value: "de", label: "German" },
     { value: "es", label: "Spanish" },
     { value: "zh", label: "Chinese" },
-  ];
-
-  const districtOptions = [
-    { value: "islandWide", label: "Island Wide" },
-    { value: "ampara", label: "Ampara" },
-    { value: "anuradhapura", label: "Anuradhapura" },
-    { value: "badulla", label: "Badulla" },
-    { value: "batticaloa", label: "Batticaloa" },
-    { value: "colombo", label: "Colombo" },
-    { value: "galle", label: "Galle" },
-    { value: "gampaha", label: "Gampaha" },
-    { value: "hambantota", label: "Hambantota" },
-    { value: "jaffna", label: "Jaffna" },
-    { value: "kalutara", label: "Kalutara" },
-    { value: "kandy", label: "Kandy" },
-    { value: "kegalle", label: "Kegalle" },
-    { value: "kilinochchi", label: "Kilinochchi" },
-    { value: "kurunegala", label: "Kurunegala" },
-    { value: "mannar", label: "Mannar" },
-    { value: "matale", label: "Matale" },
-    { value: "matara", label: "Matara" },
-    { value: "monaragala", label: "Monaragala" },
-    { value: "mullaitivu", label: "Mullaitivu" },
-    { value: "nuwara_eliya", label: "Nuwara Eliya" },
-    { value: "polonnaruwa", label: "Polonnaruwa" },
-    { value: "puttalam", label: "Puttalam" },
-    { value: "ratnapura", label: "Ratnapura" },
-    { value: "trincomalee", label: "Trincomalee" },
-    { value: "vavuniya", label: "Vavuniya" },
   ];
 
   return (
@@ -434,12 +508,17 @@ const NewServiceForm: React.FC<ServiceFormProps> = ({
                 Service Images
               </h3>
               <ImageUploadComponent
-                images={images.serviceImages}
-                onImagesChange={(images) =>
-                  handleImagesChange({ serviceImages: images })
-                }
+                images={displayImages}
+                onImagesChange={(newImages) => {
+                  // Only handle new images, existing images are managed separately
+                  const newServiceImages = newImages.filter(
+                    (img) => !img.id.startsWith("existing-")
+                  );
+                  handleImagesChange({ serviceImages: newServiceImages });
+                }}
                 selectedImageIndex={selectedImageIndex}
                 onSelectedImageChange={setSelectedImageIndex}
+                onImageDelete={handleImageDelete} // Custom delete handler
               />
             </div>
 
@@ -1105,9 +1184,9 @@ const NewServiceForm: React.FC<ServiceFormProps> = ({
                     />
                     <MultiSelectField
                       label="Service Areas"
-                      options={districtOptions}
-                      value={preferredDistricts}
-                      onChange={setPreferredDistricts}
+                      options={getGuidingAreaOptions()}
+                      value={getSelectedGuidingAreaValues()}
+                      onChange={handleGuidingAreaSelection}
                       required
                       icon={<Globe size={16} />}
                     />
@@ -1156,7 +1235,7 @@ const NewServiceForm: React.FC<ServiceFormProps> = ({
             onClick={handleSubmit}
             className="px-8 py-2 bg-gradient-to-r from-primary-500 to-primary-600 text-white text-lg font-semibold rounded-xl hover:from-primary-600 hover:to-primary-700 focus:outline-none focus:ring-4 focus:ring-primary-500 focus:ring-offset-2 transform hover:scale-105 transition-all duration-200 shadow-lg"
           >
-            Add Service
+            {initialData ? "Update Service" : "Add Service"}
           </button>
         </div>
       </div>

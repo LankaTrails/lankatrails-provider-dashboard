@@ -7,6 +7,7 @@ import { useAuth } from "@/hooks/useAuth";
 const Header = () => {
   const { user, logout } = useAuth();
   const location = useLocation();
+  const baseUrl = import.meta.env.VITE_BASE_URL;
   const showUser =
     !!user && !["/login", "/register"].includes(location.pathname);
 
@@ -41,7 +42,7 @@ const Header = () => {
                   <img
                     src={
                       user && user.profilePictureUrl
-                        ? `http://localhost:8080${user.profilePictureUrl}`
+                        ? `${baseUrl}${user.profilePictureUrl}`
                         : "/default-avatar.png"
                     }
                     alt="avatar"

@@ -58,7 +58,7 @@ export interface ImageData {
   imageUrl: string;
 }
 
-export interface ImageUploadItem  extends ImageFile{
+export interface ImageUploadItem extends ImageFile {
   // id: number;
   // file: File;
   // url: string;
@@ -84,6 +84,7 @@ export interface ServiceFormData {
   priceType: PriceType;
   tabsSection: TabSection[];
   policySection: PolicySection[];
+  deleteImages?: ImageData[]; // Images to be deleted (for edit mode)
 }
 // Add this to your existing types
 export interface ImageFile {
@@ -126,7 +127,6 @@ export interface FoodBeverageFormData extends ServiceFormData {
 }
 
 export interface TourGuideFormData extends ServiceFormData {
-  serviceAreas: string[];
   languages: string[];
   tourGuideType: TourGuideType;
 }
@@ -145,5 +145,6 @@ export interface ServiceFormProps {
   serviceType?: string;
   initialData?: ServiceFormData;
   initialImages?: ImageUploadItem[]; // fixed typo and type
+  existingImages?: ImageData[]; // For edit mode - existing images from API
   onSubmit: (data: ServiceFormData, images: ImageFiles) => void;
 }
