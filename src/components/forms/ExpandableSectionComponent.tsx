@@ -4,6 +4,7 @@ import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
 import InputField from "@/components/forms/InputField";
 import type { TabData, PolicyData } from "@/types/serviceTypes";
+import { deletePolicy } from "@/services/policyService";
 
 interface ExpandableSectionProps {
   title: string;
@@ -51,9 +52,12 @@ const ExpandableSectionComponent: React.FC<ExpandableSectionProps> = ({
   };
 
   const removeItem = (id: number) => {
+    console.log("Removing item with id:", id);
     if (items.length > 1) {
       onItemsChange(items.filter((item) => item.id !== id));
     }
+    //delete
+    deletePolicy(id);
   };
 
   const handleSaveClick = async () => {
@@ -99,7 +103,7 @@ const ExpandableSectionComponent: React.FC<ExpandableSectionProps> = ({
                     type="button"
                     onClick={(e) => {
                       e.stopPropagation();
-                      removeItem(item.id);
+                      removeItem(item.id); // Local removal
                     }}
                     className="text-red-500 hover:text-red-700"
                   >

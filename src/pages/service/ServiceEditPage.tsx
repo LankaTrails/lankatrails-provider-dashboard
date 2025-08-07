@@ -7,6 +7,8 @@ import type {
   ImageUploadItem,
   ImageFiles,
   ImageData,
+  TabData, 
+  PolicyData
 } from "@/types/serviceTypes";
 import { findServiceById, updateService } from "@/services/services";
 

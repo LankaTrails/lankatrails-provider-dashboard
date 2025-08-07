@@ -4,6 +4,43 @@ import { addNewTransport, findTransportationById, fetchAllTransports } from "@/s
 import { addNewAccommodation, findAccommodationById, fetchAllAccommodations } from "@/services/accomodation";
 import { addNewFoodBeverage, findFoodBeverageById, fetchAllFoodAndBeverages } from "./FoodBeverage";
 import { addNewActivity, findActivityById, fetchAllActivities, deleteActivityService } from "@/services/activityService";
+import api from "@/api/axiosInstance";
+
+//remove policy
+
+
+//Fetch all the provider policies
+export const fetchAllPolicies = async (): Promise<any[]> => {
+  const response = await api.get('/provider/policies');
+  return response.data.data; // Assuming the response contains an array of policies
+};
+
+//Fetch all policies relating to the provider and for a particular service type
+export const fetchPoliciesByServiceType = async (serviceType: string): Promise<any[]> => {
+  let typeId: number;
+  switch (serviceType) {
+    case 'tour-guides':
+        typeId=5;
+        break;
+    case 'activity':
+        typeId=4;
+        break;
+    case 'transportation':
+        typeId=2;
+        break;
+    case 'accommodation':
+        typeId=1;
+        break;
+    case 'food-beverage':
+        typeId=3;
+        break;
+    default:
+      throw new Error(`Unsupported service type: ${serviceType}`);
+  }
+  const response = await api.get(`/provider/policies/${typeId}`);
+  return response.data.data; // Assuming the response contains an array of policies for the specific service type
+};
+
 
 // Generic function to add any service type
 export const addNewService = async (
@@ -107,3 +144,4 @@ export const deleteService = async (
     return Promise.resolve({ success: false, message: `Delete not yet implemented for ${serviceType}` });
   }
 };
+

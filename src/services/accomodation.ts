@@ -1,7 +1,38 @@
 import api from "@/api/axiosInstance";
-import type { ImageFiles, ServiceFormData } from "@/types/serviceTypes";
+import type { ImageFiles, PolicySection, ServiceFormData } from "@/types/serviceTypes";
 
-//fetch all transportation services
+
+//Add new accommodation policy
+export async function createAccommodationPolicy(policyData: PolicySection): Promise<PolicySection> {
+  try {
+    const response = await api.post("/provider/policy/accommodation", policyData);
+    console.log("Accommodation policy created successfully:", response.data);
+    return response.data;
+  } catch (error :any) {
+    if (error.response && error.response.data) {
+      const { code, message, details, userMessage } = error.response.data;
+      throw {
+        code,
+        message,
+        details,
+        userMessage,
+      };
+    }
+
+    throw {
+      message: 'Failed to add new policy',
+      code: 'UNKNOWN_ERROR',
+    };
+  }
+}
+//fetch all accommodation service policies by serviceType
+export const fetchAllAccommodationPolicies = async (): Promise<any> => {
+  const response = await api.get(`/provider/policy/accommodation`);
+  console.log("fetch all accommodation policies", response.data.data);
+  return response.data.data; // Assuming the response contains an array of activities
+}
+
+//fetch all accommodations services
 export const fetchAllAccommodations = async (
   pageNumber: number = 0,
   pageSize: number = 10

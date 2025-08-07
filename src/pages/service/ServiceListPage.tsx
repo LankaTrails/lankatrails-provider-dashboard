@@ -9,6 +9,7 @@ import { Trash2 } from "lucide-react";
 import ConfirmDeleteModal from "@/components/forms/ConfirmDeleteModal";
 import { fetchAllServices, deleteService } from "@/services/services";
 
+
 // Helper to prettify the serviceType
 const formatServiceTitle = (type?: string) => {
   if (!type) return "Service";

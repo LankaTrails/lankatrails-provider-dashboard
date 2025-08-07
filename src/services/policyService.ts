@@ -32,3 +32,24 @@ export async function createPolicy(policyData: PolicySection): Promise<PolicySec
     };
   }
 }
+
+export async function deletePolicy(policyId: number): Promise<void> {
+  try {
+    await api.delete(`/provider/delete/policy/${policyId}`);
+  } catch (error: any) {
+    if (error.response && error.response.data) {
+      const { code, message, details, userMessage } = error.response.data;
+      throw {
+        code,
+        message,
+        details,
+        userMessage,
+      };
+    }
+
+    throw {
+      message: 'Failed to delete policy',
+      code: 'UNKNOWN_ERROR',
+    };
+  }
+}

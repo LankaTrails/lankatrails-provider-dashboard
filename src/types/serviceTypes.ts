@@ -48,6 +48,7 @@ export interface TabSection {
 }
 
 export interface PolicySection {
+  // id:number;
   heading: string;
   policy: string;
   // id:string;
@@ -148,3 +149,8 @@ export interface ServiceFormProps {
   existingImages?: ImageData[]; // For edit mode - existing images from API
   onSubmit: (data: ServiceFormData, images: ImageFiles) => void;
 }
+// export interface AddPolicyProps {
+//   serviceType: string;
+//   onSuccess: () => void;
+//   resetTrigger: number;
+// }
