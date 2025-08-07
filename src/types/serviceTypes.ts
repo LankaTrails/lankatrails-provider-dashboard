@@ -86,6 +86,12 @@ export interface ServiceFormData {
   tabsSection: TabSection[];
   policySection: PolicySection[];
   deleteImages?: ImageData[]; // Images to be deleted (for edit mode)
+  availabilitySlots: {
+    dayOfWeek: string; 
+      openTime: string;
+      closeTime: string;  
+  }[];
+
 }
 // Add this to your existing types
 export interface ImageFile {
@@ -114,6 +120,7 @@ export interface ActivityFormData extends ServiceFormData {
   activityType: ActivityType;
   activityDetails: string;
   safetyInstructions: string;
+  duration: string; // e.g., "2 hours", "1 day"
 }
 
 export interface FoodBeverageFormData extends ServiceFormData {

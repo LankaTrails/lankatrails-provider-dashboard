@@ -131,6 +131,7 @@ const ServiceEditPage: React.FC = () => {
         initialData={initialData}
         initialImages={initialImages}
         existingImages={existingImages}
+
         onSubmit={handleEditSubmit}
       />
     </div>

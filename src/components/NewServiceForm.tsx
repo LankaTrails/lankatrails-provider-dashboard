@@ -133,6 +133,15 @@ const NewServiceForm: React.FC<ServiceFormProps> = ({
       priceType: "FIXED" as PriceType,
       tabsSection: [{ heading: "", content: "" }],
       policySection: [{ heading: "", policy: "" }],
+      availabilitySlots: [
+  { dayOfWeek: "Monday", openTime: "", closeTime: "" },
+  { dayOfWeek: "Tuesday", openTime: "", closeTime: "" },
+  { dayOfWeek: "Wednesday", openTime: "", closeTime: "" },
+  { dayOfWeek: "Thursday", openTime: "", closeTime: "" },
+  { dayOfWeek: "Friday", openTime: "", closeTime: "" },
+  { dayOfWeek: "Saturday", openTime: "", closeTime: "" },
+  { dayOfWeek: "Sunday", openTime: "", closeTime: "" },
+],
     };
 
     if (serviceType === "activity") {
@@ -141,6 +150,7 @@ const NewServiceForm: React.FC<ServiceFormProps> = ({
         activityType: "ADVENTURE" as ActivityType,
         activityDetails: "",
         safetyInstructions: "",
+        duration: "", // e.g., "2 hours", "1 day"
       } as ActivityFormData;
     } else if (serviceType === "transportation") {
       return {
@@ -427,10 +437,13 @@ const NewServiceForm: React.FC<ServiceFormProps> = ({
   const handleSubmit = () => {
     let updatedData: ServiceFormData = { ...formData };
 
+
     // Add delete images to form data
     if (deleteImages.length > 0) {
       updatedData.deleteImages = deleteImages;
     }
+
+    console.log("Form Data Before Updation:", updatedData);
 
     // Update specific fields based on service type
     if (serviceType === "tour-guides") {
@@ -553,11 +566,11 @@ const NewServiceForm: React.FC<ServiceFormProps> = ({
               </div>
 
               <div className="bg-gradient-to-r from-primary-50 to-primary-50 p-4 rounded-xl border border-primary-100">
-                {(serviceType === "activity"||
-                 serviceType === "transportation" ||
-                 serviceType === "accommodation" ||
-                 serviceType === "food-beverage"||
-                 serviceType === "tour-guides")&&(
+                {(serviceType === "activity" ||
+                  serviceType === "transportation" ||
+                  serviceType === "accommodation" ||
+                  serviceType === "food-beverage" ||
+                  serviceType === "tour-guides") && (
                   <div className="mb-6">
                     <MultiSelectField
                       label="Available Policies"
@@ -692,6 +705,13 @@ const NewServiceForm: React.FC<ServiceFormProps> = ({
                         required
                       />
                     </div>
+                    <InputField
+                      label="Duration (e.g., 2 hours, 1.5 hours)"
+                      type="text"
+                      value={(formData as ActivityFormData).duration || ""}
+                      onChange={(value) => handleInputChange("duration", value)}
+                      required
+                    />
                   </div>
                 </>
               )}
@@ -1231,9 +1251,45 @@ const NewServiceForm: React.FC<ServiceFormProps> = ({
                   </div>
                 </>
               )}
+              <h2 className="mt-5 mb-3text-lg font-medium text-gray-700">
+                Weekly Opening & Closing Hours
+              </h2>
+              <div className="space-y-3">
+  {(formData as ActivityFormData).availabilitySlots?.map((slot, index) => (
+    <div key={slot.dayOfWeek} className="grid grid-cols-3 gap-4 items-center">
+      <label className="font-medium text-gray-600">{slot.dayOfWeek}</label>
+
+      <InputField
+        type="time"
+        label=""
+        value={slot.openTime}
+        onChange={(value) => {
+          const updated = [...(formData as ActivityFormData).availabilitySlots];
+          updated[index].openTime = value;
+          handleInputChange("availabilitySlots", updated);
+        }}
+        // required
+      />
+
+      <InputField
+        type="time"
+        label=""
+        value={slot.closeTime}
+        onChange={(value) => {
+          const updated = [...(formData as ActivityFormData).availabilitySlots];
+          updated[index].closeTime = value;
+          handleInputChange("availabilitySlots", updated);
+        }}
+        // required
+      />
+    </div>
+  ))}
+</div>
+
             </div>
           </div>
         </div>
+
         {/* submit button */}
         <div className="flex justify-end mt-6">
           <button
