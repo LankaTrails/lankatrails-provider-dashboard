@@ -36,7 +36,6 @@ import type {
   TransmissionType,
   FoodBeverageType,
 } from "@/types/serviceTypes";
-import { fetchAllPolicies } from "@/services/activityService";
 import { fetchAllGuidingAreas } from "@/services/guideService";
 import { fetchPoliciesByServiceType } from "@/services/services";
 
