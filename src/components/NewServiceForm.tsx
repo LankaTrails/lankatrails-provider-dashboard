@@ -19,7 +19,6 @@ import type {
   TabData,
   PolicyData,
   ImageFiles,
-  ImageFile,
   ImageData,
   OptionType,
   ServiceFormProps,
@@ -49,35 +48,38 @@ const NewServiceForm: React.FC<ServiceFormProps> = ({
   const { user } = useAuth(); // Move useAuth to component level
 
   const [images, setImages] = useState<ImageFiles>({
-    serviceImages: initialImages || [],
+    // In edit mode, existing images are handled separately, only store new images here
+    serviceImages:
+      existingImages && existingImages.length > 0 ? [] : initialImages || [],
   });
 
-  // Track existing images and which ones to delete
-  const [displayImages, setDisplayImages] = useState<ImageFile[]>([]);
+  // Track which existing images to delete
   const [deleteImages, setDeleteImages] = useState<ImageData[]>([]);
 
-  // Initialize display images from existing and new images
-  useEffect(() => {
-    const existingImagesAsFiles: ImageFile[] =
-      existingImages?.map((img, index) => ({
-        id: `existing-${img.id}`, // Prefix to identify existing images
+  // Combine existing and new images for display in ImageUploadComponent
+  const getAllImagesForDisplay = () => {
+    const existingImagesAsFiles = (existingImages || [])
+      .filter((img) => !deleteImages.some((delImg) => delImg.id === img.id))
+      .map((img) => ({
+        id: `existing-${img.id}`,
         url: img.imageUrl,
-        name: `Existing Image ${index + 1}`,
+        name: `Existing Image`,
         // No file property for existing images
-      })) || [];
+      }));
 
-    setDisplayImages([...existingImagesAsFiles, ...images.serviceImages]);
-  }, [existingImages, images.serviceImages]);
+    return [...existingImagesAsFiles, ...images.serviceImages];
+  };
 
-  const handleImageDelete = (imageId: string, imageUrl?: string) => {
+  const handleImageDelete = (imageId: string) => {
     if (imageId.startsWith("existing-")) {
       // This is an existing image, add it to delete list
       const originalId = parseInt(imageId.replace("existing-", ""));
-      if (imageUrl) {
-        setDeleteImages((prev) => [...prev, { id: originalId, imageUrl }]);
+      const existingImage = existingImages?.find(
+        (img) => img.id === originalId
+      );
+      if (existingImage) {
+        setDeleteImages((prev) => [...prev, existingImage]);
       }
-      // Remove from display
-      setDisplayImages((prev) => prev.filter((img) => img.id !== imageId));
     } else {
       // This is a new image, remove it from serviceImages
       setImages((prev) => ({
@@ -418,17 +420,8 @@ const NewServiceForm: React.FC<ServiceFormProps> = ({
     }));
   };
 
-  const handleImagesChange = (imgs: ImageFiles) => {
-    setImages(imgs);
-  };
-
   const handleSubmit = () => {
     let updatedData: ServiceFormData = { ...formData };
-
-    // Add delete images to form data
-    if (deleteImages.length > 0) {
-      updatedData.deleteImages = deleteImages;
-    }
 
     // Update specific fields based on service type
     if (serviceType === "tour-guides") {
@@ -455,7 +448,14 @@ const NewServiceForm: React.FC<ServiceFormProps> = ({
     console.log("Final form data locations:", updatedData.locations);
     console.log("Submitting updated data:", updatedData);
     console.log("Images to delete:", deleteImages);
-    onSubmit(updatedData, images);
+
+    // Add deleteImages to the images object
+    const imagesWithDeletes = {
+      ...images,
+      deleteImages: deleteImages,
+    };
+
+    onSubmit(updatedData, imagesWithDeletes);
   };
 
   // Handle guiding area selection for tour guides
@@ -504,22 +504,44 @@ const NewServiceForm: React.FC<ServiceFormProps> = ({
             {/* Image Upload - Fixed Height */}
             <div className="bg-gradient-to-r from-primary-50 to-primary-50 p-4 rounded-xl border border-primary-100">
               <h3 className="text-xl font-semibold text-gray-800 mb-6 flex items-center">
-                {/* <span className="w-2 h-2 bg-primary-500 rounded-full mr-3"></span> */}
                 Service Images
               </h3>
-              <ImageUploadComponent
-                images={displayImages}
-                onImagesChange={(newImages) => {
-                  // Only handle new images, existing images are managed separately
-                  const newServiceImages = newImages.filter(
-                    (img) => !img.id.startsWith("existing-")
-                  );
-                  handleImagesChange({ serviceImages: newServiceImages });
-                }}
-                selectedImageIndex={selectedImageIndex}
-                onSelectedImageChange={setSelectedImageIndex}
-                onImageDelete={handleImageDelete} // Custom delete handler
-              />
+
+              {/* New Images Upload Component */}
+              <div>
+                <h4 className="text-md font-medium text-gray-700 mb-3">
+                  {existingImages && existingImages.length > 0
+                    ? "Add New Images"
+                    : "Upload Images"}
+                </h4>
+                <ImageUploadComponent
+                  images={getAllImagesForDisplay()}
+                  onImagesChange={(allImages) => {
+                    // Extract only the truly new images that weren't in the original list
+                    const currentDisplayImages = getAllImagesForDisplay();
+                    const genuinelyNewImages = allImages.filter(
+                      (newImg) =>
+                        !currentDisplayImages.some(
+                          (existing) => existing.id === newImg.id
+                        )
+                    );
+
+                    // Only add genuinely new images to serviceImages
+                    if (genuinelyNewImages.length > 0) {
+                      setImages((prev) => ({
+                        ...prev,
+                        serviceImages: [
+                          ...prev.serviceImages,
+                          ...genuinelyNewImages,
+                        ],
+                      }));
+                    }
+                  }}
+                  selectedImageIndex={selectedImageIndex}
+                  onSelectedImageChange={setSelectedImageIndex}
+                  onImageDelete={handleImageDelete} // Use custom delete handler
+                />
+              </div>
             </div>
 
             {/* Contact Information - Fixed Height */}

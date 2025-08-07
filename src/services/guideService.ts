@@ -1,5 +1,5 @@
 import api from "@/api/axiosInstance";
-import type { ImageFiles, ServiceFormData, LocationData } from "@/types/serviceTypes";
+import type { ImageFiles, ServiceFormData, LocationData, PolicySection } from "@/types/serviceTypes";
 
 
 // Add new tour guide service
