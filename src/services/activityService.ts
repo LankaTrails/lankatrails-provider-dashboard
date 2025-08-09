@@ -35,7 +35,7 @@ export const fetchAllActivityPolicies = async (): Promise<any> => {
 
 //delete an activity service
 export const deleteActivityService = async (id: number): Promise<any> => {
-  const response = await api.put(`/activity-service/delete/${id}`);
+  const response = await api.put(`/provider/activity-service/remove/${id}`);
   console.log("Deleting activity service with ID:", response);
   return response.data.data;
 }

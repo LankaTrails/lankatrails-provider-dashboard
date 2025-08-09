@@ -1,8 +1,8 @@
 import type { ImageFiles, TourGuideFormData, TransportFormData, AccommodationFormData, ActivityFormData, FoodBeverageFormData } from "@/types/serviceTypes";
-import { addNewTourGuide, updateTourGuide, findTourGuideById, fetchAllTourGuides } from "@/services/guideService";
-import { addNewTransport, findTransportationById, fetchAllTransports, updateTransport } from "@/services/transportationService";
-import { addNewAccommodation, findAccommodationById, fetchAllAccommodations, updateAccommodation } from "@/services/accomodation";
-import { addNewFoodBeverage, findFoodBeverageById, fetchAllFoodAndBeverages, updateFoodBeverage } from "./FoodBeverage";
+import { addNewTourGuide, updateTourGuide, findTourGuideById, fetchAllTourGuides, deleteTourGuide } from "@/services/guideService";
+import { addNewTransport, findTransportationById, fetchAllTransports, updateTransport, deleteTransportation } from "@/services/transportationService";
+import { addNewAccommodation, findAccommodationById, fetchAllAccommodations, updateAccommodation, deleteAccommodation } from "@/services/accomodation";
+import { addNewFoodBeverage, findFoodBeverageById, fetchAllFoodAndBeverages, updateFoodBeverage, deleteFoodBeverage } from "./FoodBeverage";
 import { addNewActivity, findActivityById, fetchAllActivities, deleteActivityService, updateActivity } from "@/services/activityService";
 import api from "@/api/axiosInstance";
 
@@ -133,11 +133,16 @@ export const deleteService = async (
 ): Promise<any> => {
   if (serviceType === 'activity') {
     return await deleteActivityService(id);
+  } else if (serviceType === 'transportation') {
+    return await deleteTransportation(id);
+  } else if (serviceType === 'accommodation') {
+    return await deleteAccommodation(id);
+  } else if (serviceType === 'food-beverage') {
+    return await deleteFoodBeverage(id);
+  } else if (serviceType === 'tour-guides') {
+    return await deleteTourGuide(id);
   } else {
-    // For now, only activity deletion is implemented
-    // TODO: Implement delete functions for other service types
-    console.warn(`Delete function not yet implemented for service type: ${serviceType}`);
-    return Promise.resolve({ success: false, message: `Delete not yet implemented for ${serviceType}` });
+    throw new Error(`Unsupported service type: ${serviceType}`);
   }
 };
 

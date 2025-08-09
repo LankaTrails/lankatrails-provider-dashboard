@@ -159,3 +159,10 @@ export const updateTransport = async (
     };
   }
 };
+
+// delete transportation service
+export const deleteTransportation = async (id: number): Promise<any> => {
+  const response = await api.put(`/provider/transport/remove/${id}`);
+  console.log("Deleting transportation service with ID:", response);
+  return response.data.data;
+}

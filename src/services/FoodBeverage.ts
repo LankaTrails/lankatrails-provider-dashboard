@@ -160,3 +160,10 @@ export const updateFoodBeverage = async (
     };
   }
 };
+
+// delete food and beverage service
+export const deleteFoodBeverage = async (id: number): Promise<any> => {
+  const response = await api.put(`/provider/food-beverage/remove/${id}`);
+  console.log("Deleting food and beverage service with ID:", response);
+  return response.data.data;
+};

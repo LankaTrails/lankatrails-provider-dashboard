@@ -162,3 +162,10 @@ export const findAccommodationById = async (id : any): Promise<any> =>{
     throw new Error('Failed to fetch accommodation by ID');
   }
 }
+
+// delete accommodation service
+export const deleteAccommodation = async (id: number): Promise<any> => {
+  const response = await api.put(`/provider/accommodation/remove/${id}`);
+  console.log("Deleting accommodation service with ID:", response);
+  return response.data.data;
+}
