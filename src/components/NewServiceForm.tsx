@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { Globe } from "lucide-react";
 import InputField from "@/components/forms/InputField";
 import SelectField from "@/components/forms/SelectField";
@@ -35,10 +35,8 @@ import type {
   TransmissionType,
   FoodBeverageType,
 } from "@/types/serviceTypes";
-import { fetchAllPolicies } from "@/services/activityService";
 import { fetchAllGuidingAreas } from "@/services/guideService";
 import { fetchPoliciesByServiceType } from "@/services/services";
-
 
 const NewServiceForm: React.FC<ServiceFormProps> = ({
   serviceType,
@@ -56,12 +54,19 @@ const NewServiceForm: React.FC<ServiceFormProps> = ({
   });
 
   // Track which existing images to delete
-  const [deleteImages, setDeleteImages] = useState<ImageData[]>([]);
+  const [deletedImages, setDeletedImages] = useState<ImageData[]>([]);
+
+  // Track which existing tabs and policies to delete
+  const [deletedTabs, setDeletedTabs] = useState<TabSection[]>([]);
+  const [deletedPolicies, setDeletedPolicies] = useState<PolicySection[]>([]);
 
   // Combine existing and new images for display in ImageUploadComponent
-  const getAllImagesForDisplay = () => {
+  const displayImages = useMemo(() => {
     const existingImagesAsFiles = (existingImages || [])
-      .filter((img) => !deleteImages.some((delImg) => delImg.id === img.id))
+      .filter(
+        (img) =>
+          img && img.id && !deletedImages.some((delImg) => delImg.id === img.id)
+      )
       .map((img) => ({
         id: `existing-${img.id}`,
         url: img.imageUrl,
@@ -69,25 +74,59 @@ const NewServiceForm: React.FC<ServiceFormProps> = ({
         // No file property for existing images
       }));
 
-    return [...existingImagesAsFiles, ...images.serviceImages];
-  };
+    const result = [...existingImagesAsFiles, ...images.serviceImages];
+    console.log("displayImages result:", result);
+    console.log("existingImages:", existingImages);
+    console.log("deletedImages:", deletedImages);
+    return result;
+  }, [existingImages, deletedImages, images.serviceImages]);
 
   const handleImageDelete = (imageId: string) => {
+    console.log("Deleting image with ID:", imageId);
     if (imageId.startsWith("existing-")) {
       // This is an existing image, add it to delete list
-      const originalId = parseInt(imageId.replace("existing-", ""));
+      const originalIdStr = imageId.replace("existing-", "");
+      console.log("Original ID string:", originalIdStr);
+
+      if (originalIdStr === "undefined" || !originalIdStr) {
+        console.error("Invalid image ID - originalId is undefined or empty");
+        return;
+      }
+
+      const originalId = parseInt(originalIdStr);
+      if (isNaN(originalId)) {
+        console.error("Invalid image ID - could not parse:", originalIdStr);
+        return;
+      }
+
       const existingImage = existingImages?.find(
         (img) => img.id === originalId
       );
       if (existingImage) {
-        setDeleteImages((prev) => [...prev, existingImage]);
+        console.log("Adding existing image to delete list:", existingImage);
+        setDeletedImages((prev) => [...prev, existingImage]);
+      } else {
+        console.error("Could not find existing image with ID:", originalId);
       }
     } else {
       // This is a new image, remove it from serviceImages
+      console.log("Removing new image from serviceImages");
       setImages((prev) => ({
         ...prev,
         serviceImages: prev.serviceImages.filter((img) => img.id !== imageId),
       }));
+    }
+
+    // Update selected image index if necessary
+    const currentImages = displayImages;
+    const imageIndex = currentImages.findIndex((img) => img.id === imageId);
+    if (imageIndex !== -1 && selectedImageIndex >= imageIndex) {
+      const newLength = currentImages.length - 1;
+      if (newLength === 0) {
+        setSelectedImageIndex(0);
+      } else if (selectedImageIndex >= newLength) {
+        setSelectedImageIndex(newLength - 1);
+      }
     }
   };
 
@@ -133,8 +172,11 @@ const NewServiceForm: React.FC<ServiceFormProps> = ({
       status: true,
       price: 0,
       priceType: "FIXED" as PriceType,
-      tabsSection: [{ heading: "", content: "" }],
-      policySection: [{ heading: "", policy: "" }],
+      tabsSection: [{ id: null, heading: "", content: "" }],
+      policySection: [{ id: null, heading: "", policy: "" }],
+      deletedImages: [],
+      deletedTabs: [],
+      deletedPolicies: [],
     };
 
     if (serviceType === "activity") {
@@ -198,24 +240,31 @@ const NewServiceForm: React.FC<ServiceFormProps> = ({
   );
 
   const [tabsSection, setTabsSection] = useState<TabData[]>(
-    (initialData?.tabsSection || [{ heading: "", content: "" }]).map(
-      (tab, index) => ({
-        id: index,
-        heading: tab.heading,
-        description: tab.content,
-        isExpanded: true,
-      })
-    )
+    (initialData?.tabsSection || [{ heading: "", content: "" }]).map((tab) => ({
+      id: "id" in tab && tab.id !== null ? tab.id : null,
+      heading: tab.heading,
+      description: tab.content,
+      isExpanded: true,
+    }))
+  );
+
+  console.log("NewServiceForm initialData:", initialData);
+  console.log(
+    "NewServiceForm initialData.policySection:",
+    initialData?.policySection
   );
 
   const [policySection, setPolicySection] = useState<PolicyData[]>(
     (initialData?.policySection || [{ heading: "", policy: "" }]).map(
-      (policy, index) => ({
-        id: index,
-        heading: policy.heading,
-        description: policy.policy,
-        isExpanded: true,
-      })
+      (policy) => {
+        console.log("Initializing policy:", policy);
+        return {
+          id: "id" in policy && policy.id !== null ? policy.id : null,
+          heading: policy.heading,
+          description: policy.policy || "",
+          isExpanded: true,
+        };
+      }
     )
   );
 
@@ -269,26 +318,66 @@ const NewServiceForm: React.FC<ServiceFormProps> = ({
   }, [serviceType]);
 
   useEffect(() => {
-    const selectedPolicyObjects = policyOptions
-      .filter((option) => preferredPolicies.includes(option.value))
-      .map((option) => ({
-        id: parseInt(option.value),
-        heading: option.label,
-        description: option.content || "",
-        isExpanded: true,
+    // Only filter and set policies if we have policy options loaded
+    if (policyOptions.length > 0) {
+      // Get policies from multiselect (existing policies with IDs)
+      const selectedPolicyObjects = policyOptions
+        .filter((option) => preferredPolicies.includes(option.value))
+        .map((option) => ({
+          id: parseInt(option.value),
+          heading: option.label,
+          description: option.content || "",
+          isExpanded: true,
+        }));
+
+      // Keep any manually added policies (those with null IDs) that aren't from multiselect
+      const manualPolicies = policySection.filter(
+        (policy) => policy.id === null
+      );
+
+      // Combine selected policies from multiselect with manual policies
+      const combinedPolicies = [...selectedPolicyObjects, ...manualPolicies];
+
+      console.log(
+        "Setting policies from preferredPolicies:",
+        selectedPolicyObjects
+      );
+      console.log("Manual policies:", manualPolicies);
+      console.log("Combined policies:", combinedPolicies);
+
+      setPolicySection(combinedPolicies);
+      const backendPolicies: PolicySection[] = combinedPolicies.map(
+        ({ id, heading, description }) => ({
+          id: id || null,
+          heading,
+          policy: description,
+        })
+      );
+      setFormData((prev) => ({
+        ...prev,
+        policySection: backendPolicies,
       }));
-    setPolicySection(selectedPolicyObjects);
-    const backendPolicies: PolicySection[] = selectedPolicyObjects.map(
-      ({ heading, description }) => ({
-        heading,
-        policy: description,
-      })
-    );
-    setFormData((prev) => ({
-      ...prev,
-      policySection: backendPolicies,
-    }));
+    }
   }, [preferredPolicies, policyOptions]);
+
+  // Initialize preferredPolicies when editing a service
+  useEffect(() => {
+    if (
+      initialData?.policySection &&
+      Array.isArray(initialData.policySection)
+    ) {
+      const existingPolicyIds = initialData.policySection
+        .filter((policy) => policy.id !== null)
+        .map((policy) => policy.id!.toString());
+      console.log(
+        "Setting preferredPolicies to existing policy IDs:",
+        existingPolicyIds
+      );
+      if (existingPolicyIds.length > 0) {
+        setPreferredPolicies(existingPolicyIds);
+      }
+    }
+  }, [initialData]);
 
   // Initialize selectedGuidingAreas for tour guides when editing
   useEffect(() => {
@@ -397,21 +486,145 @@ const NewServiceForm: React.FC<ServiceFormProps> = ({
   };
 
   const handleTabsChange = (tabs: TabData[]) => {
+    // Find deleted tabs by comparing current tabs with new tabs
+    const currentTabIds = tabs.map((tab) => tab.id);
+    const deletedTabsFromCurrent = tabsSection.filter(
+      (currentTab) =>
+        currentTab.id !== null &&
+        typeof currentTab.id === "number" &&
+        !currentTabIds.includes(currentTab.id)
+    );
+
+    // Convert deleted tabs to TabSection format and add to delete list
+    const deletedTabSections: TabSection[] = deletedTabsFromCurrent.map(
+      (tab) => ({
+        id: tab.id as number,
+        heading: tab.heading,
+        content: tab.description,
+      })
+    );
+
+    // Add newly deleted tabs to the delete list (avoid duplicates)
+    setDeletedTabs((prev) => {
+      const existingDeleteIds = prev.map((tab) => tab.id);
+      const newDeletes = deletedTabSections.filter(
+        (tab) => !existingDeleteIds.includes(tab.id)
+      );
+      return [...prev, ...newDeletes];
+    });
+
     setTabsSection(tabs);
-    const backendTabs: TabSection[] = tabs.map(({ heading, description }) => ({
-      heading,
-      content: description,
-    }));
+    const backendTabs: TabSection[] = tabs.map(
+      ({ id, heading, description }) => ({
+        id: id || null, // Keep existing ID or set null for new tabs
+        heading,
+        content: description,
+      })
+    );
     setFormData((prev) => ({
       ...prev,
       tabsSection: backendTabs,
     }));
   };
 
+  // Custom handler for multiselect policy changes
+  const handleMultiselectPolicyChange = (selectedPolicyIds: string[]) => {
+    console.log("Multiselect policy change:", selectedPolicyIds);
+    console.log("Previous preferredPolicies:", preferredPolicies);
+
+    // Find newly removed policies (were selected before, not selected now)
+    const removedPolicyIds = preferredPolicies.filter(
+      (id) => !selectedPolicyIds.includes(id)
+    );
+
+    // Find newly added policies (not selected before, selected now)
+    const addedPolicyIds = selectedPolicyIds.filter(
+      (id) => !preferredPolicies.includes(id)
+    );
+
+    console.log("Removed policy IDs:", removedPolicyIds);
+    console.log("Added policy IDs:", addedPolicyIds);
+
+    // Handle removed policies - add them to deletion tracking
+    if (removedPolicyIds.length > 0) {
+      const removedPolicies = policySection.filter(
+        (policy) =>
+          policy.id !== null && removedPolicyIds.includes(policy.id.toString())
+      );
+
+      const deletedPolicySections: PolicySection[] = removedPolicies.map(
+        (policy) => ({
+          id: policy.id as number,
+          heading: policy.heading,
+          policy: policy.description,
+        })
+      );
+
+      // Add to deleted policies list
+      setDeletedPolicies((prev) => {
+        const existingDeleteIds = prev.map((policy) => policy.id);
+        const newDeletes = deletedPolicySections.filter(
+          (policy) => !existingDeleteIds.includes(policy.id)
+        );
+        console.log(
+          "Adding removed multiselect policies to deleted list:",
+          newDeletes
+        );
+        return [...prev, ...newDeletes];
+      });
+    }
+
+    // Update the preferredPolicies state
+    setPreferredPolicies(selectedPolicyIds);
+  };
+
   const handlePoliciesChange = (policies: PolicyData[]) => {
+    console.log("handlePoliciesChange called with:", policies);
+
+    // Find deleted policies by comparing current policies with new policies
+    const currentPolicyIds = policies.map((policy) => policy.id);
+    const deletedPoliciesFromCurrent = policySection.filter(
+      (currentPolicy) =>
+        currentPolicy.id !== null &&
+        typeof currentPolicy.id === "number" &&
+        !currentPolicyIds.includes(currentPolicy.id)
+    );
+
+    console.log("Deleted policies from current:", deletedPoliciesFromCurrent);
+
+    // Convert deleted policies to PolicySection format and add to delete list
+    const deletedPolicySections: PolicySection[] =
+      deletedPoliciesFromCurrent.map((policy) => ({
+        id: policy.id as number,
+        heading: policy.heading,
+        policy: policy.description,
+      }));
+
+    // Add newly deleted policies to the delete list (avoid duplicates)
+    setDeletedPolicies((prev) => {
+      const existingDeleteIds = prev.map((policy) => policy.id);
+      const newDeletes = deletedPolicySections.filter(
+        (policy) => !existingDeleteIds.includes(policy.id)
+      );
+      console.log("Adding to deleted policies:", newDeletes);
+      return [...prev, ...newDeletes];
+    });
+
+    // Update preferredPolicies to remove any policies that were deleted from multiselect options
+    const deletedMultiselectPolicyIds = deletedPoliciesFromCurrent
+      .filter((policy) => policy.id !== null)
+      .map((policy) => policy.id!.toString());
+
+    if (deletedMultiselectPolicyIds.length > 0) {
+      setPreferredPolicies((prev) =>
+        prev.filter((id) => !deletedMultiselectPolicyIds.includes(id))
+      );
+    }
+
     setPolicySection(policies);
     const backendPolicies: PolicySection[] = policies.map(
-      ({ heading, description }) => ({
+      ({ id, heading, description }) => ({
+        id: id || null, // Keep existing ID or set null for new policies
         heading,
         policy: description,
       })
@@ -423,7 +636,17 @@ const NewServiceForm: React.FC<ServiceFormProps> = ({
   };
 
   const handleSubmit = () => {
-    let updatedData: ServiceFormData = { ...formData };
+    console.log("=== FORM SUBMISSION ===");
+    console.log("Current policySection:", policySection);
+    console.log("Deleted policies:", deletedPolicies);
+    console.log("Preferred policies (multiselect):", preferredPolicies);
+
+    let updatedData: ServiceFormData = {
+      ...formData,
+      deletedImages: deletedImages,
+      deletedTabs: deletedTabs,
+      deletedPolicies: deletedPolicies,
+    };
 
     // Update specific fields based on service type
     if (serviceType === "tour-guides") {
@@ -449,15 +672,11 @@ const NewServiceForm: React.FC<ServiceFormProps> = ({
 
     console.log("Final form data locations:", updatedData.locations);
     console.log("Submitting updated data:", updatedData);
-    console.log("Images to delete:", deleteImages);
+    console.log("Images to delete:", deletedImages);
+    console.log("Tabs to delete:", deletedTabs);
+    console.log("Policies to delete:", deletedPolicies);
 
-    // Add deleteImages to the images object
-    const imagesWithDeletes = {
-      ...images,
-      deleteImages: deleteImages,
-    };
-
-    onSubmit(updatedData, imagesWithDeletes);
+    onSubmit(updatedData, images);
   };
 
   // Handle guiding area selection for tour guides
@@ -517,10 +736,10 @@ const NewServiceForm: React.FC<ServiceFormProps> = ({
                     : "Upload Images"}
                 </h4>
                 <ImageUploadComponent
-                  images={getAllImagesForDisplay()}
+                  images={displayImages}
                   onImagesChange={(allImages) => {
                     // Extract only the truly new images that weren't in the original list
-                    const currentDisplayImages = getAllImagesForDisplay();
+                    const currentDisplayImages = displayImages;
                     const genuinelyNewImages = allImages.filter(
                       (newImg) =>
                         !currentDisplayImages.some(
@@ -575,17 +794,17 @@ const NewServiceForm: React.FC<ServiceFormProps> = ({
               </div>
 
               <div className="bg-gradient-to-r from-primary-50 to-primary-50 p-4 rounded-xl border border-primary-100">
-                {(serviceType === "activity"||
-                 serviceType === "transportation" ||
-                 serviceType === "accommodation" ||
-                 serviceType === "food-beverage"||
-                 serviceType === "tour-guides")&&(
+                {(serviceType === "activity" ||
+                  serviceType === "transportation" ||
+                  serviceType === "accommodation" ||
+                  serviceType === "food-beverage" ||
+                  serviceType === "tour-guides") && (
                   <div className="mb-6">
                     <MultiSelectField
                       label="Available Policies"
                       options={policyOptions}
                       value={preferredPolicies}
-                      onChange={setPreferredPolicies}
+                      onChange={handleMultiselectPolicyChange}
                       icon={<Globe size={16} />}
                     />
                   </div>

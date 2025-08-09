@@ -1,7 +1,7 @@
 import type { ImageFiles, TourGuideFormData, TransportFormData, AccommodationFormData, ActivityFormData, FoodBeverageFormData } from "@/types/serviceTypes";
 import { addNewTourGuide, updateTourGuide, findTourGuideById, fetchAllTourGuides } from "@/services/guideService";
 import { addNewTransport, findTransportationById, fetchAllTransports } from "@/services/transportationService";
-import { addNewAccommodation, findAccommodationById, fetchAllAccommodations } from "@/services/accomodation";
+import { addNewAccommodation, findAccommodationById, fetchAllAccommodations, updateAccommodation } from "@/services/accomodation";
 import { addNewFoodBeverage, findFoodBeverageById, fetchAllFoodAndBeverages } from "./FoodBeverage";
 import { addNewActivity, findActivityById, fetchAllActivities, deleteActivityService } from "@/services/activityService";
 import api from "@/api/axiosInstance";
@@ -78,9 +78,8 @@ export const updateService = async (
   } else if (serviceType === 'transportation') {
     // TODO: Implement updateTransportation function in transportationService.ts
     throw new Error(`Update not yet implemented for service type: ${serviceType}`);
-  } else if (serviceType === 'accommodation') {
-    // TODO: Implement updateAccommodation function in accomodation.ts
-    throw new Error(`Update not yet implemented for service type: ${serviceType}`);
+  } else if (serviceType === 'accommodation') { 
+    return await updateAccommodation(id, payload, images);
   } else if (serviceType === 'food-beverage') {
     // TODO: Implement updateFoodBeverage function in FoodBeverage.ts
     throw new Error(`Update not yet implemented for service type: ${serviceType}`);
