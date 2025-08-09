@@ -1,5 +1,5 @@
 import api from "@/api/axiosInstance";
-import type { ImageFiles, ServiceFormData, LocationData } from "@/types/serviceTypes";
+import type { ImageFiles, ServiceFormData, LocationData, PolicySection } from "@/types/serviceTypes";
 
 
 //Add new policy for tour guide
@@ -168,4 +168,12 @@ export const findTourGuideById = async (id: any): Promise<any> => {
     console.error('Error fetching guide by ID:', error);
     throw new Error('Failed to fetch guide by ID');
   }
+}
+
+
+// delete a tourist guide
+export const deleteTourGuide = async (id: number): Promise<any> => {
+  const response = await api.put(`/provider/tour-guide/remove/${id}`);
+  console.log("Deleting tour guide with ID:", response);
+  return response.data.data;
 }
