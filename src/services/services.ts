@@ -1,9 +1,9 @@
 import type { ImageFiles, TourGuideFormData, TransportFormData, AccommodationFormData, ActivityFormData, FoodBeverageFormData } from "@/types/serviceTypes";
 import { addNewTourGuide, updateTourGuide, findTourGuideById, fetchAllTourGuides } from "@/services/guideService";
-import { addNewTransport, findTransportationById, fetchAllTransports } from "@/services/transportationService";
+import { addNewTransport, findTransportationById, fetchAllTransports, updateTransport } from "@/services/transportationService";
 import { addNewAccommodation, findAccommodationById, fetchAllAccommodations, updateAccommodation } from "@/services/accomodation";
-import { addNewFoodBeverage, findFoodBeverageById, fetchAllFoodAndBeverages } from "./FoodBeverage";
-import { addNewActivity, findActivityById, fetchAllActivities, deleteActivityService } from "@/services/activityService";
+import { addNewFoodBeverage, findFoodBeverageById, fetchAllFoodAndBeverages, updateFoodBeverage } from "./FoodBeverage";
+import { addNewActivity, findActivityById, fetchAllActivities, deleteActivityService, updateActivity } from "@/services/activityService";
 import api from "@/api/axiosInstance";
 
 //remove policy
@@ -73,16 +73,13 @@ export const updateService = async (
   if (serviceType === 'tour-guides') {
     return await updateTourGuide(id, payload, images);
   } else if (serviceType === 'activity') {
-    // TODO: Implement updateActivity function in activityService.ts
-    throw new Error(`Update not yet implemented for service type: ${serviceType}`);
+    return await updateActivity(id, payload, images);
   } else if (serviceType === 'transportation') {
-    // TODO: Implement updateTransportation function in transportationService.ts
-    throw new Error(`Update not yet implemented for service type: ${serviceType}`);
+    return await updateTransport(id, payload, images);
   } else if (serviceType === 'accommodation') { 
     return await updateAccommodation(id, payload, images);
   } else if (serviceType === 'food-beverage') {
-    // TODO: Implement updateFoodBeverage function in FoodBeverage.ts
-    throw new Error(`Update not yet implemented for service type: ${serviceType}`);
+    return await updateFoodBeverage(id, payload, images);
   } else {
     throw new Error(`Unsupported service type: ${serviceType}`);
   }
