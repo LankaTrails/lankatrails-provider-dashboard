@@ -7,7 +7,7 @@ interface ImageUploadProps {
   onImagesChange: (images: ImageFile[]) => void;
   selectedImageIndex: number;
   onSelectedImageChange: (index: number) => void;
-  onImageDelete?: (imageId: string) => void; // Optional custom delete handler
+  onImageDelete?: (imageId: string, imageUrl?: string) => void; // Optional custom delete handler
 }
 
 const baseUrl = import.meta.env.VITE_BASE_URL;
@@ -46,7 +46,6 @@ const ImageUploadComponent: React.FC<ImageUploadProps> = ({
           const url = URL.createObjectURL(file);
           newImages.push({ id, file, url });
         });
-        // Pass all images (existing + new) to the parent
         onImagesChange([...images, ...newImages]);
         if (images.length === 0) {
           onSelectedImageChange(0);
@@ -65,7 +64,6 @@ const ImageUploadComponent: React.FC<ImageUploadProps> = ({
         const url = URL.createObjectURL(file);
         newImages.push({ id, file, url });
       });
-      // Pass all images (existing + new) to the parent
       onImagesChange([...images, ...newImages]);
       if (images.length === 0) {
         onSelectedImageChange(0);
@@ -76,7 +74,8 @@ const ImageUploadComponent: React.FC<ImageUploadProps> = ({
   const handleImageRemove = (imageId: string) => {
     if (onImageDelete) {
       // Use custom delete handler if provided
-      onImageDelete(imageId);
+      const image = images.find((img) => img.id === imageId);
+      onImageDelete(imageId, image?.url);
     } else {
       // Default behavior - remove from images array
       const newImages = images.filter((img) => img.id !== imageId);
@@ -107,12 +106,7 @@ const ImageUploadComponent: React.FC<ImageUploadProps> = ({
             {images.length > 0 ? (
               <div className="relative w-full h-full">
                 <img
-                  src={
-                    images[selectedImageIndex]?.url?.startsWith("blob:") ||
-                    images[selectedImageIndex]?.url?.startsWith("http")
-                      ? images[selectedImageIndex]?.url
-                      : baseUrl + images[selectedImageIndex]?.url
-                  }
+                  src={baseUrl + images[selectedImageIndex]?.url}
                   alt="Preview"
                   className="w-full h-full object-cover rounded-lg"
                 />
@@ -156,12 +150,7 @@ const ImageUploadComponent: React.FC<ImageUploadProps> = ({
               onClick={() => onSelectedImageChange(index)}
             >
               <img
-                src={
-                  image.url?.startsWith("blob:") ||
-                  image.url?.startsWith("http")
-                    ? image.url
-                    : baseUrl + image.url
-                }
+                src={baseUrl + image.url}
                 alt={`Thumbnail ${index + 1}`}
                 className="w-full h-full object-cover"
               />

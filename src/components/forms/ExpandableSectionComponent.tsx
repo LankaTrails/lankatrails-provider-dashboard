@@ -25,20 +25,16 @@ const ExpandableSectionComponent: React.FC<ExpandableSectionProps> = ({
   itemName,
   canAddItems = true,
   showSubmitButton = false,
-  onSave,
+  onSave
 }) => {
-  const handleItemChange = (
-    id: number | null,
-    field: string,
-    value: string
-  ) => {
+  const handleItemChange = (id: number, field: string, value: string) => {
     const updatedItems = items.map((item) =>
       item.id === id ? { ...item, [field]: value } : item
     );
     onItemsChange(updatedItems);
   };
 
-  const toggleExpanded = (id: number | null) => {
+  const toggleExpanded = (id: number) => {
     const updatedItems = items.map((item) =>
       item.id === id ? { ...item, isExpanded: !item.isExpanded } : item
     );
@@ -47,7 +43,7 @@ const ExpandableSectionComponent: React.FC<ExpandableSectionProps> = ({
 
   const addNewItem = () => {
     const newItem = {
-      id: null,
+      id: Math.random(),
       heading: "",
       description: "",
       isExpanded: true,
@@ -55,15 +51,13 @@ const ExpandableSectionComponent: React.FC<ExpandableSectionProps> = ({
     onItemsChange([...items, newItem]);
   };
 
-  const removeItem = (id: number | null) => {
+  const removeItem = (id: number) => {
     console.log("Removing item with id:", id);
     if (items.length > 1) {
       onItemsChange(items.filter((item) => item.id !== id));
     }
-    //delete - only call deletePolicy if id is not null (existing item)
-    if (id !== null) {
-      deletePolicy(id);
-    }
+    //delete
+    deletePolicy(id);
   };
 
   const handleSaveClick = async () => {

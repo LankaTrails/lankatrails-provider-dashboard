@@ -17,14 +17,14 @@ export type FuelType = 'PETROL' | 'DIESEL' | 'ELECTRIC' | 'HYBRID';
 export type TransmissionType = 'MANUAL' | 'AUTOMATIC' | 'SEMI_AUTOMATIC';
 
 export interface TabData {
-  id: number | null;
+  id: number;
   heading: string;
   description: string;
   isExpanded: boolean;
 }
 
 export interface PolicyData {
-  id: number | null;
+  id: number;
   heading: string;
   description: string;
   isExpanded: boolean;
@@ -43,13 +43,12 @@ export interface LocationData {
 }
 
 export interface TabSection {
-  id: number | null;
   heading: string;
   content: string;
 }
 
 export interface PolicySection {
-  id: number | null;
+  // id:number;
   heading: string;
   policy: string;
   // id:string;
@@ -86,14 +85,13 @@ export interface ServiceFormData {
   priceType: PriceType;
   tabsSection: TabSection[];
   policySection: PolicySection[];
-  deletedImages?: ImageData[]; // Images to be deleted (for edit mode)
-  deletedTabs?: TabSection[]; // Tabs to be deleted (for edit mode)
-  deletedPolicies?: PolicySection[]; // Policies to be deleted (for edit mode)
+  deleteImages?: ImageData[]; // Images to be deleted (for edit mode)
   availabilitySlots: {
     dayOfWeek: string; 
       openTime: string;
       closeTime: string;  
   }[];
+
 }
 // Add this to your existing types
 export interface ImageFile {
