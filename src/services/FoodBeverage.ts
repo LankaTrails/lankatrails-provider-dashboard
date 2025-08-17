@@ -5,6 +5,7 @@ import type { ImageFiles, PolicySection, ServiceFormData } from "@/types/service
 //Add new activity policy
 export async function createFoodPolicy(policyData: PolicySection): Promise<PolicySection> {
   try {
+    policyData.id = null;
     const response = await api.post("/provider/policy/food-beverage", policyData);
     console.log("Food Beverage policy created successfully:", response.data);
     return response.data;
@@ -109,3 +110,61 @@ export const findFoodBeverageById = async (id : any): Promise<any> =>{
     throw new Error('Failed to fetch food-beverage by ID');
   }
 }
+
+// update food and beverages
+export const updateFoodBeverage = async (
+  id: number,
+  payload: ServiceFormData,
+  images: ImageFiles
+): Promise<string> => {
+  try {
+    const formData = new FormData();
+
+    // JSON blob for 'service'
+    const serviceBlob = new Blob([JSON.stringify(payload)], {
+      type: 'application/json',
+    });
+    formData.append('service', serviceBlob);
+
+    // Append all images under 'images' key with proper type checking
+    images.serviceImages.forEach((item) => {
+      if (item.file) {
+        console.log("📸 File name:", item.file.name);
+        formData.append(`images`, item.file);
+      }
+    });
+
+    console.log('Updating food and beverage with formData:', formData);
+
+    const response = await api.put(`/provider/food-beverage/update/${id}`, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+
+    return response.data.message;
+  } catch (error: any) {
+    console.error('❌ updateFoodBeverage error:', error);
+    if (error.response && error.response.data) {
+      const { code, message, details, userMessage } = error.response.data;
+      throw {
+        code,
+        message,
+        details,
+        userMessage,
+      };
+    }
+
+    throw {
+      message: 'Failed to update food and beverage',
+      code: 'UNKNOWN_ERROR',
+    };
+  }
+};
+
+// delete food and beverage service
+export const deleteFoodBeverage = async (id: number): Promise<any> => {
+  const response = await api.put(`/provider/food-beverage/remove/${id}`);
+  console.log("Deleting food and beverage service with ID:", response);
+  return response.data.data;
+};
