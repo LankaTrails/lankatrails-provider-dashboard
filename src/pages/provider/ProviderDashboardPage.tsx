@@ -11,6 +11,7 @@ import {
   MessageSquare,
   BarChart3,
 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 // import ServiceForm from "@/components/ServiceForm"; // TODO: Update to use new service creation flow
 
 const stats = [
@@ -44,35 +45,45 @@ const stats = [
   },
 ];
 
-const recentBookings = [
+// Replace 'recentBookings' with 'allBookings' and ensure each booking has all required fields for details page
+const allBookings = [
   {
     id: 1,
     customer: "John Smith",
     service: "Sigiriya Rock Climb Guide",
-    date: "2025-07-05",
-    status: "confirmed",
+    serviceId: 101,
+    serviceType: "tour-guide",
+    type: "activity",
+    dateFrom: "2025-07-05",
+    dateTo: "2025-07-05",
+    status: "pending",
     amount: "85",
+    slots: [
+      { date: "2025-07-05", start: "09:00", end: "10:00", bookings: 2, details: ["Booking A", "Booking B"] },
+      { date: "2025-07-05", start: "10:00", end: "11:00", bookings: 1, details: ["Booking C"] },
+    ],
   },
   {
     id: 2,
     customer: "Emma Wilson",
-    service: "Cultural Triangle Tour",
-    date: "2025-07-06",
-    status: "pending",
+    service: "Airport Transfer",
+    serviceId: 202,
+    serviceType: "transport",
+    type: "transport",
+    dateFrom: "2025-07-06",
+    dateTo: "2025-07-06",
+    status: "confirmed",
     amount: "150",
+    slots: [
+      { date: "2025-07-06", start: "08:00", end: "12:00", duration: "4h", bookings: 1, details: ["Booking D"] },
+    ],
   },
-  {
-    id: 3,
-    customer: "David Chen",
-    service: "Wildlife Safari - Yala",
-    date: "2025-07-07",
-    status: "completed",
-    amount: "120",
-  },
+  // ... more bookings
 ];
 
 const ProviderDashboardPage = () => {
   const [formOpen, setFormOpen] = useState(false);
+  const navigate = useNavigate();
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-rose-50 space-y-8 p-4">
@@ -101,53 +112,21 @@ const ProviderDashboardPage = () => {
         ))}
       </div>
 
-      {/* Quick Actions */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <Button
-          onClick={() => setFormOpen(true)}
-          className="h-24 bg-primary-600 hover:bg-primary-700 text-white flex flex-col items-center justify-center space-y-1"
-        >
-          <Plus className="w-6 h-6" />
-          <span className="text-sm">Add Service</span>
-        </Button>
-        <Button
-          variant="outline"
-          className="h-24 flex flex-col items-center justify-center space-y-1"
-        >
-          <Calendar className="w-6 h-6" />
-          <span className="text-sm">Manage Calendar</span>
-        </Button>
-        <Button
-          variant="outline"
-          className="h-24 flex flex-col items-center justify-center space-y-1"
-        >
-          <MessageSquare className="w-6 h-6" />
-          <span className="text-sm">Messages</span>
-        </Button>
-        <Button
-          variant="outline"
-          className="h-24 flex flex-col items-center justify-center space-y-1"
-        >
-          <BarChart3 className="w-6 h-6" />
-          <span className="text-sm">View Analytics</span>
-        </Button>
-      </div>
-
-      {/* Recent Bookings */}
+      {/* All Bookings */}
       <Card className="shadow">
         <CardHeader>
-          <CardTitle className="text-lg">Recent Bookings</CardTitle>
+          <CardTitle className="text-lg">All Bookings</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          {recentBookings.map((booking) => (
+          {allBookings.map((booking) => (
             <div
               key={booking.id}
               className="flex items-center justify-between border rounded p-3"
             >
               <div>
-                <p className="font-medium">{booking.customer}</p>
+                <p className="font-medium text-primary cursor-pointer" onClick={() => navigate(`/provider/booking/${booking.id}`)}>{booking.customer}</p>
                 <p className="text-sm text-gray-600">{booking.service}</p>
-                <p className="text-xs text-gray-500">{booking.date}</p>
+                <p className="text-xs text-gray-500">{booking.dateFrom} to {booking.dateTo}</p>
               </div>
               <div className="text-right">
                 <Badge
