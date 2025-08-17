@@ -13,6 +13,7 @@ export async function fetchAllPolicies(): Promise<PolicySection[]> {
 
 export async function createPolicy(policyData: PolicySection): Promise<PolicySection> {
   try {
+    policyData.id = null;
     const response = await api.post("/provider/add/policy", policyData);
     return response.data;
   } catch (error :any) {
