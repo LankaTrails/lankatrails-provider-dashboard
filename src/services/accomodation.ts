@@ -5,6 +5,7 @@ import type { ImageFiles, PolicySection, ServiceFormData } from "@/types/service
 //Add new accommodation policy
 export async function createAccommodationPolicy(policyData: PolicySection): Promise<PolicySection> {
   try {
+    policyData.id = null;
     const response = await api.post("/provider/policy/accommodation", policyData);
     console.log("Accommodation policy created successfully:", response.data);
     return response.data;
@@ -100,6 +101,57 @@ export const addNewAccommodation = async (
   }
 };
 
+// Update accommodation service
+export const updateAccommodation = async (
+  id: number,
+  payload: ServiceFormData,
+  images: ImageFiles
+): Promise<string> => {
+  try {
+    const formData = new FormData();
+    console.log("📄 Update Payload:", payload)
+    // JSON blob for 'service'
+    const serviceBlob = new Blob([JSON.stringify(payload)], {
+      type: 'application/json',
+      });
+    console.log("📄 Update Service Blob:", serviceBlob)
+    formData.append('service', serviceBlob)
+    // Append all images under 'images' key with proper type checking
+    images.serviceImages.forEach((item) => {
+      if (item.file) {
+        console.log("📸 Update File name:", item.file.name);
+        formData.append(`images`, item.file);
+      }
+    });
+
+    console.log('Updating accommodation with formData:', formData);
+
+    const response = await api.put(`/provider/accommodation/update/${id}`, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+
+    return response.data.message;
+  } catch (error: any) {
+    console.error('❌ updateAccommodation error:', error);
+    if (error.response && error.response.data) {
+      const { code, message, details, userMessage } = error.response.data;
+      throw {
+        code,
+        message,
+        details,
+        userMessage,
+      };
+    }
+
+    throw {
+      message: 'Failed to update accommodation service',
+      code: 'UNKNOWN_ERROR',
+    };
+  }
+};
+
 //find an accommodation service by the Id
 export const findAccommodationById = async (id : any): Promise<any> =>{
   try {
@@ -110,4 +162,11 @@ export const findAccommodationById = async (id : any): Promise<any> =>{
     console.error('Error fetch accommodation by ID: ',error);
     throw new Error('Failed to fetch accommodation by ID');
   }
+}
+
+// delete accommodation service
+export const deleteAccommodation = async (id: number): Promise<any> => {
+  const response = await api.put(`/provider/accommodation/remove/${id}`);
+  console.log("Deleting accommodation service with ID:", response);
+  return response.data.data;
 }

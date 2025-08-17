@@ -4,6 +4,7 @@ import type { ImageFiles, PolicySection, ServiceFormData } from "@/types/service
 //Add new transport policy
 export async function createTransportPolicy(policyData: PolicySection): Promise<PolicySection> {
   try {
+    policyData.id = null;
     const response = await api.post("/provider/policy/transport", policyData);
     console.log("Transport policy created successfully:", response.data);
     return response.data;
@@ -107,4 +108,62 @@ export const findTransportationById = async (id : any): Promise<any> =>{
     console.error('Error fetch transportation by ID: ',error);
     throw new Error('Failed to fetch transporation by ID');
   }
+}
+
+//update transport service
+export const updateTransport = async (
+  id: number,
+  payload: ServiceFormData,
+  images: ImageFiles
+): Promise<string> => {
+  try {
+    const formData = new FormData();
+
+    // JSON blob for 'service'
+    const serviceBlob = new Blob([JSON.stringify(payload)], {
+      type: 'application/json',
+    });
+    formData.append('service', serviceBlob);
+
+    // Append all images under 'images' key with proper type checking
+    images.serviceImages.forEach((item) => {
+      if (item.file) {
+        console.log("📸 File name:", item.file.name);
+        formData.append(`images`, item.file);
+      }
+    });
+
+    console.log('Updating transport with formData:', formData);
+
+    const response = await api.put(`/provider/transport/update/${id}`, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+
+    return response.data.message;
+  } catch (error: any) {
+    console.error('❌ updateTransport error:', error);
+    if (error.response && error.response.data) {
+      const { code, message, details, userMessage } = error.response.data;
+      throw {
+        code,
+        message,
+        details,
+        userMessage,
+      };
+    }
+
+    throw {
+      message: 'Failed to update transport service',
+      code: 'UNKNOWN_ERROR',
+    };
+  }
+};
+
+// delete transportation service
+export const deleteTransportation = async (id: number): Promise<any> => {
+  const response = await api.put(`/provider/transport/remove/${id}`);
+  console.log("Deleting transportation service with ID:", response);
+  return response.data.data;
 }
