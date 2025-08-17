@@ -5,7 +5,6 @@ import type { ImageFiles, ServiceFormData, LocationData } from "@/types/serviceT
 //Add new policy for tour guide
 export async function createGuidePolicy(policyData: PolicySection): Promise<PolicySection> {
   try {
-    policyData.id = null;
     const response = await api.post("/provider/policy/tour-guide", policyData);
     console.log("Guide policy created successfully:", response.data);
     return response.data;

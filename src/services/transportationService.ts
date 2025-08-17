@@ -4,7 +4,6 @@ import type { ImageFiles, PolicySection, ServiceFormData } from "@/types/service
 //Add new transport policy
 export async function createTransportPolicy(policyData: PolicySection): Promise<PolicySection> {
   try {
-    policyData.id = null;
     const response = await api.post("/provider/policy/transport", policyData);
     console.log("Transport policy created successfully:", response.data);
     return response.data;

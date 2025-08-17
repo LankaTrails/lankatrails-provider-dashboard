@@ -5,7 +5,6 @@ import type { ImageFiles, PolicySection, ServiceFormData } from "@/types/service
 //Add new activity policy
 export async function createFoodPolicy(policyData: PolicySection): Promise<PolicySection> {
   try {
-    policyData.id = null;
     const response = await api.post("/provider/policy/food-beverage", policyData);
     console.log("Food Beverage policy created successfully:", response.data);
     return response.data;

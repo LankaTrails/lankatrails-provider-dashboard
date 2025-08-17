@@ -26,8 +26,6 @@ import AddTransportPolicy from "./pages/provider/AddTransportPolicy";
 import AddTourGuidePolicy from "./pages/provider/AddTourGuidePolicy";
 import AddFoodBeveragePolicy from "./pages/provider/AddFoodBeveragePolicy";
 import AddAccommodationPolicy from "./pages/provider/AddAccommodationPolicy";
-import BookingDetailsPage from "@/pages/provider/BookingDetailsPage";
-import AllBookingsPage from "@/pages/provider/AllBookingsPage";
 
 const AppRoutes = () => {
   const { isLoading, restoreSession } = useAuth();
@@ -77,7 +75,6 @@ const AppRoutes = () => {
         </Route>
 
         <Route path="messages" element={<MessagesPage />} />
-        <Route path="bookings" element={<AllBookingsPage />} />
         <Route path="analytics" element={<AnalyticsPage />} />
         <Route path="profile">
           <Route index element={<Profile />} />
@@ -94,10 +91,6 @@ const AppRoutes = () => {
           <Route path="food-beverage" element={<AddFoodBeveragePolicy />} />
           <Route path="accommodation" element={<AddAccommodationPolicy />} />
         </Route>
-        <Route
-          path="booking/:id"
-          element={<BookingDetailsPage />}
-        />
       </Route>
 
       <Route
