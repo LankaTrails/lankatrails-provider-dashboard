@@ -5,6 +5,7 @@ import type { ImageFiles, PolicySection, ServiceFormData } from "@/types/service
 //Add new accommodation policy
 export async function createAccommodationPolicy(policyData: PolicySection): Promise<PolicySection> {
   try {
+    policyData.id = null;
     const response = await api.post("/provider/policy/accommodation", policyData);
     console.log("Accommodation policy created successfully:", response.data);
     return response.data;

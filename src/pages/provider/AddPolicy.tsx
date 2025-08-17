@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import ExpandableSectionComponent from "@/components/forms/ExpandableSectionComponent";
 import { createPolicy } from "@/services/policyService";
 import { useNavigate } from "react-router-dom";
-import type { PolicyData, ServiceFormData } from "@/types/serviceTypes";
+import type { PolicyData } from "@/types/serviceTypes";
 import AlertToast from "@/components/forms/AlertToast";
 import { createActivityPolicy } from "@/services/activityService";
 import { createGuidePolicy } from "@/services/guideService";
