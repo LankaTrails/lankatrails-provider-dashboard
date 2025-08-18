@@ -234,6 +234,7 @@ const ExpandableSectionComponent: React.FC<ExpandableSectionProps> = ({
                             Policy Title
                           </label>
                           <InputField
+                            label="Policy Title"
                             value={item.heading}
                             onChange={(value) =>
                               handleItemChange(item.id, "heading", value)

@@ -1,12 +1,12 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Progress } from "@/components/ui/progress";
 import { 
   Users, 
   Clock, 
@@ -16,14 +16,22 @@ import {
   Filter, 
   Download,
   TrendingUp,
-  MapPin,
   Car,
   UtensilsCrossed,
   Bed,
-  Mountain
+  Mountain,
+  DollarSign,
+  Activity,
+  AlertCircle,
+  Eye,
+  BarChart3,
+  PieChart,
+  ArrowUpRight,
+  Star,
+  MapPin
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { fetchAllBookings, updateBookingStatus, exportBookings } from "@/services/bookingService";
+import { fetchAllBookings, exportBookings } from "@/services/bookingService";
 import type { UnifiedBooking, BookingFilters, ProviderType, BookingStatus } from "@/types/bookingTypes";
 import { useToast } from "@/hooks/use-toast";
 import ProviderTopBar from "@/components/provider/ProviderTopBar";
@@ -80,28 +88,12 @@ const AllBookingsPage = () => {
     setCurrentPage(0);
   }, [selectedStatus, selectedProviderType]);
 
-  const { data: bookingData, isLoading, refetch } = useQuery({
+  const { data: bookingData, isLoading } = useQuery({
     queryKey: ['allBookings', filters, currentPage],
     queryFn: () => fetchAllBookings(filters, currentPage, 10),
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
 
-  const handleStatusUpdate = async (bookingId: number, status: 'confirmed' | 'rejected' | 'cancelled') => {
-    try {
-      await updateBookingStatus(bookingId, status);
-      toast({
-        title: "Success",
-        description: `Booking ${status} successfully`,
-      });
-      refetch();
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to update booking status",
-        variant: "destructive",
-      });
-    }
-  };
 
   const handleExport = async () => {
     try {
@@ -175,31 +167,6 @@ const AllBookingsPage = () => {
                   {booking.currency || 'LKR'} {parseFloat(booking.amount).toLocaleString()}
                 </p>
                 <div className="flex space-x-2">
-                  {booking.status === "pending" && (
-                    <>
-                      <Button 
-                        size="sm" 
-                        variant="outline"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleStatusUpdate(booking.id, 'rejected');
-                        }}
-                      >
-                        Decline
-                      </Button>
-                      <Button
-                        size="sm"
-                        className="bg-green-500 hover:bg-green-600 text-white"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleStatusUpdate(booking.id, 'confirmed');
-                        }}
-                      >
-                        <CheckCircle className="w-4 h-4 mr-1" />
-                        Accept
-                      </Button>
-                    </>
-                  )}
                   <Button
                     size="sm"
                     variant="outline"
@@ -338,29 +305,6 @@ const AllBookingsPage = () => {
               </div>
             )}
 
-            {selectedBooking.status === "pending" && (
-              <div className="flex space-x-3 pt-4 border-t">
-                <Button 
-                  variant="outline"
-                  onClick={() => {
-                    handleStatusUpdate(selectedBooking.id, 'rejected');
-                    setIsDetailsOpen(false);
-                  }}
-                >
-                  Decline Booking
-                </Button>
-                <Button
-                  className="bg-green-500 hover:bg-green-600 text-white"
-                  onClick={() => {
-                    handleStatusUpdate(selectedBooking.id, 'confirmed');
-                    setIsDetailsOpen(false);
-                  }}
-                >
-                  <CheckCircle className="w-4 h-4 mr-2" />
-                  Accept Booking
-                </Button>
-              </div>
-            )}
           </div>
         </DialogContent>
       </Dialog>
@@ -370,63 +314,272 @@ const AllBookingsPage = () => {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold bg-gradient-to-r from-primary-600 to-primary-800 bg-clip-text text-transparent">
-          All Bookings
+        <h1 className="text-4xl font-bold bg-gradient-to-r from-primary-600 to-primary-800 bg-clip-text text-transparent">
+          Provider Dashboard
         </h1>
-        <p className="text-gray-600 mt-2">Manage bookings from all your services in one place</p>
+        <p className="text-gray-600 mt-2">Welcome back! Here's an overview of your business performance</p>
         <ProviderTopBar />
       </div>
 
-      {/* Stats Cards */}
+      {/* Enhanced Stats Cards */}
       {bookingData?.stats && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">Total Bookings</p>
-                  <p className="text-2xl font-bold">{bookingData.stats.total}</p>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+          >
+            <Card className="relative overflow-hidden border-0 shadow-lg">
+              <div className="absolute inset-0 bg-gradient-to-br from-blue-500 to-blue-600"></div>
+              <CardContent className="relative p-6 text-white">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-blue-100 text-sm font-medium">Total Bookings</p>
+                    <p className="text-3xl font-bold">{bookingData.stats.total}</p>
+                    <div className="flex items-center mt-2 text-blue-100">
+                      <ArrowUpRight className="w-4 h-4 mr-1" />
+                      <span className="text-xs">+12% from last month</span>
+                    </div>
+                  </div>
+                  <div className="bg-white/20 p-3 rounded-full">
+                    <Calendar className="w-8 h-8" />
+                  </div>
                 </div>
-                <Calendar className="w-8 h-8 text-primary-500" />
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">Pending</p>
-                  <p className="text-2xl font-bold text-yellow-600">{bookingData.stats.pending}</p>
+              </CardContent>
+            </Card>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+          >
+            <Card className="relative overflow-hidden border-0 shadow-lg">
+              <div className="absolute inset-0 bg-gradient-to-br from-yellow-500 to-orange-500"></div>
+              <CardContent className="relative p-6 text-white">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-yellow-100 text-sm font-medium">Pending Reviews</p>
+                    <p className="text-3xl font-bold">{bookingData.stats.pending}</p>
+                    <div className="flex items-center mt-2 text-yellow-100">
+                      <AlertCircle className="w-4 h-4 mr-1" />
+                      <span className="text-xs">Requires attention</span>
+                    </div>
+                  </div>
+                  <div className="bg-white/20 p-3 rounded-full">
+                    <Clock className="w-8 h-8" />
+                  </div>
                 </div>
-                <Clock className="w-8 h-8 text-yellow-500" />
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">Completed</p>
-                  <p className="text-2xl font-bold text-green-600">{bookingData.stats.completed}</p>
+              </CardContent>
+            </Card>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+          >
+            <Card className="relative overflow-hidden border-0 shadow-lg">
+              <div className="absolute inset-0 bg-gradient-to-br from-green-500 to-emerald-600"></div>
+              <CardContent className="relative p-6 text-white">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-green-100 text-sm font-medium">Completed</p>
+                    <p className="text-3xl font-bold">{bookingData.stats.completed}</p>
+                    <div className="flex items-center mt-2 text-green-100">
+                      <ArrowUpRight className="w-4 h-4 mr-1" />
+                      <span className="text-xs">+8% completion rate</span>
+                    </div>
+                  </div>
+                  <div className="bg-white/20 p-3 rounded-full">
+                    <CheckCircle className="w-8 h-8" />
+                  </div>
                 </div>
-                <CheckCircle className="w-8 h-8 text-green-500" />
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">Total Revenue</p>
-                  <p className="text-2xl font-bold text-primary-600">
-                    LKR {bookingData.stats.totalRevenue.toLocaleString()}
-                  </p>
+              </CardContent>
+            </Card>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.4 }}
+          >
+            <Card className="relative overflow-hidden border-0 shadow-lg">
+              <div className="absolute inset-0 bg-gradient-to-br from-purple-500 to-purple-600"></div>
+              <CardContent className="relative p-6 text-white">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-purple-100 text-sm font-medium">Total Revenue</p>
+                    <p className="text-3xl font-bold">
+                      LKR {bookingData.stats.totalRevenue.toLocaleString()}
+                    </p>
+                    <div className="flex items-center mt-2 text-purple-100">
+                      <TrendingUp className="w-4 h-4 mr-1" />
+                      <span className="text-xs">+15% this month</span>
+                    </div>
+                  </div>
+                  <div className="bg-white/20 p-3 rounded-full">
+                    <DollarSign className="w-8 h-8" />
+                  </div>
                 </div>
-                <TrendingUp className="w-8 h-8 text-primary-500" />
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          </motion.div>
         </div>
+      )}
+
+      {/* Quick Actions & Performance Overview */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Quick Actions */}
+        <motion.div
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: 0.5 }}
+        >
+          <Card className="shadow-lg">
+            <CardHeader>
+              <CardTitle className="flex items-center space-x-2">
+                <Activity className="w-5 h-5 text-primary-500" />
+                <span>Quick Actions</span>
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <Button 
+                className="w-full justify-start bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700" 
+                onClick={() => window.location.href = '/provider/activity/add'}
+              >
+                <Mountain className="w-4 h-4 mr-2" />
+                Add New Service
+              </Button>
+              <Button 
+                variant="outline" 
+                className="w-full justify-start hover:bg-green-50 hover:border-green-300"
+                onClick={() => setSelectedStatus('pending')}
+              >
+                <Clock className="w-4 h-4 mr-2 text-yellow-500" />
+                Review Pending ({bookingData?.stats.pending || 0})
+              </Button>
+              <Button 
+                variant="outline" 
+                className="w-full justify-start hover:bg-purple-50 hover:border-purple-300"
+                onClick={handleExport}
+              >
+                <Download className="w-4 h-4 mr-2 text-purple-500" />
+                Export Reports
+              </Button>
+            </CardContent>
+          </Card>
+        </motion.div>
+
+        {/* Performance Metrics */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.6 }}
+          className="lg:col-span-2"
+        >
+          <Card className="shadow-lg">
+            <CardHeader>
+              <CardTitle className="flex items-center space-x-2">
+                <BarChart3 className="w-5 h-5 text-primary-500" />
+                <span>Performance Overview</span>
+              </CardTitle>
+              <CardDescription>Your business metrics at a glance</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-4">
+                  <div>
+                    <div className="flex justify-between items-center mb-2">
+                      <span className="text-sm font-medium">Booking Success Rate</span>
+                      <span className="text-sm text-gray-600">85%</span>
+                    </div>
+                    <Progress value={85} className="h-2" />
+                  </div>
+                  <div>
+                    <div className="flex justify-between items-center mb-2">
+                      <span className="text-sm font-medium">Customer Satisfaction</span>
+                      <span className="text-sm text-gray-600">4.8/5</span>
+                    </div>
+                    <Progress value={96} className="h-2" />
+                  </div>
+                  <div>
+                    <div className="flex justify-between items-center mb-2">
+                      <span className="text-sm font-medium">Response Time</span>
+                      <span className="text-sm text-gray-600">&lt; 2hrs</span>
+                    </div>
+                    <Progress value={78} className="h-2" />
+                  </div>
+                </div>
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between p-3 bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg border border-green-200">
+                    <div className="flex items-center space-x-3">
+                      <div className="bg-green-500 p-2 rounded-full">
+                        <Star className="w-4 h-4 text-white" />
+                      </div>
+                      <div>
+                        <p className="font-medium text-green-800">Average Rating</p>
+                        <p className="text-2xl font-bold text-green-700">4.8</p>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-between p-3 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-200">
+                    <div className="flex items-center space-x-3">
+                      <div className="bg-blue-500 p-2 rounded-full">
+                        <MapPin className="w-4 h-4 text-white" />
+                      </div>
+                      <div>
+                        <p className="font-medium text-blue-800">Active Services</p>
+                        <p className="text-2xl font-bold text-blue-700">12</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+      </div>
+
+      {/* Service Type Breakdown */}
+      {bookingData?.stats && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.7 }}
+        >
+          <Card className="shadow-lg">
+            <CardHeader>
+              <CardTitle className="flex items-center space-x-2">
+                <PieChart className="w-5 h-5 text-primary-500" />
+                <span>Service Distribution</span>
+              </CardTitle>
+              <CardDescription>Bookings by service category</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+                {Object.entries(providerTypeColors).map(([type, colorClass]) => {
+                  const Icon = providerTypeIcons[type as keyof typeof providerTypeIcons];
+                  const count = bookingData.bookings.filter((b: UnifiedBooking) => b.providerType === type).length;
+                  const percentage = bookingData.stats.total > 0 ? (count / bookingData.stats.total * 100).toFixed(1) : '0';
+                  
+                  return (
+                    <div key={type} className="text-center">
+                      <div className={`w-16 h-16 mx-auto rounded-full flex items-center justify-center ${colorClass} text-white shadow-lg mb-3`}>
+                        <Icon className="w-8 h-8" />
+                      </div>
+                      <h4 className="font-semibold text-sm capitalize">
+                        {type.replace('-', ' ')}
+                      </h4>
+                      <p className="text-2xl font-bold text-gray-800">{count}</p>
+                      <p className="text-xs text-gray-500">{percentage}%</p>
+                    </div>
+                  );
+                })}
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
       )}
 
       {/* Filters */}
@@ -481,15 +634,36 @@ const AllBookingsPage = () => {
         </CardContent>
       </Card>
 
-      {/* Bookings List */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Recent Bookings</CardTitle>
-          <CardDescription>
-            {bookingData ? `Showing ${bookingData.bookings.length} of ${bookingData.totalCount} bookings` : 'Loading bookings...'}
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
+      {/* Recent Activity */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.8 }}
+      >
+        <Card className="shadow-lg">
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className="flex items-center space-x-2">
+                  <Eye className="w-5 h-5 text-primary-500" />
+                  <span>Recent Bookings</span>
+                </CardTitle>
+                <CardDescription>
+                  {bookingData ? `Showing ${bookingData.bookings.length} of ${bookingData.totalCount} recent bookings` : 'Loading bookings...'}
+                </CardDescription>
+              </div>
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => window.location.href = '/provider/analytics'}
+                className="flex items-center space-x-2"
+              >
+                <BarChart3 className="w-4 h-4" />
+                <span>View All Analytics</span>
+              </Button>
+            </div>
+          </CardHeader>
+          <CardContent>
           {isLoading ? (
             <div className="space-y-4">
               {[...Array(5)].map((_, i) => (
@@ -534,8 +708,9 @@ const AllBookingsPage = () => {
               )}
             </div>
           )}
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      </motion.div>
 
       {renderBookingDetails()}
     </div>
