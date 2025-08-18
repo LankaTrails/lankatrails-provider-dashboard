@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import ServiceForm from "@/components/NewServiceForm";
 import BackButton from "@/components/BackButton";
 import type {
@@ -14,6 +14,7 @@ import { findServiceById, updateService } from "@/services/services";
 
 const ServiceEditPage: React.FC = () => {
   const { id, serviceType } = useParams();
+  const navigate = useNavigate();
   const [initialData, setInitialData] = useState<ServiceFormData | undefined>();
   const [loading, setLoading] = useState(true);
   const [initialImages, setInitialImages] = useState<ImageUploadItem[]>([]);
@@ -98,7 +99,7 @@ const ServiceEditPage: React.FC = () => {
   }, [id, serviceType]);
 
   const handleBack = () => {
-    console.log("Navigate back");
+    navigate(`/provider/${serviceType}`);
   };
 
   const handleEditSubmit = async (data: any, images: ImageFiles) => {
