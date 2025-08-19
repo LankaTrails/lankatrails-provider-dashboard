@@ -489,27 +489,7 @@ const AllBookingsPage = () => {
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-4">
-                  <div>
-                    <div className="flex justify-between items-center mb-2">
-                      <span className="text-sm font-medium">Booking Success Rate</span>
-                      <span className="text-sm text-gray-600">85%</span>
-                    </div>
-                    <Progress value={85} className="h-2" />
-                  </div>
-                  <div>
-                    <div className="flex justify-between items-center mb-2">
-                      <span className="text-sm font-medium">Customer Satisfaction</span>
-                      <span className="text-sm text-gray-600">4.8/5</span>
-                    </div>
-                    <Progress value={96} className="h-2" />
-                  </div>
-                  <div>
-                    <div className="flex justify-between items-center mb-2">
-                      <span className="text-sm font-medium">Response Time</span>
-                      <span className="text-sm text-gray-600">&lt; 2hrs</span>
-                    </div>
-                    <Progress value={78} className="h-2" />
-                  </div>
+                  {/* Removed: Booking Success Rate, Customer Satisfaction, Response Time */}
                 </div>
                 <div className="space-y-4">
                   <div className="flex items-center justify-between p-3 bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg border border-green-200">

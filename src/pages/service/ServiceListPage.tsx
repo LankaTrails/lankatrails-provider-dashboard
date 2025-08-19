@@ -396,69 +396,183 @@ const ServiceListPage = () => {
         <ProviderTopBar />
       </div>
 
-      {/* Statistics Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-        <Card className="relative overflow-hidden">
-          <div className={`absolute inset-0 ${gradientClass} opacity-10`} />
-          <CardContent className="p-4 relative">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Total Services</p>
-                <p className="text-2xl font-bold">{stats.total}</p>
-              </div>
-              <ServiceTypeIcon className="h-8 w-8 text-gray-400" />
+      {/* Performance Overview */}
+      <Card className="bg-gradient-to-br from-slate-50 to-blue-50 border-0 shadow-lg">
+        <CardHeader className="pb-4">
+          <div className="flex items-center gap-3">
+            <div className="p-2 rounded-lg bg-gradient-to-r from-blue-500 to-indigo-600 text-white">
+              <TrendingUp className="h-6 w-6" />
             </div>
-          </CardContent>
-        </Card>
+            <div>
+              <CardTitle className="text-xl text-gray-800">Performance Overview</CardTitle>
+              <p className="text-sm text-gray-600">Your business metrics at a glance</p>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent className="pt-0">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {/* Total Services */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.1 }}
+              className="relative group"
+            >
+              <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-2xl opacity-0 group-hover:opacity-10 transition-opacity duration-300" />
+              <div className="relative bg-white rounded-2xl p-6 shadow-sm border border-gray-100 hover:shadow-md transition-all duration-300">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="p-3 rounded-xl bg-gradient-to-r from-blue-500 to-indigo-600 text-white">
+                    <ServiceTypeIcon className="h-6 w-6" />
+                  </div>
+                  <div className="text-right">
+                    <p className="text-3xl font-bold text-gray-800">{stats.total}</p>
+                    <p className="text-sm font-medium text-gray-500">Total Services</p>
+                  </div>
+                </div>
+                <div className="h-1 bg-gray-100 rounded-full overflow-hidden">
+                  <div className="h-full bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full w-full" />
+                </div>
+              </div>
+            </motion.div>
 
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Active</p>
-                <p className="text-2xl font-bold text-green-600">{stats.active}</p>
+            {/* Average Rating */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.2 }}
+              className="relative group"
+            >
+              <div className="absolute inset-0 bg-gradient-to-r from-emerald-500 to-green-600 rounded-2xl opacity-0 group-hover:opacity-10 transition-opacity duration-300" />
+              <div className="relative bg-white rounded-2xl p-6 shadow-sm border border-gray-100 hover:shadow-md transition-all duration-300">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="p-3 rounded-xl bg-gradient-to-r from-emerald-500 to-green-600 text-white">
+                    <Star className="h-6 w-6" />
+                  </div>
+                  <div className="text-right">
+                    <div className="flex items-baseline gap-1">
+                      <p className="text-3xl font-bold text-gray-800">{stats.avgRating}</p>
+                      <p className="text-lg text-gray-500">/5.0</p>
+                    </div>
+                    <p className="text-sm font-medium text-gray-500">Average Rating</p>
+                  </div>
+                </div>
+                <div className="h-1 bg-gray-100 rounded-full overflow-hidden">
+                  <div 
+                    className="h-full bg-gradient-to-r from-emerald-500 to-green-600 rounded-full transition-all duration-500" 
+                    style={{ width: `${(parseFloat(stats.avgRating) / 5) * 100}%` }}
+                  />
+                </div>
               </div>
-              <CheckCircle className="h-8 w-8 text-green-500" />
-            </div>
-          </CardContent>
-        </Card>
+            </motion.div>
 
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Inactive</p>
-                <p className="text-2xl font-bold text-red-600">{stats.inactive}</p>
+            {/* Active Services */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.3 }}
+              className="relative group"
+            >
+              <div className="absolute inset-0 bg-gradient-to-r from-cyan-500 to-blue-600 rounded-2xl opacity-0 group-hover:opacity-10 transition-opacity duration-300" />
+              <div className="relative bg-white rounded-2xl p-6 shadow-sm border border-gray-100 hover:shadow-md transition-all duration-300">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="p-3 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 text-white">
+                    <CheckCircle className="h-6 w-6" />
+                  </div>
+                  <div className="text-right">
+                    <p className="text-3xl font-bold text-gray-800">{stats.active}</p>
+                    <p className="text-sm font-medium text-gray-500">Active Services</p>
+                  </div>
+                </div>
+                <div className="h-1 bg-gray-100 rounded-full overflow-hidden">
+                  <div 
+                    className="h-full bg-gradient-to-r from-cyan-500 to-blue-600 rounded-full transition-all duration-500" 
+                    style={{ width: stats.total > 0 ? `${(stats.active / stats.total) * 100}%` : '0%' }}
+                  />
+                </div>
               </div>
-              <XCircle className="h-8 w-8 text-red-500" />
-            </div>
-          </CardContent>
-        </Card>
+            </motion.div>
 
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Avg Rating</p>
-                <p className="text-2xl font-bold text-yellow-600">{stats.avgRating}</p>
+            {/* Total Bookings */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.4 }}
+              className="relative group"
+            >
+              <div className="absolute inset-0 bg-gradient-to-r from-purple-500 to-pink-600 rounded-2xl opacity-0 group-hover:opacity-10 transition-opacity duration-300" />
+              <div className="relative bg-white rounded-2xl p-6 shadow-sm border border-gray-100 hover:shadow-md transition-all duration-300">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="p-3 rounded-xl bg-gradient-to-r from-purple-500 to-pink-600 text-white">
+                    <Activity className="h-6 w-6" />
+                  </div>
+                  <div className="text-right">
+                    <p className="text-3xl font-bold text-gray-800">{stats.totalBookings}</p>
+                    <p className="text-sm font-medium text-gray-500">Total Bookings</p>
+                  </div>
+                </div>
+                <div className="h-1 bg-gray-100 rounded-full overflow-hidden">
+                  <div className="h-full bg-gradient-to-r from-purple-500 to-pink-600 rounded-full w-full" />
+                </div>
               </div>
-              <Star className="h-8 w-8 text-yellow-500" />
-            </div>
-          </CardContent>
-        </Card>
+            </motion.div>
+          </div>
 
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Total Bookings</p>
-                <p className="text-2xl font-bold text-blue-600">{stats.totalBookings}</p>
+          {/* Additional Insights Row */}
+          {stats.total > 0 && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.5 }}
+              className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4"
+            >
+              <div className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-lg bg-gradient-to-r from-green-500 to-emerald-600 text-white">
+                    <CheckCircle className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <p className="text-lg font-semibold text-gray-800">
+                      {((stats.active / stats.total) * 100).toFixed(1)}%
+                    </p>
+                    <p className="text-xs text-gray-500">Service Availability</p>
+                  </div>
+                </div>
               </div>
-              <TrendingUp className="h-8 w-8 text-blue-500" />
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+
+              <div className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-lg bg-gradient-to-r from-yellow-500 to-orange-600 text-white">
+                    <Star className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <p className="text-lg font-semibold text-gray-800">
+                      {parseFloat(stats.avgRating) >= 4.5 ? 'Excellent' : 
+                       parseFloat(stats.avgRating) >= 4.0 ? 'Very Good' : 
+                       parseFloat(stats.avgRating) >= 3.5 ? 'Good' : 
+                       parseFloat(stats.avgRating) >= 3.0 ? 'Average' : 'Needs Improvement'}
+                    </p>
+                    <p className="text-xs text-gray-500">Rating Quality</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-lg bg-gradient-to-r from-indigo-500 to-purple-600 text-white">
+                    <TrendingUp className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <p className="text-lg font-semibold text-gray-800">
+                      {stats.totalBookings > 0 ? (stats.totalBookings / stats.active || 1).toFixed(1) : '0.0'}
+                    </p>
+                    <p className="text-xs text-gray-500">Avg Bookings/Service</p>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </CardContent>
+      </Card>
 
       {/* Search and Filter Controls */}
       <Card>
