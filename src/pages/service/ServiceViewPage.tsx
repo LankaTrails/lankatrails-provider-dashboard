@@ -153,9 +153,9 @@ const ServiceViewPage = () => {
           <div className="ml-auto">
             <Button 
               onClick={() => navigate(`/provider/${serviceType}/edit/${id}`)}
-              className="flex items-center space-x-2"
+              className={`${gradientClass} text-white hover:opacity-90`}
             >
-              <Edit className="w-4 h-4" />
+              <Edit className="w-4 h-4 mr-2" />
               <span>Edit Service</span>
             </Button>
           </div>

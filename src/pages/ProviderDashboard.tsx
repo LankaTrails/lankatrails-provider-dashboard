@@ -229,6 +229,9 @@ const ProviderDashboard = () => {
     },
   ];
 
+  // 1. Add a flag to check if there are any services at all
+  const hasAnyServices = services.length > 0;
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-rose-50">
       <Header />
@@ -310,29 +313,34 @@ const ProviderDashboard = () => {
 
               {/* Stats Cards */}
               <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-                {stats.map((stat, index) => (
-                  <Card
-                    key={index}
-                    className={`bg-gradient-to-br ${gradientClasses[index]} text-white border-0 shadow-lg hover:shadow-2xl transition-transform hover:-translate-y-1`}
-                  >
-                    <CardContent className="p-6">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="text-sm opacity-90">{stat.title}</p>
-                          <p className="text-3xl font-extrabold">
-                            {stat.value}
-                          </p>
-                          <p className="text-sm opacity-80">
-                            {stat.change} from last month
-                          </p>
+                {hasAnyServices ? (
+                  stats.map((stat, index) => (
+                    <Card
+                      key={index}
+                      className={`bg-gradient-to-br ${gradientClasses[index]} text-white border-0 shadow-lg hover:shadow-2xl transition-transform hover:-translate-y-1`}
+                    >
+                      <CardContent className="p-6">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="text-sm opacity-90">{stat.title}</p>
+                            <p className="text-3xl font-extrabold">{stat.value}</p>
+                            <p className="text-sm opacity-80">{stat.change} from last month</p>
+                          </div>
+                          <div className="p-3 bg-white/20 rounded-lg">{stat.icon}</div>
                         </div>
-                        <div className="p-3 bg-white/20 rounded-lg">
-                          {stat.icon}
-                        </div>
-                      </div>
-                    </CardContent>
+                      </CardContent>
+                    </Card>
+                  ))
+                ) : (
+                  <Card className="col-span-full flex flex-col items-center justify-center py-12 bg-white border-2 border-dashed border-gray-200 rounded-lg shadow-sm">
+                    <Package className="w-12 h-12 text-gray-400 mb-4" />
+                    <h3 className="text-lg font-medium text-gray-700">No services yet</h3>
+                    <p className="text-sm text-gray-500 mb-4">Add your first service to see stats and analytics here.</p>
+                    <Button onClick={() => setFormOpen(true)} className="bg-primary-500 hover:bg-primary-600 text-white">
+                      <Plus className="w-4 h-4 mr-2" /> Add Service
+                    </Button>
                   </Card>
-                ))}
+                )}
               </div>
 
               {/* Main Dashboard Tabs */}
@@ -358,47 +366,46 @@ const ProviderDashboard = () => {
                       <CardHeader>
                         <div className="flex items-center justify-between">
                           <CardTitle>Recent Bookings</CardTitle>
-                          <Button variant="outline" size="sm">
-                            View All
-                          </Button>
+                          {hasAnyServices && (
+                            <Button variant="outline" size="sm">View All</Button>
+                          )}
                         </div>
                       </CardHeader>
                       <CardContent>
                         <div className="space-y-4">
-                          {recentBookings.map((booking) => (
-                            <div
-                              key={booking.id}
-                              className="flex items-center justify-between p-4 border rounded-lg"
-                            >
-                              <div>
-                                <h4 className="font-medium">
-                                  {booking.customer}
-                                </h4>
-                                <p className="text-sm text-gray-600">
-                                  {booking.service}
-                                </p>
-                                <p className="text-sm text-gray-500">
-                                  {booking.date}
-                                </p>
+                          {hasAnyServices ? (
+                            recentBookings.map((booking) => (
+                              <div
+                                key={booking.id}
+                                className="flex items-center justify-between p-4 border rounded-lg"
+                              >
+                                <div>
+                                  <h4 className="font-medium">{booking.customer}</h4>
+                                  <p className="text-sm text-gray-600">{booking.service}</p>
+                                  <p className="text-sm text-gray-500">{booking.date}</p>
+                                </div>
+                                <div className="text-right">
+                                  <Badge
+                                    variant={
+                                      booking.status === "confirmed"
+                                        ? "default"
+                                        : booking.status === "pending"
+                                        ? "secondary"
+                                        : "outline"
+                                    }
+                                  >
+                                    {booking.status}
+                                  </Badge>
+                                  <p className="text-sm font-medium mt-1">{booking.amount}</p>
+                                </div>
                               </div>
-                              <div className="text-right">
-                                <Badge
-                                  variant={
-                                    booking.status === "confirmed"
-                                      ? "default"
-                                      : booking.status === "pending"
-                                      ? "secondary"
-                                      : "outline"
-                                  }
-                                >
-                                  {booking.status}
-                                </Badge>
-                                <p className="text-sm font-medium mt-1">
-                                  {booking.amount}
-                                </p>
-                              </div>
+                            ))
+                          ) : (
+                            <div className="flex flex-col items-center justify-center py-8">
+                              <Package className="w-10 h-10 text-gray-400 mb-2" />
+                              <p className="text-gray-500">No bookings yet. Add a service to start receiving bookings.</p>
                             </div>
-                          ))}
+                          )}
                         </div>
                       </CardContent>
                     </Card>
@@ -420,6 +427,7 @@ const ProviderDashboard = () => {
                           <Button
                             variant="outline"
                             className="h-20 flex flex-col items-center justify-center space-y-2"
+                            disabled={!hasAnyServices}
                           >
                             <Calendar className="w-6 h-6" />
                             <span>Update Calendar</span>
@@ -427,6 +435,7 @@ const ProviderDashboard = () => {
                           <Button
                             variant="outline"
                             className="h-20 flex flex-col items-center justify-center space-y-2"
+                            disabled={!hasAnyServices}
                           >
                             <MessageSquare className="w-6 h-6" />
                             <span>Messages</span>
@@ -434,6 +443,7 @@ const ProviderDashboard = () => {
                           <Button
                             variant="outline"
                             className="h-20 flex flex-col items-center justify-center space-y-2"
+                            disabled={!hasAnyServices}
                           >
                             <BarChart3 className="w-6 h-6" />
                             <span>View Analytics</span>
@@ -542,10 +552,10 @@ const ProviderDashboard = () => {
                       <div className="col-span-full flex flex-col items-center justify-center space-y-4 py-12 bg-white border-2 border-dashed border-gray-200 rounded-lg shadow-sm">
                         <Package className="w-12 h-12 text-gray-400" />
                         <h3 className="text-lg font-medium text-gray-700">
-                          No services in this category
+                          {hasAnyServices ? "No services in this category" : "No services yet"}
                         </h3>
                         <p className="text-sm text-gray-500">
-                          Click below to add your first service.
+                          {hasAnyServices ? "Try another category or add a new service." : "Click below to add your first service."}
                         </p>
                         <Button
                           onClick={() => setFormOpen(true)}
@@ -560,6 +570,7 @@ const ProviderDashboard = () => {
                 </TabsContent>
 
                 {/* Other tabs placeholder */}
+                {/* Bookings Tab */}
                 <TabsContent value="bookings">
                   <Card>
                     <CardHeader>
@@ -570,90 +581,118 @@ const ProviderDashboard = () => {
                     </CardHeader>
                     <CardContent>
                       <div className="space-y-4">
-                        {recentBookings.map((booking) => (
-                          <div
-                            key={booking.id}
-                            className="flex items-center justify-between p-4 border rounded-lg"
-                          >
-                            <div className="flex items-center space-x-4">
-                              <div className="w-12 h-12 bg-primary-100 rounded-full flex items-center justify-center">
-                                <Users className="w-6 h-6 text-primary-500" />
+                        {hasAnyServices ? (
+                          recentBookings.map((booking) => (
+                            <div
+                              key={booking.id}
+                              className="flex items-center justify-between p-4 border rounded-lg"
+                            >
+                              <div className="flex items-center space-x-4">
+                                <div className="w-12 h-12 bg-primary-100 rounded-full flex items-center justify-center">
+                                  <Users className="w-6 h-6 text-primary-500" />
+                                </div>
+                                <div>
+                                  <h4 className="font-medium">
+                                    {booking.customer}
+                                  </h4>
+                                  <p className="text-sm text-gray-600">
+                                    {booking.service}
+                                  </p>
+                                  <div className="flex items-center space-x-2 mt-1">
+                                    <Clock className="w-4 h-4 text-gray-400" />
+                                    <span className="text-sm text-gray-500">
+                                      {booking.date}
+                                    </span>
+                                  </div>
+                                </div>
                               </div>
-                              <div>
-                                <h4 className="font-medium">
-                                  {booking.customer}
-                                </h4>
-                                <p className="text-sm text-gray-600">
-                                  {booking.service}
+                              <div className="text-right space-y-2">
+                                <Badge
+                                  variant={
+                                    booking.status === "confirmed"
+                                      ? "default"
+                                      : booking.status === "pending"
+                                      ? "secondary"
+                                      : "outline"
+                                  }
+                                >
+                                  {booking.status}
+                                </Badge>
+                                <p className="text-lg font-semibold text-primary-500">
+                                  {booking.amount}
                                 </p>
-                                <div className="flex items-center space-x-2 mt-1">
-                                  <Clock className="w-4 h-4 text-gray-400" />
-                                  <span className="text-sm text-gray-500">
-                                    {booking.date}
-                                  </span>
+                                <div className="space-x-2">
+                                  {booking.status === "pending" && (
+                                    <>
+                                      <Button size="sm" variant="outline">
+                                        Decline
+                                      </Button>
+                                      <Button
+                                        size="sm"
+                                        className="bg-green-500 hover:bg-green-600"
+                                      >
+                                        <CheckCircle className="w-4 h-4 mr-1" />
+                                        Accept
+                                      </Button>
+                                    </>
+                                  )}
                                 </div>
                               </div>
                             </div>
-                            <div className="text-right space-y-2">
-                              <Badge
-                                variant={
-                                  booking.status === "confirmed"
-                                    ? "default"
-                                    : booking.status === "pending"
-                                    ? "secondary"
-                                    : "outline"
-                                }
-                              >
-                                {booking.status}
-                              </Badge>
-                              <p className="text-lg font-semibold text-primary-500">
-                                {booking.amount}
-                              </p>
-                              <div className="space-x-2">
-                                {booking.status === "pending" && (
-                                  <>
-                                    <Button size="sm" variant="outline">
-                                      Decline
-                                    </Button>
-                                    <Button
-                                      size="sm"
-                                      className="bg-green-500 hover:bg-green-600"
-                                    >
-                                      <CheckCircle className="w-4 h-4 mr-1" />
-                                      Accept
-                                    </Button>
-                                  </>
-                                )}
-                              </div>
-                            </div>
+                          ))
+                        ) : (
+                          <div className="flex flex-col items-center justify-center py-8">
+                            <Package className="w-10 h-10 text-gray-400 mb-2" />
+                            <p className="text-gray-500">No bookings yet. Add a service to start receiving bookings.</p>
                           </div>
-                        ))}
+                        )}
                       </div>
                     </CardContent>
                   </Card>
                 </TabsContent>
 
                 <TabsContent value="calendar">
-                  <CalendarView bookings={calendarBookings} />
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>Availability Calendar</CardTitle>
-                      <CardDescription>
-                        Manage your availability and schedule
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="h-96 bg-gray-100 rounded-lg flex items-center justify-center">
-                        <div className="text-center text-gray-500">
-                          <Calendar className="w-12 h-12 mx-auto mb-4 text-primary-500" />
-                          <p className="text-lg font-medium">Calendar View</p>
-                          <p className="text-sm">
-                            Manage your availability and bookings
-                          </p>
+                  {hasAnyServices ? (
+                    <>
+                      <CalendarView bookings={calendarBookings} />
+                      <Card>
+                        <CardHeader>
+                          <CardTitle>Availability Calendar</CardTitle>
+                          <CardDescription>
+                            Manage your availability and schedule
+                          </CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="h-96 bg-gray-100 rounded-lg flex items-center justify-center">
+                            <div className="text-center text-gray-500">
+                              <Calendar className="w-12 h-12 mx-auto mb-4 text-primary-500" />
+                              <p className="text-lg font-medium">Calendar View</p>
+                              <p className="text-sm">Manage your availability and bookings</p>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </>
+                  ) : (
+                    <Card>
+                      <CardHeader>
+                        <CardTitle>Availability Calendar</CardTitle>
+                        <CardDescription>
+                          Add a service to manage your calendar and availability.
+                        </CardDescription>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="h-96 flex flex-col items-center justify-center text-gray-500">
+                          <Package className="w-12 h-12 mb-4" />
+                          <p className="text-lg font-medium">No services yet</p>
+                          <p className="text-sm">Add your first service to enable calendar features.</p>
+                          <Button onClick={() => setFormOpen(true)} className="mt-4 bg-primary-500 hover:bg-primary-600 text-white">
+                            <Plus className="w-4 h-4 mr-2" /> Add Service
+                          </Button>
                         </div>
-                      </div>
-                    </CardContent>
-                  </Card>
+                      </CardContent>
+                    </Card>
+                  )}
                 </TabsContent>
 
                 <TabsContent value="messages" className="space-y-6">
@@ -661,33 +700,73 @@ const ProviderDashboard = () => {
                 </TabsContent>
 
                 <TabsContent value="analytics">
-                  <AnalyticsCharts />
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>Analytics & Reports</CardTitle>
-                      <CardDescription>
-                        Track your performance and revenue
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="h-96 bg-gray-100 rounded-lg flex items-center justify-center">
-                        <div className="text-center text-gray-500">
-                          <BarChart3 className="w-12 h-12 mx-auto mb-4 text-primary-500" />
-                          <p className="text-lg font-medium">
-                            Analytics Dashboard
-                          </p>
-                          <p className="text-sm">
-                            View detailed performance metrics
-                          </p>
+                  {hasAnyServices ? (
+                    <>
+                      <AnalyticsCharts />
+                      <Card>
+                        <CardHeader>
+                          <CardTitle>Analytics & Reports</CardTitle>
+                          <CardDescription>
+                            Track your performance and revenue
+                          </CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="h-96 bg-gray-100 rounded-lg flex items-center justify-center">
+                            <div className="text-center text-gray-500">
+                              <BarChart3 className="w-12 h-12 mx-auto mb-4 text-primary-500" />
+                              <p className="text-lg font-medium">Analytics Dashboard</p>
+                              <p className="text-sm">View detailed performance metrics</p>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </>
+                  ) : (
+                    <Card>
+                      <CardHeader>
+                        <CardTitle>Analytics & Reports</CardTitle>
+                        <CardDescription>
+                          Add a service to view analytics and reports.
+                        </CardDescription>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="h-96 flex flex-col items-center justify-center text-gray-500">
+                          <Package className="w-12 h-12 mb-4" />
+                          <p className="text-lg font-medium">No services yet</p>
+                          <p className="text-sm">Add your first service to enable analytics features.</p>
+                          <Button onClick={() => setFormOpen(true)} className="mt-4 bg-primary-500 hover:bg-primary-600 text-white">
+                            <Plus className="w-4 h-4 mr-2" /> Add Service
+                          </Button>
                         </div>
-                      </div>
-                    </CardContent>
-                  </Card>
+                      </CardContent>
+                    </Card>
+                  )}
                 </TabsContent>
 
                 {/* Reviews Tab */}
                 <TabsContent value="reviews" className="space-y-6">
-                  <ReviewList reviews={reviews} />
+                  {hasAnyServices ? (
+                    <ReviewList reviews={reviews} />
+                  ) : (
+                    <Card>
+                      <CardHeader>
+                        <CardTitle>Reviews</CardTitle>
+                        <CardDescription>
+                          Add a service to start receiving reviews from your customers.
+                        </CardDescription>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="h-64 flex flex-col items-center justify-center text-gray-500">
+                          <Package className="w-12 h-12 mb-4" />
+                          <p className="text-lg font-medium">No services yet</p>
+                          <p className="text-sm">Add your first service to enable reviews.</p>
+                          <Button onClick={() => setFormOpen(true)} className="mt-4 bg-primary-500 hover:bg-primary-600 text-white">
+                            <Plus className="w-4 h-4 mr-2" /> Add Service
+                          </Button>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  )}
                 </TabsContent>
               </Tabs>
             </>
