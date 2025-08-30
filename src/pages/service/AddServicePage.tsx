@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import NewServiceForm from "@/components/NewServiceForm";
 import ProviderTopBar from "@/components/provider/ProviderTopBar";
 import { useParams } from "react-router-dom";
 import { addNewService } from "@/services/services";
@@ -13,6 +12,7 @@ import type {
   TransportFormData,
 } from "@/types/serviceTypes";
 import AlertToast from "@/components/forms/AlertToast";
+import StepWizardServiceForm from "@/components/StepWizardServiceForm";
 
 // Helper to prettify the serviceType
 const formatServiceTitle = (type?: string): string => {
@@ -158,7 +158,10 @@ const AddServicePage: React.FC = () => {
       </div>
 
       <div className={isSubmitting ? "opacity-50 pointer-events-none" : ""}>
-        <NewServiceForm serviceType={serviceType} onSubmit={handleAddSubmit} />
+        <StepWizardServiceForm
+          serviceType={serviceType}
+          onSubmit={handleAddSubmit}
+        />
       </div>
 
       {toast && (

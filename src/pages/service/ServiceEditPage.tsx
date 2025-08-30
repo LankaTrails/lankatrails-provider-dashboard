@@ -1,14 +1,14 @@
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import ServiceForm from "@/components/NewServiceForm";
+import UnifiedServiceForm from "@/components/UnifiedServiceForm";
 import BackButton from "@/components/BackButton";
 import type {
   ServiceFormData,
   ImageUploadItem,
   ImageFiles,
   ImageData,
-  TabData, 
-  PolicyData
+  TabData,
+  PolicyData,
 } from "@/types/serviceTypes";
 import { findServiceById, updateService } from "@/services/services";
 
@@ -126,12 +126,11 @@ const ServiceEditPage: React.FC = () => {
         </h1>
       </div>
 
-      <ServiceForm
+      <UnifiedServiceForm
         serviceType={serviceType}
         initialData={initialData}
         initialImages={initialImages}
         existingImages={existingImages}
-
         onSubmit={handleEditSubmit}
       />
     </div>
