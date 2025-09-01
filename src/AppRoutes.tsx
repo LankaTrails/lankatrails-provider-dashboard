@@ -21,6 +21,10 @@ import NotFound from "@/pages/NotFound";
 import ContactPerson from "./pages/provider/ContactPerson";
 import AllPolicy from "./pages/provider/AllPolicy";
 import AddPolicy from "./pages/provider/AddPolicy";
+import LicensesManagement from "./pages/provider/LicensesManagement";
+import AddLicense from "./pages/provider/AddLicense";
+import LicenseFlow from "./pages/provider/LicenseFlow";
+import LicenseTypes from "./pages/provider/LicenseTypes";
 import AddActivityPolicy from "./pages/provider/AddActivityPolicy";
 import AddTransportPolicy from "./pages/provider/AddTransportPolicy";
 import AddTourGuidePolicy from "./pages/provider/AddTourGuidePolicy";
@@ -89,15 +93,19 @@ const AppRoutes = () => {
           <Route path="all" element={<AllPolicy />} />
           {/* <Route path="add" element={<AddPolicy />} /> */}
           <Route path="activity" element={<AddActivityPolicy />} />
-          <Route path="tour-guide" element={<AddTourGuidePolicy />} /> 
+          <Route path="tour-guide" element={<AddTourGuidePolicy />} />
           <Route path="transport" element={<AddTransportPolicy />} />
           <Route path="food-beverage" element={<AddFoodBeveragePolicy />} />
           <Route path="accommodation" element={<AddAccommodationPolicy />} />
         </Route>
-        <Route
-          path="booking/:id"
-          element={<BookingDetailsPage />}
-        />
+        <Route path="licenses">
+  <Route index element={<LicensesManagement />} />
+  <Route path="add" element={<AddLicense />} />
+  <Route path="flow" element={<LicenseFlow />} />
+  <Route path="types" element={<LicenseTypes />} />
+</Route>
+
+        <Route path="booking/:id" element={<BookingDetailsPage />} />
       </Route>
 
       <Route

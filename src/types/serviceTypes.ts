@@ -15,7 +15,33 @@ export type TourGuideType = 'NATIONAL' | 'CHAUFFEUR' | 'SITE' | 'AREA';
 export type FuelType = 'PETROL' | 'DIESEL' | 'ELECTRIC' | 'HYBRID';
 
 export type TransmissionType = 'MANUAL' | 'AUTOMATIC' | 'SEMI_AUTOMATIC';
-
+// In types/serviceTypes.ts
+export interface License {
+  id?: string;
+  name: string;
+  description: string;
+  expiryDate?: string;
+  documentUrl?: string;
+  status: "active" | "pending" | "expired" | "renewal";
+  issueDate?: string;
+  issuingAuthority?: string;
+  licenseNumber?: string;
+  licenseType?: string; // New field
+  customType?: string; // New field for custom types
+  notes?: string; // New field for additional notes
+}
+export interface LicenseSection {
+  id: string;
+  heading: string;
+  description: string;
+  isExpanded: boolean;
+  expiryDate?: string;
+  documentUrl?: string;
+  issuingAuthority?: string;
+  issueDate?: string;
+  licenseNumber?: string;
+  status: "active" | "pending" | "expired";
+}
 export interface TabData {
   id: number | null;
   heading: string;

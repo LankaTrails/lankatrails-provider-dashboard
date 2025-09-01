@@ -13,6 +13,7 @@ const tabs = [
   { label: "All Bookings", slug: "bookings" },
   { label: "Messages", slug: "messages" },
   { label: "Policy Management", slug: "policy" },
+  { label: "Licenses Management", slug: "licenses" },
   { label: "Analytics", slug: "analytics" },
 ];
 
@@ -76,7 +77,7 @@ const ProviderSidebar = () => {
             <li>
               <Button
                 variant="outline"
-                className="w-full justify-start capitalize"
+                className="w-full justify-start capitalize bg-red-50 text-red-600 hover:bg-red-100 hover:text-red-700"
                 onClick={handleLogout}
               >
                 Logout
