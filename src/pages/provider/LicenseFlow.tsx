@@ -5,6 +5,8 @@ import { submitLicenseApplication } from "@/services/LicenseService";
 
 interface LicenseApplication {
   type: string;
+  name: string;
+  description: string;
   businessName: string;
   contactName: string;
   contactEmail: string;
@@ -18,7 +20,7 @@ const LicenseFlow = () => {
   const navigate = useNavigate();
   const [currentStep, setCurrentStep] = useState(1);
   const [application, setApplication] = useState<Partial<LicenseApplication>>({});
-  const [toast, setToast] = useState<{ message: string; type: "success" | "error" | "warning" } | null>(null);
+  const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
 
@@ -103,7 +105,7 @@ const LicenseFlow = () => {
   };
 
   const handleFileUpload = (files: FileList) => {
-    const newFiles = Array.from(files);
+    let newFiles = Array.from(files);
     
     // Validate file size (max 10MB each)
     const oversizedFiles = newFiles.filter(file => file.size > 10 * 1024 * 1024);

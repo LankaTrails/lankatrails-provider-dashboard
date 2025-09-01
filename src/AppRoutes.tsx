@@ -19,14 +19,11 @@ import Profile from "@/pages/provider/Profile";
 import NotFound from "@/pages/NotFound";
 import ContactPerson from "./pages/provider/ContactPerson";
 import AllPolicy from "./pages/provider/AllPolicy";
-<<<<<<< HEAD
 import AddPolicy from "./pages/provider/AddPolicy";
 import LicensesManagement from "./pages/provider/LicensesManagement";
 import AddLicense from "./pages/provider/AddLicense";
 import LicenseFlow from "./pages/provider/LicenseFlow";
 import LicenseTypes from "./pages/provider/LicenseTypes";
-=======
->>>>>>> c28caed1e6cdd414f16056214ebd9badbc6011ae
 import AddActivityPolicy from "./pages/provider/AddActivityPolicy";
 import AddTransportPolicy from "./pages/provider/AddTransportPolicy";
 import AddTourGuidePolicy from "./pages/provider/AddTourGuidePolicy";

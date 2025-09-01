@@ -1,9 +1,23 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import ProviderTopBar from "@/components/provider/ProviderTopBar";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import AlertToast from "@/components/forms/AlertToast";
-import { fetchAllLicenses, addLicense, updateLicense, deleteLicense } from "@/services/LicenseService";
+import { fetchAllLicenses, deleteLicense } from "@/services/LicenseService";
 import type { License } from "@/types/serviceTypes";
+import {
+  FileText,
+  Plus,
+  RefreshCw,
+  Trash2,
+  Edit,
+  Eye,
+  Calendar,
+  AlertTriangle,
+  CheckCircle,
+  Clock
+} from "lucide-react";
 
 const ManageLicenses = () => {
   const [licenses, setLicenses] = useState<License[]>([]);
@@ -56,13 +70,9 @@ const ManageLicenses = () => {
     navigate('flow');
   };
 
- const navigateToLicenseTypes = () => {
-  // console.log('Current serviceType:', serviceType);
-  // console.log('Current pathname:', window.location.pathname);
-  
-  // // Try different approaches
-  navigate('types'); // Relative navigation
-};
+  const navigateToLicenseTypes = () => {
+    navigate('types');
+  };
 
   // Check if license expires within 30 days
   const isExpiringSoon = (expiryDate: string | undefined): boolean => {
@@ -86,112 +96,151 @@ const ManageLicenses = () => {
     return expiry < today;
   };
 
+  // Stats calculation
+  const activeLicenses = licenses.filter(l => l.status === 'active').length;
+  const pendingLicenses = licenses.filter(l => l.status === 'pending').length;
+  const expiringSoonLicenses = licenses.filter(l => isExpiringSoon(l.expiryDate)).length;
+  const expiredLicenses = licenses.filter(l => isExpired(l.expiryDate)).length;
+
+  const stats = [
+    {
+      title: "Active Licenses",
+      value: activeLicenses.toString(),
+      icon: <CheckCircle className="w-6 h-6 text-white/90" />,
+      gradient: "from-emerald-600 via-emerald-500 to-teal-500",
+    },
+    {
+      title: "Pending Approval",
+      value: pendingLicenses.toString(),
+      icon: <Clock className="w-6 h-6 text-white/90" />,
+      gradient: "from-yellow-500 via-amber-500 to-orange-500",
+    },
+    {
+      title: "Expiring Soon",
+      value: expiringSoonLicenses.toString(),
+      icon: <AlertTriangle className="w-6 h-6 text-white/90" />,
+      gradient: "from-orange-500 via-amber-500 to-yellow-500",
+    },
+    {
+      title: "Expired",
+      value: expiredLicenses.toString(),
+      icon: <FileText className="w-6 h-6 text-white/90" />,
+      gradient: "from-red-600 via-red-500 to-pink-500",
+    },
+  ];
+
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl p-2 font-bold">Business Licenses & Certifications</h1>
-        <ProviderTopBar />
+    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-rose-50 space-y-8 p-6">
+      <div className="flex justify-between items-center">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">Business Licenses & Certifications</h1>
+          <p className="text-gray-600 mt-2">Manage all your business licenses and certifications in one place</p>
+        </div>
+        
+        {/* Action Buttons */}
+        <div className="flex space-x-3">
+          <Button
+            onClick={navigateToAddLicense}
+            className="bg-blue-600 hover:bg-blue-700 transition-colors"
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            Add License
+          </Button>
+          <Button
+            onClick={navigateToLicenseFlow}
+            variant="outline"
+            className="border-purple-600 text-purple-600 hover:bg-purple-50"
+          >
+            <FileText className="w-4 h-4 mr-2" />
+            Application Flow
+          </Button>
+          <Button
+            onClick={navigateToLicenseTypes}
+            variant="outline"
+            className="border-green-600 text-green-600 hover:bg-green-50"
+          >
+            Manage Types
+          </Button>
+          <Button
+            onClick={loadLicenses}
+            variant="outline"
+            className="border-gray-600 text-gray-600 hover:bg-gray-50"
+          >
+            <RefreshCw className="w-4 h-4 mr-2" />
+            Refresh
+          </Button>
+        </div>
       </div>
 
-      {/* Navigation Buttons */}
-      <div className="flex space-x-4 mb-6">
-        <button
-          onClick={navigateToAddLicense}
-          className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors"
-        >
-          + Add New License
-        </button>
-        <button
-          onClick={navigateToLicenseFlow}
-          className="bg-purple-600 text-white px-4 py-2 rounded-md hover:bg-purple-700 transition-colors"
-        >
-           + Add New License
-        </button>
-        <button
-          onClick={navigateToLicenseTypes}
-          className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition-colors"
-        >
-          Manage License Types
-        </button>
-        <button
-          onClick={loadLicenses}
-          className="bg-gray-600 text-white px-4 py-2 rounded-md hover:bg-gray-700 transition-colors"
-        >
-          Refresh
-        </button>
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        {stats.map((stat) => (
+          <Card
+            key={stat.title}
+            className={`bg-gradient-to-br ${stat.gradient} text-white border-0 shadow-lg hover:shadow-2xl transition-transform hover:-translate-y-1`}
+          >
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm opacity-90">{stat.title}</p>
+                  <p className="text-2xl font-bold">{stat.value}</p>
+                </div>
+                <div className="p-2 bg-white/20 rounded-lg">{stat.icon}</div>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
       </div>
 
       {isLoading ? (
-        <div className="flex justify-center items-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
-        </div>
+        <Card className="shadow">
+          <CardContent className="flex justify-center items-center h-64">
+            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+          </CardContent>
+        </Card>
       ) : (
         <>
-          {/* License Status Summary */}
-          <div className="bg-white p-6 rounded-lg shadow">
-            <h2 className="text-xl font-semibold mb-4">License Status Summary</h2>
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              <div className="p-4 bg-green-50 rounded-lg">
-                <h3 className="text-lg font-medium text-green-800">Active</h3>
-                <p className="text-2xl font-bold text-green-900">
-                  {licenses.filter(l => l.status === 'active').length}
-                </p>
-              </div>
-              <div className="p-4 bg-yellow-50 rounded-lg">
-                <h3 className="text-lg font-medium text-yellow-800">Pending</h3>
-                <p className="text-2xl font-bold text-yellow-900">
-                  {licenses.filter(l => l.status === 'pending').length}
-                </p>
-              </div>
-              <div className="p-4 bg-orange-50 rounded-lg">
-                <h3 className="text-lg font-medium text-orange-800">Expiring Soon</h3>
-                <p className="text-2xl font-bold text-orange-900">
-                  {licenses.filter(l => isExpiringSoon(l.expiryDate)).length}
-                </p>
-              </div>
-              <div className="p-4 bg-red-50 rounded-lg">
-                <h3 className="text-lg font-medium text-red-800">Expired</h3>
-                <p className="text-2xl font-bold text-red-900">
-                  {licenses.filter(l => isExpired(l.expiryDate)).length}
-                </p>
-              </div>
-            </div>
-          </div>
-
           {/* Licenses Grid */}
-          <div className="bg-white p-6 rounded-lg shadow">
-            <h2 className="text-xl font-semibold mb-4">Your Licenses</h2>
-            
-            {licenses.length === 0 ? (
-              <div className="text-center py-12">
-                <div className="text-gray-400 mb-4">
-                  <svg className="w-16 h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                  </svg>
+          <Card className="shadow">
+            <CardHeader>
+              <CardTitle className="text-lg flex justify-between items-center">
+                <span>Your Licenses</span>
+                <span className="text-sm font-normal text-gray-500">
+                  {licenses.length} license{licenses.length !== 1 ? 's' : ''}
+                </span>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {licenses.length === 0 ? (
+                <div className="text-center py-12">
+                  <div className="text-gray-400 mb-4">
+                    <FileText className="w-16 h-16 mx-auto" />
+                  </div>
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">No licenses yet</h3>
+                  <p className="text-gray-600 mb-6">Get started by adding your first license</p>
+                  <Button
+                    onClick={navigateToAddLicense}
+                    className="bg-blue-600 hover:bg-blue-700"
+                  >
+                    <Plus className="w-4 h-4 mr-2" />
+                    Add Your First License
+                  </Button>
                 </div>
-                <h3 className="text-lg font-medium text-gray-900 mb-2">No licenses yet</h3>
-                <p className="text-gray-600 mb-4">Get started by adding your first license</p>
-                <button
-                  onClick={navigateToAddLicense}
-                  className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700"
-                >
-                  Add Your First License
-                </button>
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {licenses.map((license) => (
-                  <LicenseCard 
-                    key={license.id} 
-                    license={license} 
-                    onDelete={handleDeleteLicense}
-                    isExpiringSoon={isExpiringSoon(license.expiryDate)}
-                    isExpired={isExpired(license.expiryDate)}
-                  />
-                ))}
-              </div>
-            )}
-          </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {licenses.map((license) => (
+                    <LicenseCard 
+                      key={license.id} 
+                      license={license} 
+                      onDelete={handleDeleteLicense}
+                      isExpiringSoon={isExpiringSoon(license.expiryDate)}
+                      isExpired={isExpired(license.expiryDate)}
+                    />
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
         </>
       )}
 
@@ -230,116 +279,143 @@ const LicenseCard = ({
     }
   };
 
-  const getStatusColor = (status: string) => {
+  const getStatusVariant = (status: string) => {
     switch (status) {
-      case 'active': return 'bg-green-100 text-green-800';
-      case 'pending': return 'bg-yellow-100 text-yellow-800';
-      case 'expired': return 'bg-red-100 text-red-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case 'active': return 'default';
+      case 'pending': return 'secondary';
+      case 'expired': return 'destructive';
+      default: return 'outline';
+    }
+  };
+
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case 'active': return <CheckCircle className="w-4 h-4 mr-1" />;
+      case 'pending': return <Clock className="w-4 h-4 mr-1" />;
+      case 'expired': return <AlertTriangle className="w-4 h-4 mr-1" />;
+      default: return <FileText className="w-4 h-4 mr-1" />;
     }
   };
 
   const formatDate = (dateString?: string) => {
-    if (!dateString) return 'N/A';
-    return new Date(dateString).toLocaleDateString();
+    if (!dateString) return 'Not specified';
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    });
   };
 
   return (
-    <div className={`border rounded-lg p-4 relative overflow-hidden ${
-      isExpired ? 'border-red-300 bg-red-50' : 
-      isExpiringSoon ? 'border-orange-300 bg-orange-50' : 
-      'border-gray-200 bg-white'
+    <Card className={`border overflow-hidden transition-all hover:shadow-lg ${
+      isExpired ? 'border-red-200 bg-red-50' : 
+      isExpiringSoon ? 'border-orange-200 bg-orange-50' : 
+      'border-gray-200'
     }`}>
-      {/* Expiration Indicator */}
-      {(isExpiringSoon || isExpired) && (
-        <div className={`absolute top-0 right-0 px-2 py-1 text-xs font-bold ${
-          isExpired ? 'bg-red-500 text-white' : 'bg-orange-500 text-white'
-        }`}>
-          {isExpired ? 'EXPIRED' : 'EXPIRING SOON'}
-        </div>
-      )}
-
-      <div className="mb-4">
-        <h3 className="font-semibold text-lg text-gray-900">{license.name}</h3>
-        <p className="text-gray-600 text-sm mt-1">{license.description}</p>
-      </div>
-
-      <div className="space-y-2 text-sm">
-        {license.licenseNumber && (
-          <div className="flex justify-between">
-            <span className="text-gray-600">License #:</span>
-            <span className="font-medium">{license.licenseNumber}</span>
-          </div>
-        )}
-
-        {license.issuingAuthority && (
-          <div className="flex justify-between">
-            <span className="text-gray-600">Issued by:</span>
-            <span className="font-medium">{license.issuingAuthority}</span>
-          </div>
-        )}
-
-        {license.issueDate && (
-          <div className="flex justify-between">
-            <span className="text-gray-600">Issue Date:</span>
-            <span className="font-medium">{formatDate(license.issueDate)}</span>
-          </div>
-        )}
-
-        {license.expiryDate && (
-          <div className="flex justify-between">
-            <span className="text-gray-600">Expiry Date:</span>
-            <span className={`font-medium ${
-              isExpired ? 'text-red-600' : 
-              isExpiringSoon ? 'text-orange-600' : 
-              'text-gray-900'
-            }`}>
-              {formatDate(license.expiryDate)}
-            </span>
-          </div>
-        )}
-
-        <div className="flex justify-between items-center">
-          <span className="text-gray-600">Status:</span>
-          <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(license.status)}`}>
-            {license.status.toUpperCase()}
-          </span>
-        </div>
-      </div>
-
-      {license.documentUrl && (
-        <div className="mt-4">
-          <a 
-            href={license.documentUrl} 
-            target="_blank" 
-            rel="noopener noreferrer"
-            className="text-blue-600 hover:text-blue-800 text-sm flex items-center"
+      {/* Header with status badge */}
+      <CardHeader className="pb-3">
+        <div className="flex justify-between items-start">
+          <CardTitle className="text-lg font-semibold text-gray-900">
+            {license.name}
+          </CardTitle>
+          <Badge 
+            variant={getStatusVariant(license.status)} 
+            className="flex items-center"
           >
-            <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-            </svg>
-            View Document
-          </a>
+            {getStatusIcon(license.status)}
+            {license.status.toUpperCase()}
+          </Badge>
         </div>
-      )}
+        <p className="text-sm text-gray-600 mt-1">{license.description}</p>
+      </CardHeader>
 
-      <div className="mt-4 flex justify-end space-x-2">
-        <button
-          onClick={() => {/* Add edit functionality */}}
-          className="text-blue-600 hover:text-blue-800 text-sm"
-        >
-          Edit
-        </button>
-        <button
-          onClick={handleDeleteClick}
-          className={`text-sm ${
-            showConfirm ? 'text-red-800 font-bold' : 'text-red-600 hover:text-red-800'
-          }`}
-        >
-          {showConfirm ? 'Confirm Delete?' : 'Delete'}
-        </button>
-      </div>
-    </div>
+      <CardContent className="space-y-3">
+        {/* License details */}
+        <div className="space-y-2 text-sm">
+          {license.licenseNumber && (
+            <div className="flex justify-between">
+              <span className="text-gray-600 font-medium">License #:</span>
+              <span className="font-mono">{license.licenseNumber}</span>
+            </div>
+          )}
+
+          {license.issuingAuthority && (
+            <div className="flex justify-between">
+              <span className="text-gray-600 font-medium">Issued by:</span>
+              <span>{license.issuingAuthority}</span>
+            </div>
+          )}
+
+          {license.issueDate && (
+            <div className="flex justify-between">
+              <span className="text-gray-600 font-medium">Issue Date:</span>
+              <span>{formatDate(license.issueDate)}</span>
+            </div>
+          )}
+
+          {license.expiryDate && (
+            <div className="flex justify-between">
+              <span className="text-gray-600 font-medium">Expiry Date:</span>
+              <span className={`font-medium ${
+                isExpired ? 'text-red-600' : 
+                isExpiringSoon ? 'text-orange-600' : 
+                'text-green-600'
+              }`}>
+                {formatDate(license.expiryDate)}
+              </span>
+            </div>
+          )}
+        </div>
+
+        {/* Expiration warning */}
+        {(isExpiringSoon || isExpired) && (
+          <div className={`p-2 rounded-md text-sm font-medium ${
+            isExpired ? 'bg-red-100 text-red-800' : 'bg-orange-100 text-orange-800'
+          }`}>
+            <AlertTriangle className="w-4 h-4 inline mr-1" />
+            {isExpired ? 'LICENSE EXPIRED' : 'EXPIRING SOON'}
+          </div>
+        )}
+
+        {/* Action buttons */}
+        <div className="flex justify-between pt-3 border-t">
+          {license.documentUrl && (
+            <Button
+              variant="outline"
+              size="sm"
+              className="text-blue-600 border-blue-200 hover:bg-blue-50"
+              onClick={() => window.open(license.documentUrl, '_blank')}
+            >
+              <Eye className="w-4 h-4 mr-1" />
+              View Document
+            </Button>
+          )}
+          
+          <div className="flex space-x-2">
+            <Button
+              variant="outline"
+              size="sm"
+              className="text-gray-600 border-gray-200 hover:bg-gray-50"
+              onClick={() => {/* Add edit functionality */}}
+            >
+              <Edit className="w-4 h-4 mr-1" />
+              Edit
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              className={`border-red-200 hover:bg-red-50 ${
+                showConfirm ? 'text-red-800 font-bold bg-red-100' : 'text-red-600'
+              }`}
+              onClick={handleDeleteClick}
+            >
+              <Trash2 className="w-4 h-4 mr-1" />
+              {showConfirm ? 'Confirm?' : 'Delete'}
+            </Button>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
   );
 };
 
