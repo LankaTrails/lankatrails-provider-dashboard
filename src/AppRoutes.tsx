@@ -11,7 +11,6 @@ import AddServicePage from "./pages/service/AddServicePage";
 import ServiceBookingsPage from "@/pages/service/ServiceBookingsPage";
 import ServiceReviewsPage from "@/pages/service/ServiceReviewsPage";
 import ServiceAnalyticsPage from "@/pages/service/ServiceAnalyticsPage";
-import ProviderDashboardPage from "@/pages/provider/ProviderDashboardPage";
 import ServiceEditPage from "@/pages/service/ServiceEditPage";
 import ServiceViewPage from "@/pages/service/ServiceViewPage";
 import MessagesPage from "@/pages/provider/MessagePage";
@@ -20,11 +19,14 @@ import Profile from "@/pages/provider/Profile";
 import NotFound from "@/pages/NotFound";
 import ContactPerson from "./pages/provider/ContactPerson";
 import AllPolicy from "./pages/provider/AllPolicy";
+<<<<<<< HEAD
 import AddPolicy from "./pages/provider/AddPolicy";
 import LicensesManagement from "./pages/provider/LicensesManagement";
 import AddLicense from "./pages/provider/AddLicense";
 import LicenseFlow from "./pages/provider/LicenseFlow";
 import LicenseTypes from "./pages/provider/LicenseTypes";
+=======
+>>>>>>> c28caed1e6cdd414f16056214ebd9badbc6011ae
 import AddActivityPolicy from "./pages/provider/AddActivityPolicy";
 import AddTransportPolicy from "./pages/provider/AddTransportPolicy";
 import AddTourGuidePolicy from "./pages/provider/AddTourGuidePolicy";
@@ -65,8 +67,7 @@ const AppRoutes = () => {
           </ProtectedRoute>
         }
       >
-        <Route index element={<ProviderDashboardPage />} />
-        <Route path="dashboard" element={<ProviderDashboardPage />} />
+        <Route index element={<AllBookingsPage />} />
 
         {/* Dynamic service routes */}
         <Route path=":serviceType">
@@ -81,7 +82,7 @@ const AppRoutes = () => {
         </Route>
 
         <Route path="messages" element={<MessagesPage />} />
-        <Route path="bookings" element={<AllBookingsPage />} />
+        <Route path="dashboard" element={<AllBookingsPage />} />
         <Route path="analytics" element={<AnalyticsPage />} />
         <Route path="profile">
           <Route index element={<Profile />} />

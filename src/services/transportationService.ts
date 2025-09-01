@@ -38,14 +38,52 @@ export const fetchAllTransports = async (
   pageNumber: number = 0,
   pageSize: number = 10
 ): Promise<any> => {
-  const response = await api.get(`/provider/transport/getAll`, {
-    params: {
-      pageNumber,
-      pageSize,
-    },
-  });
-  console.log("fetch all", response.data.data);
-  return response.data.data; // Assuming the response contains an array of activities
+  try {
+    const response = await api.get(`/provider/transport/getAll`, {
+      params: {
+        pageNumber,
+        pageSize,
+      },
+    });
+    console.log("fetch all transportation services", response.data);
+    
+    // Handle different response structures
+    if (response.data?.data) {
+      return response.data.data;
+    } else if (Array.isArray(response.data)) {
+      return response.data;
+    } else {
+      return [];
+    }
+  } catch (error: any) {
+    console.log("fetchAllTransports error:", error);
+    
+    // Handle 500 errors that might indicate "no data found"
+    if (error.response?.status === 500) {
+      const errorMessage = error.response?.data?.message || '';
+      const noDataPatterns = [
+        'no data found',
+        'no services found',
+        'no records found',
+        'empty result',
+        'no content available'
+      ];
+      
+      if (noDataPatterns.some(pattern => errorMessage.toLowerCase().includes(pattern)) || !errorMessage) {
+        console.log('500 error indicates no transportation services found - returning empty array');
+        return [];
+      }
+    }
+    
+    // Handle 404 (not found) as empty result
+    if (error.response?.status === 404) {
+      console.log('404 error - no transportation services found');
+      return [];
+    }
+    
+    // Re-throw actual errors
+    throw error;
+  }
 }
 
 

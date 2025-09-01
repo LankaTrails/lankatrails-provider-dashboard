@@ -89,14 +89,52 @@ export const fetchAllTourGuides = async (
   pageNumber: number = 0,
   pageSize: number = 10
 ): Promise<any> => {
-  const response = await api.get(`/provider/tour-guide/getAll`, {
-    params: {
-      pageNumber,
-      pageSize,
-    },
-  });
-  console.log("fetch all tour guides", response.data.data);
-  return response.data.data; // Assuming the response contains an array of tour guides
+  try {
+    const response = await api.get(`/provider/tour-guide/getAll`, {
+      params: {
+        pageNumber,
+        pageSize,
+      },
+    });
+    console.log("fetch all tour guides", response.data);
+    
+    // Handle different response structures
+    if (response.data?.data) {
+      return response.data.data;
+    } else if (Array.isArray(response.data)) {
+      return response.data;
+    } else {
+      return [];
+    }
+  } catch (error: any) {
+    console.log("fetchAllTourGuides error:", error);
+    
+    // Handle 500 errors that might indicate "no data found"
+    if (error.response?.status === 500) {
+      const errorMessage = error.response?.data?.message || '';
+      const noDataPatterns = [
+        'no data found',
+        'no services found',
+        'no records found',
+        'empty result',
+        'no content available'
+      ];
+      
+      if (noDataPatterns.some(pattern => errorMessage.toLowerCase().includes(pattern)) || !errorMessage) {
+        console.log('500 error indicates no tour guides found - returning empty array');
+        return [];
+      }
+    }
+    
+    // Handle 404 (not found) as empty result
+    if (error.response?.status === 404) {
+      console.log('404 error - no tour guides found');
+      return [];
+    }
+    
+    // Re-throw actual errors
+    throw error;
+  }
 }
 
 //fetch all guiding areas
