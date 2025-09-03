@@ -29,41 +29,36 @@ export const getServiceTypeRecommendations = (serviceType: ServiceType): Service
                     {
                         value: "MULTI_DAY",
                         label: "Multi Day",
-                        description: "Perfect for hotels, guesthouses, and resorts. Customers book from check-in to check-out dates.",
+                        description: "Perfect for hotels, guesthouses, and resorts. Customers book from check-in to check-out dates. Units = rooms, villas, dorm beds.",
                         recommended: true,
-                    },
-                    {
-                        value: "TIME_SLOTS",
-                        label: "Time Slots",
-                        description: "For day-use rooms or hourly accommodation bookings.",
                     },
                     {
                         value: "WHOLE_DAY",
                         label: "Whole Day",
-                        description: "For single-day accommodation without specific hours.",
+                        description: "For single-day accommodation without specific hours (day-use rooms).",
                     },
                 ],
                 priceTypes: [
                     {
-                        value: "PER_UNIT",
-                        label: "Per Room/Villa",
-                        description: "Standard accommodation pricing - per room or villa per night.",
-                        recommended: true,
-                    },
-                    {
                         value: "PER_NIGHT",
                         label: "Per Night",
-                        description: "Simple per-night pricing for the entire property.",
+                        description: "Standard accommodation pricing - per night stay. Most common for hotels, villas, and rooms.",
+                        recommended: true,
                     },
                     {
                         value: "PER_PERSON",
                         label: "Per Person",
-                        description: "Hostel-style pricing where you charge per person.",
+                        description: "Pricing per guest - separate rates for adults and children. Good for hostels and shared accommodations.",
                     },
                     {
-                        value: "HYBRID",
-                        label: "Hybrid",
-                        description: "Base room rate plus additional charges per person.",
+                        value: "PER_DAY",
+                        label: "Per Day",
+                        description: "Day-use pricing for accommodation (without overnight stay).",
+                    },
+                    {
+                        value: "FIXED",
+                        label: "Fixed Package",
+                        description: "Complete package pricing for entire stay regardless of duration.",
                     },
                 ],
                 defaultCapacity: {
@@ -78,38 +73,28 @@ export const getServiceTypeRecommendations = (serviceType: ServiceType): Service
             return {
                 bookingTypes: [
                     {
-                        value: "WHOLE_DAY",
-                        label: "Whole Day",
-                        description: "Full-day vehicle rentals - most common for tourism transport.",
+                        value: "MULTI_DAY",
+                        label: "Multi Day",
+                        description: "For long-term vehicle rentals spanning multiple days. Most common for vehicle rentals.",
                         recommended: true,
                     },
                     {
                         value: "TIME_SLOTS",
                         label: "Time Slots",
-                        description: "For specific pickup/drop-off times and scheduled services.",
+                        description: "For specific pickup/drop-off times and scheduled services. Units = vehicles.",
                     },
                     {
                         value: "FLEXIBLE_HOURS",
                         label: "Flexible Hours",
                         description: "Hourly rentals where customers choose duration (e.g., 2-8 hours).",
                     },
-                    {
-                        value: "MULTI_DAY",
-                        label: "Multi Day",
-                        description: "For long-term vehicle rentals spanning multiple days.",
-                    },
                 ],
                 priceTypes: [
                     {
-                        value: "PER_KM",
-                        label: "Per KM",
-                        description: "Distance-based pricing - ideal for taxis and travel services.",
+                        value: "PER_UNIT",
+                        label: "Per Vehicle",
+                        description: "Fixed price per vehicle regardless of time or distance.",
                         recommended: true,
-                    },
-                    {
-                        value: "PER_DAY",
-                        label: "Per Day",
-                        description: "Fixed daily rate regardless of distance.",
                     },
                     {
                         value: "PER_HOUR",
@@ -117,14 +102,14 @@ export const getServiceTypeRecommendations = (serviceType: ServiceType): Service
                         description: "Hourly rates for short-term rentals.",
                     },
                     {
-                        value: "PER_UNIT",
-                        label: "Per Vehicle",
-                        description: "Fixed price per vehicle regardless of time or distance.",
+                        value: "PER_DAY",
+                        label: "Per Day",
+                        description: "Fixed daily rate regardless of distance.",
                     },
                     {
-                        value: "HYBRID",
-                        label: "Hybrid",
-                        description: "Base fare plus per-kilometer or per-hour charges.",
+                        value: "PER_KM",
+                        label: "Per KM",
+                        description: "Distance-based pricing - ideal for taxis and travel services.",
                     },
                 ],
                 defaultCapacity: {
@@ -141,23 +126,13 @@ export const getServiceTypeRecommendations = (serviceType: ServiceType): Service
                     {
                         value: "TIME_SLOTS",
                         label: "Time Slots",
-                        description: "Most popular for tours and activities - specific start/end times.",
+                        description: "Most popular for tours and activities - specific start/end times. Units = activity sessions/groups.",
                         recommended: true,
-                    },
-                    {
-                        value: "WHOLE_DAY",
-                        label: "Whole Day",
-                        description: "Full-day experiences without specific time constraints.",
                     },
                     {
                         value: "FIXED_TIME",
                         label: "Fixed Duration",
                         description: "Activities with set durations (e.g., 2-hour workshop, 4-hour tour).",
-                    },
-                    {
-                        value: "FLEXIBLE_HOURS",
-                        label: "Flexible Hours",
-                        description: "Let customers choose their activity duration within limits.",
                     },
                     {
                         value: "EVENT_BASED",
@@ -182,11 +157,6 @@ export const getServiceTypeRecommendations = (serviceType: ServiceType): Service
                         label: "Hybrid",
                         description: "Base group rate plus per-person charges.",
                     },
-                    {
-                        value: "PER_HOUR",
-                        label: "Per Hour",
-                        description: "For flexible-duration activities.",
-                    },
                 ],
                 defaultCapacity: {
                     totalUnits: 2,
@@ -202,18 +172,13 @@ export const getServiceTypeRecommendations = (serviceType: ServiceType): Service
                     {
                         value: "TIME_SLOTS",
                         label: "Time Slots",
-                        description: "Table reservations with specific dining times.",
+                        description: "Table reservations with specific dining times. Units = tables, packages.",
                         recommended: true,
                     },
                     {
                         value: "WHOLE_DAY",
                         label: "Whole Day",
                         description: "Open seating throughout operating hours.",
-                    },
-                    {
-                        value: "EVENT_BASED",
-                        label: "Event Based",
-                        description: "Special dining events, wine tastings, cooking classes.",
                     },
                 ],
                 priceTypes: [
@@ -227,11 +192,6 @@ export const getServiceTypeRecommendations = (serviceType: ServiceType): Service
                         value: "FIXED",
                         label: "Fixed Price",
                         description: "Set menus or group packages.",
-                    },
-                    {
-                        value: "HYBRID",
-                        label: "Hybrid",
-                        description: "Base table charge plus per-person menu pricing.",
                     },
                 ],
                 defaultCapacity: {
@@ -248,23 +208,18 @@ export const getServiceTypeRecommendations = (serviceType: ServiceType): Service
                     {
                         value: "WHOLE_DAY",
                         label: "Whole Day",
-                        description: "Full-day guide services - most common for tourism.",
+                        description: "Full-day guide services - most common for tourism. Units = guide slots.",
                         recommended: true,
-                    },
-                    {
-                        value: "TIME_SLOTS",
-                        label: "Time Slots",
-                        description: "Specific tour times with set durations.",
-                    },
-                    {
-                        value: "FLEXIBLE_HOURS",
-                        label: "Flexible Hours",
-                        description: "Hourly guide services where clients choose duration.",
                     },
                     {
                         value: "MULTI_DAY",
                         label: "Multi Day",
                         description: "Extended tours spanning multiple days.",
+                    },
+                    {
+                        value: "FLEXIBLE_HOURS",
+                        label: "Flexible Hours",
+                        description: "Hourly guide services where clients choose duration.",
                     },
                 ],
                 priceTypes: [
@@ -280,14 +235,9 @@ export const getServiceTypeRecommendations = (serviceType: ServiceType): Service
                         description: "Hourly rates for flexible guide services.",
                     },
                     {
-                        value: "PER_PERSON",
-                        label: "Per Person",
-                        description: "Guide fee calculated per tourist in the group.",
-                    },
-                    {
-                        value: "HYBRID",
-                        label: "Hybrid",
-                        description: "Base guide fee plus per-person charges.",
+                        value: "FIXED",
+                        label: "Fixed Price",
+                        description: "Fixed tour package pricing regardless of duration or group size.",
                     },
                 ],
                 defaultCapacity: {

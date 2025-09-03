@@ -44,6 +44,7 @@ const AvailableTimeConfiguration: React.FC<AvailableTimeConfigurationProps> = ({
   useEffect(() => {
     if (!availableTimes || availableTimes.length === 0) {
       const defaultSchedule: AvailableTimeDTO[] = DAYS_OF_WEEK.map((day) => ({
+        availableTimeId: null, // Set to null for new available times
         dayOfWeek: day.value,
         openTime: "09:00",
         closeTime: "18:00",
@@ -71,6 +72,7 @@ const AvailableTimeConfiguration: React.FC<AvailableTimeConfigurationProps> = ({
 
   const addBreakTime = (dayOfWeek: string) => {
     const newBreakTime: BreakTimeDTO = {
+      breakId: null, // Set to null for new break times
       breakStart: "12:00",
       breakEnd: "13:00",
     };
@@ -135,7 +137,10 @@ const AvailableTimeConfiguration: React.FC<AvailableTimeConfigurationProps> = ({
             closeTime: sourceDay.closeTime,
             is24Hours: sourceDay.is24Hours,
             isClosed: sourceDay.isClosed,
-            breakTimes: [...sourceDay.breakTimes],
+            breakTimes: sourceDay.breakTimes.map((breakTime) => ({
+              ...breakTime,
+              breakId: null, // Set to null for copied break times as they will be new entries
+            })),
           }
     );
 
@@ -405,7 +410,13 @@ const AvailableTimeConfiguration: React.FC<AvailableTimeConfigurationProps> = ({
                     time.dayOfWeek === "SATURDAY",
                   breakTimes:
                     time.dayOfWeek !== "SUNDAY"
-                      ? [{ breakStart: "12:00", breakEnd: "13:00" }]
+                      ? [
+                          {
+                            breakId: null,
+                            breakStart: "12:00",
+                            breakEnd: "13:00",
+                          },
+                        ]
                       : [],
                 }));
                 setLocalAvailableTimes(businessHours);
@@ -427,7 +438,13 @@ const AvailableTimeConfiguration: React.FC<AvailableTimeConfigurationProps> = ({
                   isClosed: time.dayOfWeek === "SUNDAY",
                   breakTimes:
                     time.dayOfWeek !== "SUNDAY"
-                      ? [{ breakStart: "12:00", breakEnd: "13:00" }]
+                      ? [
+                          {
+                            breakId: null,
+                            breakStart: "12:00",
+                            breakEnd: "13:00",
+                          },
+                        ]
                       : [],
                 }));
                 setLocalAvailableTimes(businessHours);

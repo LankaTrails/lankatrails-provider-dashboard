@@ -11,6 +11,7 @@ import type {
   PolicyData,
 } from "@/types/serviceTypes";
 import { findServiceById, updateService } from "@/services/services";
+import StepWizardServiceForm from "@/components/StepWizardServiceForm";
 
 const ServiceEditPage: React.FC = () => {
   const { id, serviceType } = useParams();
@@ -126,7 +127,7 @@ const ServiceEditPage: React.FC = () => {
         </h1>
       </div>
 
-      <UnifiedServiceForm
+      <StepWizardServiceForm
         serviceType={serviceType}
         initialData={initialData}
         initialImages={initialImages}

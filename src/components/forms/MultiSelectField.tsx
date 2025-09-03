@@ -28,7 +28,13 @@ const MultiSelectField: React.FC<MultiSelectFieldProps> = ({
   required = false,
   className = "mt-3",
 }) => {
-  const selectedOptions = options.filter((opt) => value.includes(opt.value));
+  // Ensure value is always an array
+  const safeValue = Array.isArray(value) ? value : [];
+
+  // Find selected options based on current value
+  const selectedOptions = options.filter((opt) =>
+    safeValue.includes(opt.value)
+  );
 
   const handleChange = (selected: readonly OptionType[] | null) => {
     const values = selected ? selected.map((opt) => opt.value) : [];
@@ -41,7 +47,11 @@ const MultiSelectField: React.FC<MultiSelectFieldProps> = ({
         {label} {required && <span className="text-red-500">*</span>}
       </label>
       <div className="relative">
-        {/* {icon && <div className="absolute left-3 top-2.5 z-10">{icon}</div>} */}
+        {icon && (
+          <div className="absolute left-3 top-1/2 transform -translate-y-1/2 z-10 pointer-events-none">
+            {icon}
+          </div>
+        )}
         <Select
           isMulti
           options={options}
@@ -49,14 +59,42 @@ const MultiSelectField: React.FC<MultiSelectFieldProps> = ({
           onChange={handleChange}
           placeholder={placeholder}
           classNamePrefix="react-select"
-          // className={`${icon ? "pl-10" : ""}`}
+          isClearable
+          isSearchable
           styles={{
-            control: (base) => ({
+            control: (base, state) => ({
               ...base,
-              borderColor: "#d1d5db",
-              boxShadow: "none",
+              borderColor: state.isFocused ? "#3b82f6" : "#d1d5db",
+              boxShadow: state.isFocused
+                ? "0 0 0 3px rgba(59, 130, 246, 0.1)"
+                : "none",
               minHeight: "38px",
-              // paddingLeft: icon ? "1.75rem" : undefined,
+              paddingLeft: icon ? "2.5rem" : "0.75rem",
+              "&:hover": {
+                borderColor: "#9ca3af",
+              },
+            }),
+            placeholder: (base) => ({
+              ...base,
+              color: "#9ca3af",
+            }),
+            multiValue: (base) => ({
+              ...base,
+              backgroundColor: "#e5e7eb",
+              borderRadius: "0.375rem",
+            }),
+            multiValueLabel: (base) => ({
+              ...base,
+              color: "#374151",
+              fontSize: "0.875rem",
+            }),
+            multiValueRemove: (base) => ({
+              ...base,
+              color: "#6b7280",
+              "&:hover": {
+                backgroundColor: "#dc2626",
+                color: "white",
+              },
             }),
           }}
         />

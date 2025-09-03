@@ -1,5 +1,5 @@
-import React, { useState, useMemo } from "react";
-import { Info, MapPin, Calendar } from "lucide-react";
+import React, { useState, useMemo, useEffect } from "react";
+import { Info, MapPin, Calendar, Globe } from "lucide-react";
 import StepWizard from "./forms/StepWizard";
 import InputField from "@/components/forms/InputField";
 import SelectField from "@/components/forms/SelectField";
@@ -16,6 +16,12 @@ import {
   getServiceTypeRecommendations,
   getDefaultCapacityForServiceType,
 } from "@/utils/serviceRecommendations";
+import {
+  validateBookingConfig,
+  validatePriceConfig,
+  getServiceTypeHints,
+} from "@/utils/serviceValidation";
+import { fetchAllGuidingAreas } from "@/services/guideService";
 import type {
   ServiceFormData,
   LocationData,
@@ -30,6 +36,7 @@ import type {
   ActivityType,
   VehicleType,
   AccommodationType,
+  TourGuideType,
   BookingConfigDTO,
   PriceConfigDTO,
   ServiceType,
@@ -52,8 +59,21 @@ const StepWizardServiceForm: React.FC<ServiceFormProps> = ({
       existingImages && existingImages.length > 0 ? [] : initialImages || [],
   });
   const [deletedImages, setDeletedImages] = useState<ImageData[]>([]);
-  const [preferredLanguages] = useState<string[]>([]);
-  const [selectedGuidingAreas] = useState<LocationData[]>([]);
+  const [preferredLanguages, setPreferredLanguages] = useState<string[]>(() => {
+    if (initialData && serviceType === "tour-guides") {
+      return (initialData as TourGuideFormData).languages || [];
+    }
+    return [];
+  });
+  const [selectedGuidingAreas, setSelectedGuidingAreas] = useState<
+    LocationData[]
+  >(() => {
+    if (initialData && serviceType === "tour-guides") {
+      return (initialData as TourGuideFormData).locations || [];
+    }
+    return [];
+  });
+  const [guidingAreas, setGuidingAreas] = useState<LocationData[]>([]);
   const [attemptedSteps, setAttemptedSteps] = useState<Set<number>>(new Set());
 
   // Define wizard steps
@@ -107,7 +127,8 @@ const StepWizardServiceForm: React.FC<ServiceFormProps> = ({
         recommendations.bookingTypes.find((bt) => bt.recommended)?.value ||
         recommendations.bookingTypes[0].value;
 
-      return {
+      // Set default values based on booking type
+      const baseConfig: BookingConfigDTO = {
         bookingType: recommendedBookingType,
         totalUnits: defaultCapacity.totalUnits,
         unitAdultCapacity: defaultCapacity.unitAdultCapacity,
@@ -116,6 +137,30 @@ const StepWizardServiceForm: React.FC<ServiceFormProps> = ({
         advanceBookingPeriod: 7,
         lastMinuteBookingPeriod: 24,
       };
+
+      // Add specific defaults based on booking type
+      if (
+        recommendedBookingType === "TIME_SLOTS" ||
+        recommendedBookingType === "FIXED_TIME"
+      ) {
+        baseConfig.slotDuration = 60; // 1 hour default
+        baseConfig.bufferTime = 15; // 15 minutes buffer
+        baseConfig.allowBackToBackBookings = false;
+      }
+
+      if (recommendedBookingType === "MULTI_DAY") {
+        baseConfig.minimumBookingDays = 1;
+        baseConfig.maximumBookingDays = 30;
+        baseConfig.defaultCheckInTime = "14:00";
+        baseConfig.defaultCheckOutTime = "11:00";
+      }
+
+      if (recommendedBookingType === "FLEXIBLE_HOURS") {
+        baseConfig.slotDuration = 60; // Minimum 1 hour
+        baseConfig.bufferTime = 480; // Maximum 8 hours
+      }
+
+      return baseConfig;
     };
 
     const getDefaultPriceConfig = (): PriceConfigDTO => {
@@ -139,11 +184,35 @@ const StepWizardServiceForm: React.FC<ServiceFormProps> = ({
         recommendations.priceTypes.find((pt) => pt.recommended)?.value ||
         recommendations.priceTypes[0].value;
 
-      return {
+      const baseConfig: PriceConfigDTO = {
         priceType: recommendedPriceType,
         allowAdvancePayment: false,
         requiresDeposit: false,
       };
+
+      // Set default values based on price type
+      switch (recommendedPriceType) {
+        case "PER_PERSON":
+          baseConfig.pricePerAdult = 0;
+          baseConfig.pricePerChild = 0;
+          break;
+        case "PER_UNIT":
+        case "PER_HOUR":
+        case "PER_DAY":
+        case "PER_NIGHT":
+        case "PER_KM":
+          baseConfig.pricePerUnit = 0;
+          break;
+        case "FIXED":
+          baseConfig.fixedPrice = 0;
+          break;
+        case "HYBRID":
+          baseConfig.fixedPrice = 0;
+          baseConfig.pricePerAdult = 0;
+          break;
+      }
+
+      return baseConfig;
     };
 
     const baseData: ServiceFormData = {
@@ -219,7 +288,7 @@ const StepWizardServiceForm: React.FC<ServiceFormProps> = ({
         return {
           ...baseData,
           languages: [],
-          tourGuideType: "NATIONAL",
+          tourGuideType: "NATIONAL" as TourGuideType,
         } as TourGuideFormData;
       default:
         return baseData;
@@ -229,6 +298,31 @@ const StepWizardServiceForm: React.FC<ServiceFormProps> = ({
   const [formData, setFormData] = useState<ServiceFormData>(
     () => initialData || initializeFormData()
   );
+
+  // Synchronize local language state with form data for tour guides
+  useEffect(() => {
+    if (serviceType === "tour-guides" && formData) {
+      const tourGuideData = formData as TourGuideFormData;
+      if (tourGuideData.languages && tourGuideData.languages.length > 0) {
+        setPreferredLanguages(tourGuideData.languages);
+      }
+    }
+  }, [formData, serviceType]);
+
+  // Load guiding areas for tour guides
+  useEffect(() => {
+    const loadGuidingAreas = async () => {
+      if (serviceType === "tour-guides") {
+        try {
+          const areas = await fetchAllGuidingAreas();
+          setGuidingAreas(areas);
+        } catch (error) {
+          console.error("Error loading guiding areas:", error);
+        }
+      }
+    };
+    loadGuidingAreas();
+  }, [serviceType]);
 
   // Handler functions
   const handleInputChange = (field: string, value: any) => {
@@ -250,6 +344,46 @@ const StepWizardServiceForm: React.FC<ServiceFormProps> = ({
     handleInputChange("availableTimeDTOS", availableTimes);
   };
 
+  const handleLocationSelect = (locationData: LocationData | undefined) => {
+    if (locationData) {
+      handleInputChange("locations", [locationData]);
+    } else {
+      handleInputChange("locations", [
+        {
+          locationId: null,
+          formattedAddress: "",
+          city: "",
+          district: "",
+          province: "",
+          country: "",
+          postalCode: "",
+          latitude: 0,
+          longitude: 0,
+        },
+      ]);
+    }
+  };
+
+  const handleLocationIdSelect = (locationId: number | null) => {
+    if (formData.locations && formData.locations[0]) {
+      handleInputChange("locations", [
+        {
+          ...formData.locations[0],
+          locationId: locationId,
+        },
+      ]);
+    }
+  };
+
+  // Handle guiding area selection for tour guides
+  const handleGuidingAreaSelection = (selectedValues: string[]) => {
+    const selectedAreas = guidingAreas.filter((area) =>
+      selectedValues.includes(area.city)
+    );
+    setSelectedGuidingAreas(selectedAreas);
+    handleInputChange("locations", selectedAreas);
+  };
+
   const getServiceTypeEnum = (): ServiceType => {
     switch (serviceType) {
       case "activity":
@@ -266,6 +400,14 @@ const StepWizardServiceForm: React.FC<ServiceFormProps> = ({
         return "ACTIVITY";
     }
   };
+
+  // Get guiding area options for MultiSelect
+  const guidingAreaOptions = useMemo(() => {
+    return guidingAreas.map((area) => ({
+      label: area.city,
+      value: area.city,
+    }));
+  }, [guidingAreas]);
 
   // Combined existing and new images for display
   const displayImages = useMemo(() => {
@@ -350,32 +492,25 @@ const StepWizardServiceForm: React.FC<ServiceFormProps> = ({
         break;
 
       case 1: // Booking & Pricing
-        if (!formData.bookingConfig) {
-          errors.push("Booking configuration is required");
-        } else {
-          if (!formData.bookingConfig.bookingType) {
-            errors.push("Booking type is required");
-          }
-          if (
-            !formData.bookingConfig.totalUnits ||
-            formData.bookingConfig.totalUnits <= 0
-          ) {
-            errors.push("Total units must be greater than 0");
-          }
-          if (
-            !formData.bookingConfig.unitAdultCapacity ||
-            formData.bookingConfig.unitAdultCapacity <= 0
-          ) {
-            errors.push("Adult capacity per unit must be greater than 0");
-          }
+        // Use the new validation utilities
+        const serviceTypeEnum = getServiceTypeEnum();
+
+        // Validate booking configuration
+        const bookingValidation = validateBookingConfig(
+          formData.bookingConfig,
+          serviceTypeEnum
+        );
+        if (!bookingValidation.isValid) {
+          errors.push(...bookingValidation.errors.map((err) => err.message));
         }
 
-        if (!formData.priceConfig) {
-          errors.push("Price configuration is required");
-        } else {
-          if (!formData.priceConfig.priceType) {
-            errors.push("Price type is required");
-          }
+        // Validate price configuration
+        const priceValidation = validatePriceConfig(
+          formData.priceConfig,
+          serviceTypeEnum
+        );
+        if (!priceValidation.isValid) {
+          errors.push(...priceValidation.errors.map((err) => err.message));
         }
         break;
 
@@ -924,11 +1059,23 @@ const StepWizardServiceForm: React.FC<ServiceFormProps> = ({
                       { value: "zh", label: "Chinese" },
                     ]}
                     value={preferredLanguages}
-                    onChange={(value) => {
-                      handleInputChange("languages", value);
+                    onChange={(values) => {
+                      setPreferredLanguages(values);
+                      handleInputChange("languages", values);
                     }}
                     placeholder="Select languages you speak"
+                    required
                   />
+                  {guidingAreaOptions.length > 0 && (
+                    <MultiSelectField
+                      label="Guiding Areas"
+                      options={guidingAreaOptions}
+                      value={selectedGuidingAreas.map((area) => area.city)}
+                      onChange={handleGuidingAreaSelection}
+                      icon={<Globe size={16} />}
+                      placeholder="Select areas you can guide"
+                    />
+                  )}
                 </>
               )}
             </div>
@@ -970,30 +1117,65 @@ const StepWizardServiceForm: React.FC<ServiceFormProps> = ({
         );
 
       case 1: // Booking & Pricing Configuration
+        const serviceHints = getServiceTypeHints(getServiceTypeEnum());
+
         return (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            {/* Left Column - Booking Configuration */}
-            <div className="space-y-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                Booking Configuration
-              </h3>
-              <BookingConfigurationForm
-                bookingConfig={formData.bookingConfig}
-                serviceType={getServiceTypeEnum()}
-                onChange={handleBookingConfigChange}
-              />
+          <div className="space-y-8">
+            {/* Service Type Hints */}
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <div className="flex items-start space-x-2">
+                <Info className="w-5 h-5 text-blue-500 mt-0.5 flex-shrink-0" />
+                <div className="text-sm text-blue-700">
+                  <p className="font-medium mb-2">
+                    Configuration Guide for{" "}
+                    {serviceType
+                      ? serviceType.charAt(0).toUpperCase() +
+                        serviceType.slice(1).replace("-", " ")
+                      : "Service"}
+                  </p>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                      <span className="font-medium">Units:</span>{" "}
+                      {serviceHints.units}
+                    </div>
+                    <div>
+                      <span className="font-medium">Booking:</span>{" "}
+                      {serviceHints.bookingType}
+                    </div>
+                    <div>
+                      <span className="font-medium">Pricing:</span>{" "}
+                      {serviceHints.priceType}
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
 
-            {/* Right Column - Price Configuration */}
-            <div className="space-y-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                Price Configuration
-              </h3>
-              <PriceConfigurationForm
-                priceConfig={formData.priceConfig}
-                serviceType={getServiceTypeEnum()}
-                onChange={handlePriceConfigChange}
-              />
+            {/* Configuration Forms */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              {/* Left Column - Booking Configuration */}
+              <div className="space-y-6">
+                <h3 className="text-lg font-semibold text-gray-900">
+                  Booking Configuration
+                </h3>
+                <BookingConfigurationForm
+                  bookingConfig={formData.bookingConfig}
+                  serviceType={getServiceTypeEnum()}
+                  onChange={handleBookingConfigChange}
+                />
+              </div>
+
+              {/* Right Column - Price Configuration */}
+              <div className="space-y-6">
+                <h3 className="text-lg font-semibold text-gray-900">
+                  Price Configuration
+                </h3>
+                <PriceConfigurationForm
+                  priceConfig={formData.priceConfig}
+                  serviceType={getServiceTypeEnum()}
+                  onChange={handlePriceConfigChange}
+                />
+              </div>
             </div>
           </div>
         );
@@ -1034,6 +1216,20 @@ const StepWizardServiceForm: React.FC<ServiceFormProps> = ({
                         ]);
                       }
                     }}
+                    onLocationSelect={handleLocationSelect}
+                    onLocationIdSelect={handleLocationIdSelect}
+                    selectedCoordinates={
+                      formData.locations?.[0]?.latitude &&
+                      formData.locations?.[0]?.longitude
+                        ? {
+                            latitude: formData.locations[0].latitude,
+                            longitude: formData.locations[0].longitude,
+                          }
+                        : undefined
+                    }
+                    showBusinessLocationOption={true}
+                    required
+                    error={getFieldError("service location")}
                   />
                 </div>
               )}

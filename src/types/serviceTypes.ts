@@ -29,11 +29,13 @@ export type FuelType = 'PETROL' | 'DIESEL' | 'ELECTRIC' | 'HYBRID';
 export type TransmissionType = 'MANUAL' | 'AUTOMATIC' | 'SEMI_AUTOMATIC';
 
 export interface BreakTimeDTO {
+  breakId: number | null;
   breakStart: string; // Format: "HH:mm"
   breakEnd: string;   // Format: "HH:mm"
 }
 
 export interface AvailableTimeDTO {
+  availableTimeId: number | null;
   dayOfWeek: string;
   openTime: string;     // Format: "HH:mm"
   closeTime: string;    // Format: "HH:mm"
@@ -47,6 +49,7 @@ export interface BookingConfigDTO {
 
   // Capacity and unit management
   totalUnits?: number;
+  manageCapacity?: boolean;
   unitAdultCapacity?: number;
   unitChildCapacity?: number;
   minUnitsPerBooking?: number;

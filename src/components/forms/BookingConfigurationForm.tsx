@@ -9,51 +9,13 @@ import type {
   ServiceType,
 } from "@/types/serviceTypes";
 import { Info } from "lucide-react";
+import { getServiceTypeRecommendations } from "@/utils/serviceRecommendations";
 
 interface BookingConfigurationFormProps {
   bookingConfig?: BookingConfigDTO;
   serviceType: ServiceType;
   onChange: (config: BookingConfigDTO) => void;
 }
-
-const BOOKING_TYPE_OPTIONS = [
-  {
-    value: "TIME_SLOTS",
-    label: "Time Slots",
-    description:
-      "Providers must define available time slots (start/end times per day). Example: 'Tour at 10:00 AM – 1:00 PM'.",
-  },
-  {
-    value: "MULTI_DAY",
-    label: "Multi Day",
-    description:
-      "Providers must allow start date and end date bookings. Example: 'Hotel booking from Jan 5 – Jan 7'.",
-  },
-  {
-    value: "WHOLE_DAY",
-    label: "Whole Day",
-    description:
-      "Providers only define availability per day (no hours). Example: 'Vehicle rental for a full day'.",
-  },
-  {
-    value: "FIXED_TIME",
-    label: "Fixed Time",
-    description:
-      "Providers define fixed durations (e.g., 2 hours, 4 hours). Example: 'Consultation for 2 hours'.",
-  },
-  {
-    value: "FLEXIBLE_HOURS",
-    label: "Flexible Hours",
-    description:
-      "Providers define minimum and maximum booking duration within a day. Example: 'Boat rental: 1–6 hours between 8 AM – 8 PM'.",
-  },
-  {
-    value: "EVENT_BASED",
-    label: "Event Based",
-    description:
-      "Providers attach bookings to specific event dates/times. Example: 'Wedding package on Feb 20'.",
-  },
-];
 
 const BookingConfigurationForm: React.FC<BookingConfigurationFormProps> = ({
   bookingConfig,
@@ -66,6 +28,17 @@ const BookingConfigurationForm: React.FC<BookingConfigurationFormProps> = ({
       [field]: value,
     } as BookingConfigDTO;
     onChange(updatedConfig);
+  };
+
+  // Get service-specific booking types
+  const getBookingTypeOptions = () => {
+    const recommendations = getServiceTypeRecommendations(serviceType);
+    return recommendations.bookingTypes.map((bt) => ({
+      value: bt.value,
+      label: bt.label,
+      description: bt.description,
+      recommended: bt.recommended,
+    }));
   };
 
   const getUnitLabel = () => {
@@ -117,22 +90,29 @@ const BookingConfigurationForm: React.FC<BookingConfigurationFormProps> = ({
     return bookingConfig?.bookingType === "FLEXIBLE_HOURS";
   };
 
+  // Check if selected booking type is appropriate for service type
+  const isBookingTypeAppropriate = () => {
+    if (!bookingConfig?.bookingType) return true;
+
+    const recommendations = getServiceTypeRecommendations(serviceType);
+    return recommendations.bookingTypes.some(
+      (bt) => bt.value === bookingConfig.bookingType
+    );
+  };
+
   return (
     <div className="space-y-6">
-      <div className="bg-gradient-to-r from-blue-50 to-blue-50 p-4 rounded-xl border border-blue-100">
-        <h3 className="text-xl font-semibold text-gray-800 mb-6 flex items-center">
-          <span className="w-2 h-2 bg-blue-500 rounded-full mr-3"></span>
-          Booking Configuration
-        </h3>
-
+      <div className="p-4 rounded-lg border border-gray-200 bg-white">
         {/* Booking Type Selection */}
         <div className="space-y-4">
           <div className="relative">
             <SelectField
               label="Booking Type"
-              options={BOOKING_TYPE_OPTIONS.map((option) => ({
+              options={getBookingTypeOptions().map((option) => ({
                 value: option.value,
-                label: option.label,
+                label: option.recommended
+                  ? `${option.label} (Recommended)`
+                  : option.label,
               }))}
               value={bookingConfig?.bookingType || ""}
               onChange={(value) =>
@@ -142,150 +122,184 @@ const BookingConfigurationForm: React.FC<BookingConfigurationFormProps> = ({
             />
             {/* Tooltip */}
             {bookingConfig?.bookingType && (
-              <div className="mt-2 p-3 bg-blue-50 border border-blue-200 rounded-md">
-                <div className="flex items-start space-x-2">
-                  <Info className="w-4 h-4 text-blue-500 mt-0.5 flex-shrink-0" />
-                  <p className="text-sm text-blue-700">
+              <div className="mt-2">
+                {/* Show warning only if not appropriate */}
+                {!isBookingTypeAppropriate() ? (
+                  <div className="p-3 bg-amber-50 border border-amber-200 rounded-md">
+                    <div className="flex items-start space-x-2">
+                      <Info className="w-4 h-4 text-amber-500 mt-0.5 flex-shrink-0" />
+                      <p className="text-sm text-amber-700">
+                        This booking type is not typically recommended for{" "}
+                        {serviceType.toLowerCase().replace("_", " ")} services.
+                        Consider using one of the recommended options for better
+                        customer experience.
+                      </p>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="text-xs text-gray-500">
                     {
-                      BOOKING_TYPE_OPTIONS.find(
+                      getBookingTypeOptions().find(
                         (opt) => opt.value === bookingConfig.bookingType
                       )?.description
                     }
-                  </p>
-                </div>
+                  </div>
+                )}
               </div>
             )}
           </div>
 
-          {/* Capacity Configuration */}
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Total {getUnitLabel()}
-              </label>
-              <CounterInput
-                value={bookingConfig?.totalUnits || 1}
-                onChange={(value) => handleConfigChange("totalUnits", value)}
-                min={1}
-                max={100}
-              />
-              <p className="text-xs text-gray-500 mt-1">
-                {serviceType === "ACTIVITY" &&
-                  "Number of concurrent activity sessions"}
-                {serviceType === "FOOD_BEVERAGE" &&
-                  "Number of tables or seating sections"}
-                {serviceType === "TOUR_GUIDE" &&
-                  "Number of tour groups you can handle"}
-                {serviceType === "ACCOMMODATION" &&
-                  "Number of rooms or villas available"}
-                {serviceType === "TRANSPORT" &&
-                  "Number of vehicles in your fleet"}
-              </p>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                {getCapacityLabel()} (Adults)
-              </label>
-              <CounterInput
-                value={bookingConfig?.unitAdultCapacity || 1}
-                onChange={(value) =>
-                  handleConfigChange("unitAdultCapacity", value)
-                }
-                min={1}
-                max={50}
-              />
-              <p className="text-xs text-gray-500 mt-1">
-                {serviceType === "ACTIVITY" &&
-                  "Max adults per activity session"}
-                {serviceType === "FOOD_BEVERAGE" &&
-                  "Max adults per table/seating"}
-                {serviceType === "TOUR_GUIDE" && "Max adults per tour group"}
-                {serviceType === "ACCOMMODATION" && "Max adults per room"}
-                {serviceType === "TRANSPORT" && "Max adults per vehicle"}
-              </p>
-            </div>
+          {/* Manage Capacity Toggle */}
+          <div className="bg-gray-50 p-4 rounded-lg">
+            <CheckboxField
+              label="Manage Capacity"
+              checked={bookingConfig?.manageCapacity ?? true}
+              onChange={(value) => handleConfigChange("manageCapacity", value)}
+            />
+            <p className="text-xs text-gray-500 mt-1">
+              Enable to control how many units and guests you can accommodate
+            </p>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                {getCapacityLabel()} (Children)
-              </label>
-              <CounterInput
-                value={bookingConfig?.unitChildCapacity || 0}
-                onChange={(value) =>
-                  handleConfigChange("unitChildCapacity", value)
-                }
-                min={0}
-                max={20}
-              />
-              <p className="text-xs text-gray-500 mt-1">
-                {serviceType === "ACTIVITY" &&
-                  "Max children per activity session"}
-                {serviceType === "FOOD_BEVERAGE" &&
-                  "Max children per table/seating"}
-                {serviceType === "TOUR_GUIDE" && "Max children per tour group"}
-                {serviceType === "ACCOMMODATION" && "Max children per room"}
-                {serviceType === "TRANSPORT" && "Max children per vehicle"}
-              </p>
-            </div>
-            <div className="space-y-2">
-              <CheckboxField
-                label="Allow Extra Capacity"
-                checked={bookingConfig?.allowExtraCapacity || false}
-                onChange={(value) =>
-                  handleConfigChange("allowExtraCapacity", value)
-                }
-              />
-              <p className="text-xs text-gray-500">
-                {serviceType === "ACTIVITY" &&
-                  "Allow overflow participants for activities"}
-                {serviceType === "FOOD_BEVERAGE" &&
-                  "Allow additional seating arrangements"}
-                {serviceType === "TOUR_GUIDE" &&
-                  "Allow larger groups with extra arrangements"}
-                {serviceType === "ACCOMMODATION" &&
-                  "Allow extra beds or mattresses"}
-                {serviceType === "TRANSPORT" &&
-                  "Allow additional passengers if legally permitted"}
-              </p>
-            </div>
-          </div>
+          {/* Capacity Configuration - only show if manageCapacity is enabled */}
+          {(bookingConfig?.manageCapacity ?? true) && (
+            <div className="space-y-4">
+              <h4 className="font-medium text-gray-800">Capacity Settings</h4>
 
-          {/* Extra Capacity Configuration */}
-          {bookingConfig?.allowExtraCapacity && (
-            <div className="bg-gray-50 p-4 rounded-lg space-y-4">
-              <h4 className="font-medium text-gray-800">
-                Extra Capacity Settings
-              </h4>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Extra Adults
+                    Total {getUnitLabel()}
                   </label>
                   <CounterInput
-                    value={bookingConfig?.extraAdultCapacity || 0}
+                    value={bookingConfig?.totalUnits || 1}
                     onChange={(value) =>
-                      handleConfigChange("extraAdultCapacity", value)
+                      handleConfigChange("totalUnits", value)
                     }
-                    min={0}
-                    max={10}
+                    min={1}
+                    max={100}
                   />
+                  <p className="text-xs text-gray-500 mt-1">
+                    {serviceType === "ACTIVITY" &&
+                      "Number of concurrent activity sessions"}
+                    {serviceType === "FOOD_BEVERAGE" &&
+                      "Number of tables or seating sections"}
+                    {serviceType === "TOUR_GUIDE" &&
+                      "Number of tour groups you can handle"}
+                    {serviceType === "ACCOMMODATION" &&
+                      "Number of rooms or villas available"}
+                    {serviceType === "TRANSPORT" &&
+                      "Number of vehicles in your fleet"}
+                  </p>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Extra Children
+                    {getCapacityLabel()} (Adults)
                   </label>
                   <CounterInput
-                    value={bookingConfig?.extraChildCapacity || 0}
+                    value={bookingConfig?.unitAdultCapacity || 1}
                     onChange={(value) =>
-                      handleConfigChange("extraChildCapacity", value)
+                      handleConfigChange("unitAdultCapacity", value)
                     }
-                    min={0}
-                    max={10}
+                    min={1}
+                    max={50}
                   />
+                  <p className="text-xs text-gray-500 mt-1">
+                    {serviceType === "ACTIVITY" &&
+                      "Max adults per activity session"}
+                    {serviceType === "FOOD_BEVERAGE" &&
+                      "Max adults per table/seating"}
+                    {serviceType === "TOUR_GUIDE" &&
+                      "Max adults per tour group"}
+                    {serviceType === "ACCOMMODATION" && "Max adults per room"}
+                    {serviceType === "TRANSPORT" && "Max adults per vehicle"}
+                  </p>
                 </div>
               </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    {getCapacityLabel()} (Children)
+                  </label>
+                  <CounterInput
+                    value={bookingConfig?.unitChildCapacity || 0}
+                    onChange={(value) =>
+                      handleConfigChange("unitChildCapacity", value)
+                    }
+                    min={0}
+                    max={20}
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    {serviceType === "ACTIVITY" &&
+                      "Max children per activity session"}
+                    {serviceType === "FOOD_BEVERAGE" &&
+                      "Max children per table/seating"}
+                    {serviceType === "TOUR_GUIDE" &&
+                      "Max children per tour group"}
+                    {serviceType === "ACCOMMODATION" && "Max children per room"}
+                    {serviceType === "TRANSPORT" && "Max children per vehicle"}
+                  </p>
+                </div>
+                <div className="space-y-2">
+                  <CheckboxField
+                    label="Allow Extra Capacity"
+                    checked={bookingConfig?.allowExtraCapacity || false}
+                    onChange={(value) =>
+                      handleConfigChange("allowExtraCapacity", value)
+                    }
+                  />
+                  <p className="text-xs text-gray-500">
+                    {serviceType === "ACTIVITY" &&
+                      "Allow overflow participants for activities"}
+                    {serviceType === "FOOD_BEVERAGE" &&
+                      "Allow additional seating arrangements"}
+                    {serviceType === "TOUR_GUIDE" &&
+                      "Allow larger groups with extra arrangements"}
+                    {serviceType === "ACCOMMODATION" &&
+                      "Allow extra beds or mattresses"}
+                    {serviceType === "TRANSPORT" &&
+                      "Allow additional passengers if legally permitted"}
+                  </p>
+                </div>
+              </div>
+
+              {/* Extra Capacity Settings - only show if allowExtraCapacity is enabled */}
+              {bookingConfig?.allowExtraCapacity && (
+                <div className="bg-gray-50 p-4 rounded-lg space-y-4">
+                  <h4 className="font-medium text-gray-800">
+                    Extra Capacity Settings
+                  </h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Extra Adults
+                      </label>
+                      <CounterInput
+                        value={bookingConfig?.extraAdultCapacity || 0}
+                        onChange={(value) =>
+                          handleConfigChange("extraAdultCapacity", value)
+                        }
+                        min={0}
+                        max={10}
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Extra Children
+                      </label>
+                      <CounterInput
+                        value={bookingConfig?.extraChildCapacity || 0}
+                        onChange={(value) =>
+                          handleConfigChange("extraChildCapacity", value)
+                        }
+                        min={0}
+                        max={10}
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           )}
 
@@ -380,6 +394,10 @@ const BookingConfigurationForm: React.FC<BookingConfigurationFormProps> = ({
               <h4 className="font-medium text-gray-800">
                 Flexible Hours Settings
               </h4>
+              <p className="text-sm text-gray-600">
+                Customers can book any time during your operating hours with
+                flexible duration
+              </p>
               <div className="grid grid-cols-2 gap-4">
                 <InputField
                   label="Minimum Duration (hours)"
@@ -414,6 +432,10 @@ const BookingConfigurationForm: React.FC<BookingConfigurationFormProps> = ({
                   placeholder="e.g., 8"
                 />
               </div>
+              <p className="text-xs text-gray-500">
+                Note: The slot duration field is optional for flexible hours as
+                customers can choose any time within your operating hours
+              </p>
             </div>
           )}
 

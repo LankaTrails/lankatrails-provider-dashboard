@@ -8,61 +8,13 @@ import type {
   ServiceType,
 } from "@/types/serviceTypes";
 import { Info } from "lucide-react";
+import { getServiceTypeRecommendations } from "@/utils/serviceRecommendations";
 
 interface PriceConfigurationFormProps {
   priceConfig?: PriceConfigDTO;
   serviceType: ServiceType;
   onChange: (config: PriceConfigDTO) => void;
 }
-
-const PRICE_TYPE_OPTIONS = [
-  {
-    value: "FIXED",
-    label: "Fixed Price",
-    description:
-      "Provider enters a single fixed amount.",
-  },
-  {
-    value: "PER_PERSON",
-    label: "Per Person",
-    description:
-      "Provider enters price per adult and optionally per child..",
-  },
-  {
-    value: "PER_UNIT",
-    label: "Per Unit",
-    description:
-      "Provider enters price per unit type (e.g., room, villa, vehicle). Must specify unit capacity.",
-  },
-  {
-    value: "HYBRID",
-    label: "Hybrid",
-    description:
-      "Provider defines a base price + per person or unit price.",
-  },
-  {
-    value: "PER_HOUR",
-    label: "Per Hour",
-    description: "Provider sets hourly price.",
-  },
-  {
-    value: "PER_DAY",
-    label: "Per Day",
-    description: "Provider sets daily price.",
-  },
-  {
-    value: "PER_NIGHT",
-    label: "Per Night",
-    description:
-      "Provider sets per-night price (accommodation only).",
-  },
-  {
-    value: "PER_KM",
-    label: "Per KM",
-    description:
-      "Provider sets price per kilometer (transport services).",
-  },
-];
 
 const PriceConfigurationForm: React.FC<PriceConfigurationFormProps> = ({
   priceConfig,
@@ -77,30 +29,15 @@ const PriceConfigurationForm: React.FC<PriceConfigurationFormProps> = ({
     onChange(updatedConfig);
   };
 
-  const getAvailablePriceTypes = () => {
-    const baseTypes = ["FIXED", "PER_PERSON", "HYBRID"];
-
-    switch (serviceType) {
-      case "ACCOMMODATION":
-        return [...baseTypes, "PER_UNIT", "PER_NIGHT"];
-      case "TRANSPORT":
-        return [...baseTypes, "PER_UNIT", "PER_KM", "PER_HOUR", "PER_DAY"];
-      case "ACTIVITY":
-        return [...baseTypes, "PER_HOUR", "PER_DAY"];
-      case "FOOD_BEVERAGE":
-        return [...baseTypes];
-      case "TOUR_GUIDE":
-        return [...baseTypes, "PER_HOUR", "PER_DAY"];
-      default:
-        return baseTypes;
-    }
-  };
-
-  const getFilteredPriceOptions = () => {
-    const availableTypes = getAvailablePriceTypes();
-    return PRICE_TYPE_OPTIONS.filter((option) =>
-      availableTypes.includes(option.value)
-    );
+  // Get service-specific price types
+  const getPriceTypeOptions = () => {
+    const recommendations = getServiceTypeRecommendations(serviceType);
+    return recommendations.priceTypes.map((pt) => ({
+      value: pt.value,
+      label: pt.label,
+      description: pt.description,
+      recommended: pt.recommended,
+    }));
   };
 
   const showFixedPrice = () => {
@@ -126,6 +63,16 @@ const PriceConfigurationForm: React.FC<PriceConfigurationFormProps> = ({
     );
   };
 
+  // Check if selected price type is appropriate for service type
+  const isPriceTypeAppropriate = () => {
+    if (!priceConfig?.priceType) return true;
+
+    const recommendations = getServiceTypeRecommendations(serviceType);
+    return recommendations.priceTypes.some(
+      (pt) => pt.value === priceConfig.priceType
+    );
+  };
+
   const getUnitLabel = () => {
     switch (serviceType) {
       case "ACCOMMODATION":
@@ -137,8 +84,9 @@ const PriceConfigurationForm: React.FC<PriceConfigurationFormProps> = ({
     }
   };
 
-  const getRateLabel = () => {
-    switch (priceConfig?.priceType) {
+  const getRateLabel = (type?: PriceType) => {
+    const priceType = type || priceConfig?.priceType;
+    switch (priceType) {
       case "PER_HOUR":
         return "Hourly Rate";
       case "PER_DAY":
@@ -154,20 +102,17 @@ const PriceConfigurationForm: React.FC<PriceConfigurationFormProps> = ({
 
   return (
     <div className="space-y-6">
-      <div className="bg-gradient-to-r from-green-50 to-green-50 p-4 rounded-xl border border-green-100">
-        <h3 className="text-xl font-semibold text-gray-800 mb-6 flex items-center">
-          <span className="w-2 h-2 bg-green-500 rounded-full mr-3"></span>
-          Price Configuration
-        </h3>
-
+      <div className="p-4 rounded-lg border border-gray-200 bg-white">
         {/* Price Type Selection */}
         <div className="space-y-4">
           <div className="relative">
             <SelectField
               label="Price Type"
-              options={getFilteredPriceOptions().map((option) => ({
+              options={getPriceTypeOptions().map((option) => ({
                 value: option.value,
-                label: option.label,
+                label: option.recommended
+                  ? `${option.label} (Recommended)`
+                  : option.label,
               }))}
               value={priceConfig?.priceType || ""}
               onChange={(value) =>
@@ -177,17 +122,29 @@ const PriceConfigurationForm: React.FC<PriceConfigurationFormProps> = ({
             />
             {/* Tooltip */}
             {priceConfig?.priceType && (
-              <div className="mt-2 p-3 bg-green-50 border border-green-200 rounded-md">
-                <div className="flex items-start space-x-2">
-                  <Info className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
-                  <p className="text-sm text-green-700">
+              <div className="mt-2">
+                {/* Show warning only if not appropriate */}
+                {!isPriceTypeAppropriate() ? (
+                  <div className="p-3 bg-amber-50 border border-amber-200 rounded-md">
+                    <div className="flex items-start space-x-2">
+                      <Info className="w-4 h-4 text-amber-500 mt-0.5 flex-shrink-0" />
+                      <p className="text-sm text-amber-700">
+                        This price type is not typically recommended for{" "}
+                        {serviceType.toLowerCase().replace("_", " ")} services.
+                        Consider using one of the recommended options for better
+                        pricing structure.
+                      </p>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="text-xs text-gray-500">
                     {
-                      PRICE_TYPE_OPTIONS.find(
+                      getPriceTypeOptions().find(
                         (opt) => opt.value === priceConfig.priceType
                       )?.description
                     }
-                  </p>
-                </div>
+                  </div>
+                )}
               </div>
             )}
           </div>
@@ -308,39 +265,107 @@ const PriceConfigurationForm: React.FC<PriceConfigurationFormProps> = ({
             <h4 className="font-medium text-gray-800">
               Extra Charges (Optional)
             </h4>
-            <div className="grid grid-cols-2 gap-4">
-              <InputField
-                label="Extra Charge per Adult"
-                type="number"
-                value={priceConfig?.extraPerAdult?.toString() || ""}
-                onChange={(value) =>
-                  handleConfigChange("extraPerAdult", parseFloat(value) || 0)
-                }
-                placeholder="Enter extra adult charge"
-              />
-              <InputField
-                label="Extra Charge per Child"
-                type="number"
-                value={priceConfig?.extraPerChild?.toString() || ""}
-                onChange={(value) =>
-                  handleConfigChange("extraPerChild", parseFloat(value) || 0)
-                }
-                placeholder="Enter extra child charge"
-              />
-            </div>
-            {showPerUnitPricing() && (
-              <InputField
-                label={`Extra Charge per ${getUnitLabel()}`}
-                type="number"
-                value={priceConfig?.extraChargePerUnit?.toString() || ""}
-                onChange={(value) =>
-                  handleConfigChange(
-                    "extraChargePerUnit",
-                    parseFloat(value) || 0
-                  )
-                }
-                placeholder={`Enter extra charge per ${getUnitLabel().toLowerCase()}`}
-              />
+            <p className="text-sm text-gray-600">
+              Configure additional charges for extras like fuel, tolls,
+              overtime, special equipment, etc.
+            </p>
+
+            <SelectField
+              label="Extra Charge Type"
+              options={[
+                { value: "", label: "No Extra Charges" },
+                ...getPriceTypeOptions().map((option) => ({
+                  value: option.value,
+                  label: option.label,
+                })),
+              ]}
+              value={priceConfig?.extraChargeType || ""}
+              onChange={(value) =>
+                handleConfigChange(
+                  "extraChargeType",
+                  (value as PriceType) || undefined
+                )
+              }
+            />
+
+            {priceConfig?.extraChargeType && (
+              <div className="space-y-4">
+                {/* Per Person Extra Charges */}
+                {(priceConfig.extraChargeType === "PER_PERSON" ||
+                  priceConfig.extraChargeType === "HYBRID") && (
+                  <div className="grid grid-cols-2 gap-4">
+                    <InputField
+                      label="Extra Charge per Adult"
+                      type="number"
+                      value={priceConfig?.extraPerAdult?.toString() || ""}
+                      onChange={(value) =>
+                        handleConfigChange(
+                          "extraPerAdult",
+                          parseFloat(value) || 0
+                        )
+                      }
+                      placeholder="Enter extra adult charge"
+                    />
+                    <InputField
+                      label="Extra Charge per Child"
+                      type="number"
+                      value={priceConfig?.extraPerChild?.toString() || ""}
+                      onChange={(value) =>
+                        handleConfigChange(
+                          "extraPerChild",
+                          parseFloat(value) || 0
+                        )
+                      }
+                      placeholder="Enter extra child charge"
+                    />
+                  </div>
+                )}
+
+                {/* Per Unit Extra Charges */}
+                {(priceConfig.extraChargeType === "PER_UNIT" ||
+                  priceConfig.extraChargeType === "FIXED") && (
+                  <InputField
+                    label={
+                      priceConfig.extraChargeType === "FIXED"
+                        ? "Fixed Extra Charge"
+                        : `Extra Charge per ${getUnitLabel()}`
+                    }
+                    type="number"
+                    value={priceConfig?.extraChargePerUnit?.toString() || ""}
+                    onChange={(value) =>
+                      handleConfigChange(
+                        "extraChargePerUnit",
+                        parseFloat(value) || 0
+                      )
+                    }
+                    placeholder={
+                      priceConfig.extraChargeType === "FIXED"
+                        ? "Enter fixed extra charge"
+                        : `Enter extra charge per ${getUnitLabel().toLowerCase()}`
+                    }
+                  />
+                )}
+
+                {/* Hourly/Daily/KM Extra Charges */}
+                {["PER_HOUR", "PER_DAY", "PER_NIGHT", "PER_KM"].includes(
+                  priceConfig.extraChargeType
+                ) && (
+                  <InputField
+                    label={`Extra ${getRateLabel(priceConfig.extraChargeType)}`}
+                    type="number"
+                    value={priceConfig?.extraChargePerUnit?.toString() || ""}
+                    onChange={(value) =>
+                      handleConfigChange(
+                        "extraChargePerUnit",
+                        parseFloat(value) || 0
+                      )
+                    }
+                    placeholder={`Enter extra ${getRateLabel(
+                      priceConfig.extraChargeType
+                    ).toLowerCase()}`}
+                  />
+                )}
+              </div>
             )}
           </div>
 
