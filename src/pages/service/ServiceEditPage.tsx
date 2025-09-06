@@ -1,14 +1,11 @@
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import UnifiedServiceForm from "@/components/UnifiedServiceForm";
 import BackButton from "@/components/BackButton";
 import type {
   ServiceFormData,
   ImageUploadItem,
   ImageFiles,
   ImageData,
-  TabData,
-  PolicyData,
 } from "@/types/serviceTypes";
 import { findServiceById, updateService } from "@/services/services";
 import StepWizardServiceForm from "@/components/StepWizardServiceForm";
@@ -17,6 +14,7 @@ const ServiceEditPage: React.FC = () => {
   const { id, serviceType } = useParams();
   const [initialData, setInitialData] = useState<ServiceFormData | undefined>();
   const [loading, setLoading] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [initialImages, setInitialImages] = useState<ImageUploadItem[]>([]);
   const [existingImages, setExistingImages] = useState<ImageData[]>([]);
 
@@ -105,6 +103,7 @@ const ServiceEditPage: React.FC = () => {
   const handleEditSubmit = async (data: any, images: ImageFiles) => {
     if (!id || !serviceType) return;
 
+    setIsSubmitting(true);
     try {
       console.log("Updating service with data:", data);
       const result = await updateService(serviceType, Number(id), data, images);
@@ -113,6 +112,8 @@ const ServiceEditPage: React.FC = () => {
     } catch (error) {
       console.error("Error updating service:", error);
       // TODO: Add error notification
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -133,6 +134,8 @@ const ServiceEditPage: React.FC = () => {
         initialImages={initialImages}
         existingImages={existingImages}
         onSubmit={handleEditSubmit}
+        isEditMode={true}
+        isSubmitting={isSubmitting}
       />
     </div>
   );

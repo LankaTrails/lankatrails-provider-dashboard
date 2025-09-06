@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from "react";
-import { Info, MapPin, Calendar, Globe } from "lucide-react";
+import { Info, MapPin, Calendar, Globe, FileText } from "lucide-react";
 import StepWizard from "./forms/StepWizard";
 import InputField from "@/components/forms/InputField";
 import SelectField from "@/components/forms/SelectField";
@@ -11,6 +11,7 @@ import CheckboxField from "./forms/CheckboxField";
 import BookingConfigurationForm from "./forms/BookingConfigurationForm";
 import PriceConfigurationForm from "./forms/PriceConfigurationForm";
 import AvailableTimeConfiguration from "./forms/AvailableTimeConfiguration";
+import ExpandableSectionComponent from "@/components/forms/ExpandableSectionComponent";
 
 import {
   getServiceTypeRecommendations,
@@ -22,6 +23,7 @@ import {
   getServiceTypeHints,
 } from "@/utils/serviceValidation";
 import { fetchAllGuidingAreas } from "@/services/guideService";
+import { fetchPoliciesByServiceType } from "@/services/services";
 import type {
   ServiceFormData,
   LocationData,
@@ -43,6 +45,10 @@ import type {
   FuelType,
   TransmissionType,
   FoodBeverageType,
+  TabSection,
+  PolicySection,
+  TabData,
+  PolicyData,
   AvailableTimeDTO,
 } from "@/types/serviceTypes";
 
@@ -52,6 +58,8 @@ const StepWizardServiceForm: React.FC<ServiceFormProps> = ({
   existingImages,
   initialData,
   onSubmit,
+  isEditMode = false,
+  isSubmitting = false,
 }) => {
   const [currentStep, setCurrentStep] = useState(0);
   const [images, setImages] = useState<ImageFiles>({
@@ -59,6 +67,25 @@ const StepWizardServiceForm: React.FC<ServiceFormProps> = ({
       existingImages && existingImages.length > 0 ? [] : initialImages || [],
   });
   const [deletedImages, setDeletedImages] = useState<ImageData[]>([]);
+  const [deletedTabs, setDeletedTabs] = useState<TabSection[]>([]);
+  const [deletedPolicies, setDeletedPolicies] = useState<PolicySection[]>([]);
+
+  // Store original data for tracking deletions
+  const [originalTabsSection] = useState<TabSection[]>(
+    initialData?.tabsSection || []
+  );
+  const [originalPolicySection] = useState<PolicySection[]>(
+    initialData?.policySection || []
+  );
+  const [originalPreferredPolicies] = useState<string[]>(() => {
+    // Store original preferred policy IDs for deletion tracking
+    if (initialData && initialData.policySection) {
+      return initialData.policySection
+        .filter((policy) => policy.id !== null)
+        .map((policy) => policy.id!.toString());
+    }
+    return [];
+  });
   const [preferredLanguages, setPreferredLanguages] = useState<string[]>(() => {
     if (initialData && serviceType === "tour-guides") {
       return (initialData as TourGuideFormData).languages || [];
@@ -74,6 +101,43 @@ const StepWizardServiceForm: React.FC<ServiceFormProps> = ({
     return [];
   });
   const [guidingAreas, setGuidingAreas] = useState<LocationData[]>([]);
+
+  // Tab and Policy sections state
+  const [tabsSection, setTabsSection] = useState<TabData[]>(
+    (initialData?.tabsSection || [{ heading: "", content: "" }]).map((tab) => ({
+      id: "id" in tab && tab.id !== null ? tab.id : null,
+      heading: tab.heading,
+      description: tab.content,
+      isExpanded: true,
+    }))
+  );
+
+  const [policySection, setPolicySection] = useState<PolicyData[]>(
+    (initialData?.policySection || [{ heading: "", policy: "" }])
+      .filter((policy) => !("id" in policy) || policy.id === null) // Only include custom policies (null IDs or no ID)
+      .map((policy) => ({
+        id: null,
+        heading: policy.heading,
+        description: policy.policy || "",
+        isExpanded: true,
+      }))
+  );
+
+  // Policy-related state
+  const [policyOptions, setPolicyOptions] = useState<
+    { label: string; value: string }[]
+  >([]);
+  const [fullPolicyData, setFullPolicyData] = useState<any[]>([]);
+  const [preferredPolicies, setPreferredPolicies] = useState<string[]>(() => {
+    // Initialize with policy IDs from existing data that have non-null IDs
+    if (initialData && initialData.policySection) {
+      return initialData.policySection
+        .filter((policy) => policy.id !== null)
+        .map((policy) => policy.id!.toString());
+    }
+    return [];
+  });
+
   const [attemptedSteps, setAttemptedSteps] = useState<Set<number>>(new Set());
 
   // Define wizard steps
@@ -98,6 +162,13 @@ const StepWizardServiceForm: React.FC<ServiceFormProps> = ({
       description: "Add location, contact details, and operating hours",
       icon: <MapPin className="w-5 h-5" />,
       isRequired: true,
+    },
+    {
+      id: "tabs-policies",
+      title: "Additional Information & Policies",
+      description: "Add detailed information tabs and service policies",
+      icon: <FileText className="w-5 h-5" />,
+      isRequired: false,
     },
   ];
 
@@ -324,6 +395,31 @@ const StepWizardServiceForm: React.FC<ServiceFormProps> = ({
     loadGuidingAreas();
   }, [serviceType]);
 
+  // Load policies for all service types
+  useEffect(() => {
+    const loadPolicies = async () => {
+      try {
+        console.log("Loading policies for service type:", serviceType);
+        const policies = await fetchPoliciesByServiceType(
+          serviceType || "activity"
+        );
+        console.log("Fetched policies:", policies);
+        const policyOptions = policies.map((policy: any) => ({
+          label: policy.heading,
+          value: policy.id?.toString() || policy.heading,
+        }));
+        console.log("Policy options:", policyOptions);
+        setPolicyOptions(policyOptions);
+        setFullPolicyData(policies); // Store full policy data for later use
+      } catch (error) {
+        console.error("Error loading policies:", error);
+      }
+    };
+    if (serviceType) {
+      loadPolicies();
+    }
+  }, [serviceType]);
+
   // Handler functions
   const handleInputChange = (field: string, value: any) => {
     setFormData((prev) => ({
@@ -378,10 +474,139 @@ const StepWizardServiceForm: React.FC<ServiceFormProps> = ({
   // Handle guiding area selection for tour guides
   const handleGuidingAreaSelection = (selectedValues: string[]) => {
     const selectedAreas = guidingAreas.filter((area) =>
-      selectedValues.includes(area.city)
+      selectedValues.includes(area.district)
     );
     setSelectedGuidingAreas(selectedAreas);
     handleInputChange("locations", selectedAreas);
+  };
+
+  // Handle tabs and policies changes
+  const handleTabsChange = (tabs: TabData[]) => {
+    // Convert TabData to TabSection for comparison
+    const currentTabSections = tabs.map((tab) => ({
+      id: tab.id,
+      heading: tab.heading,
+      content: tab.description,
+    }));
+
+    // Track deleted tabs (ones that exist in original but not in current)
+    const currentTabIds = currentTabSections
+      .map((tab) => tab.id)
+      .filter((id) => id !== undefined);
+    const deletedTabsFromOriginal = originalTabsSection.filter(
+      (originalTab) => originalTab.id && !currentTabIds.includes(originalTab.id)
+    );
+
+    console.log("Tab deletion tracking:", {
+      originalTabs: originalTabsSection,
+      currentTabs: currentTabSections,
+      currentTabIds,
+      deletedTabsFromOriginal,
+    });
+
+    // Add to deletedTabs if not already there
+    setDeletedTabs((prev) => {
+      const existingDeletedIds = prev.map((tab) => tab.id);
+      const newDeleted = deletedTabsFromOriginal.filter(
+        (tab) => tab.id && !existingDeletedIds.includes(tab.id)
+      );
+      return [...prev, ...newDeleted];
+    });
+
+    setTabsSection(tabs);
+    setFormData((prev) => ({
+      ...prev,
+      tabsSection: currentTabSections,
+    }));
+  };
+
+  const handlePoliciesChange = (updatedPolicies: PolicyData[]) => {
+    // Convert PolicyData to PolicySection for comparison
+    const currentPolicySections = updatedPolicies.map((policy) => ({
+      id: policy.id,
+      heading: policy.heading,
+      policy: policy.description,
+    }));
+
+    // Track deleted policies (ones that exist in original but not in current)
+    const currentPolicyIds = currentPolicySections
+      .map((policy) => policy.id)
+      .filter((id) => id !== undefined);
+    const deletedPoliciesFromOriginal = originalPolicySection.filter(
+      (originalPolicy) =>
+        originalPolicy.id && !currentPolicyIds.includes(originalPolicy.id)
+    );
+
+    console.log("Policy deletion tracking:", {
+      originalPolicies: originalPolicySection,
+      currentPolicies: currentPolicySections,
+      currentPolicyIds,
+      deletedPoliciesFromOriginal,
+    });
+
+    // Add to deletedPolicies if not already there
+    setDeletedPolicies((prev) => {
+      const existingDeletedIds = prev.map((policy) => policy.id);
+      const newDeleted = deletedPoliciesFromOriginal.filter(
+        (policy) => policy.id && !existingDeletedIds.includes(policy.id)
+      );
+      return [...prev, ...newDeleted];
+    });
+
+    setPolicySection(updatedPolicies);
+    handleInputChange("policySection", currentPolicySections);
+  };
+
+  const handleMultiselectPolicyChange = (selectedValues: string[]) => {
+    // Track removed policies from multiselect (predefined policies that were unselected)
+    const removedPolicyIds = originalPreferredPolicies.filter(
+      (originalId) => !selectedValues.includes(originalId)
+    );
+
+    // Track re-selected policies (ones that were previously deleted but now selected again)
+    const reselectedPolicyIds = selectedValues.filter((selectedId) =>
+      originalPreferredPolicies.includes(selectedId)
+    );
+
+    // Find the policy data for removed policies and add to deletedPolicies
+    const removedPolicies = removedPolicyIds.map((policyId) => {
+      const policyData = fullPolicyData.find(
+        (policy) => policy.id?.toString() === policyId
+      );
+      return {
+        id: parseInt(policyId, 10),
+        heading: policyData?.heading || `Policy ${policyId}`,
+        policy:
+          policyData?.policy || policyData?.heading || `Policy ${policyId}`,
+      };
+    });
+
+    console.log("Multiselect policy deletion tracking:", {
+      originalPreferredPolicies,
+      selectedValues,
+      removedPolicyIds,
+      reselectedPolicyIds,
+      removedPolicies,
+    });
+
+    // Update deletedPolicies: add removed ones, remove re-selected ones
+    setDeletedPolicies((prev) => {
+      // Remove re-selected policies from deleted list
+      let updated = prev.filter(
+        (policy) => !reselectedPolicyIds.includes(policy.id?.toString() || "")
+      );
+
+      // Add newly removed policies if not already there
+      const existingDeletedIds = updated.map((policy) => policy.id);
+      const newDeleted = removedPolicies.filter(
+        (policy) => policy.id && !existingDeletedIds.includes(policy.id)
+      );
+
+      return [...updated, ...newDeleted];
+    });
+
+    setPreferredPolicies(selectedValues);
+    // Note: selectedPolicies are handled as references and may need special backend handling
   };
 
   const getServiceTypeEnum = (): ServiceType => {
@@ -652,6 +877,36 @@ const StepWizardServiceForm: React.FC<ServiceFormProps> = ({
     let updatedData: ServiceFormData = {
       ...formData,
       deletedImages: deletedImages,
+      deletedTabs: deletedTabs,
+      deletedPolicies: deletedPolicies,
+      // Add tabs and policies to all service types
+      tabsSection: tabsSection.map((tab) => ({
+        id: tab.id,
+        heading: tab.heading,
+        content: tab.description,
+      })),
+      policySection: [
+        // Include selected existing policies with their IDs
+        ...preferredPolicies.map((policyId) => {
+          const existingPolicy = fullPolicyData.find(
+            (policy) => policy.id?.toString() === policyId
+          );
+          return {
+            id: existingPolicy?.id || parseInt(policyId, 10),
+            heading: existingPolicy?.heading || `Policy ${policyId}`,
+            policy:
+              existingPolicy?.policy ||
+              existingPolicy?.heading ||
+              `Policy ${policyId}`,
+          };
+        }),
+        // Include new custom policies with null IDs
+        ...policySection.map((policy) => ({
+          id: null, // New policies always have null ID
+          heading: policy.heading,
+          policy: policy.description,
+        })),
+      ],
     };
 
     if (serviceType === "tour-guides") {
@@ -661,6 +916,14 @@ const StepWizardServiceForm: React.FC<ServiceFormProps> = ({
         languages: preferredLanguages,
       } as TourGuideFormData;
     }
+
+    console.log("Form submission data:", {
+      selectedPolicies: preferredPolicies,
+      customPolicies: policySection,
+      finalPolicySection: updatedData.policySection,
+      deletedTabs: deletedTabs,
+      deletedPolicies: deletedPolicies,
+    });
 
     onSubmit(updatedData, images);
   };
@@ -1248,6 +1511,55 @@ const StepWizardServiceForm: React.FC<ServiceFormProps> = ({
           </div>
         );
 
+      case 3: // Additional Information & Policies
+        return (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            {/* Left Column - Tabs Section */}
+            <div className="bg-gradient-to-r from-primary-50 to-primary-50 p-4 rounded-xl border border-primary-100">
+              <ExpandableSectionComponent
+                title="Additional Information Tabs"
+                items={tabsSection}
+                onItemsChange={handleTabsChange}
+                addButtonText="Add Tab"
+                itemName="Tab"
+              />
+            </div>
+
+            {/* Right Column - Policies Section */}
+            <div className="bg-gradient-to-r from-primary-50 to-primary-50 p-4 rounded-xl border border-primary-100">
+              <div className="mb-6">
+                {policyOptions.length > 0 ? (
+                  <MultiSelectField
+                    label="Available Policies"
+                    options={policyOptions}
+                    value={preferredPolicies}
+                    onChange={handleMultiselectPolicyChange}
+                    icon={<Globe size={16} />}
+                    placeholder="Select existing policies"
+                  />
+                ) : (
+                  <div className="text-sm text-gray-600 mb-4">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Available Policies
+                    </label>
+                    <p className="text-gray-500 italic">
+                      No existing policies found for {serviceType} services. You
+                      can create custom policies below.
+                    </p>
+                  </div>
+                )}
+              </div>
+              <ExpandableSectionComponent
+                title="Custom Policies"
+                items={policySection}
+                onItemsChange={handlePoliciesChange}
+                addButtonText="Add Policy"
+                itemName="Policy"
+              />
+            </div>
+          </div>
+        );
+
       default:
         return <div>Step not found</div>;
     }
@@ -1267,6 +1579,8 @@ const StepWizardServiceForm: React.FC<ServiceFormProps> = ({
           .filter((step) => step.isRequired)
           .every((_, index) => isStepValid(index))
       }
+      submitButtonText={isEditMode ? "Update Service" : "Create Service"}
+      isSubmitting={isSubmitting}
     >
       {renderStepContent()}
     </StepWizard>

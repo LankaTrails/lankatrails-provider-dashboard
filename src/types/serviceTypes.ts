@@ -1,5 +1,3 @@
-import type { S } from "node_modules/framer-motion/dist/types.d-B_QPEvFK";
-
 export type ServiceType = 'ACTIVITY' | 'TOUR_GUIDE' | 'TRANSPORT' | 'ACCOMMODATION' | 'FOOD_BEVERAGE';
 
 export type PriceType = 'FIXED' | 'PER_PERSON' | 'PER_UNIT' | 'HYBRID' | 'PER_HOUR' | 'PER_DAY' | 'PER_NIGHT' | 'PER_KM';
@@ -224,6 +222,8 @@ export interface ServiceFormProps {
   initialImages?: ImageUploadItem[]; // fixed typo and type
   existingImages?: ImageData[]; // For edit mode - existing images from API
   onSubmit: (data: ServiceFormData, images: ImageFiles) => void;
+  isEditMode?: boolean; // Indicates if this is an edit operation
+  isSubmitting?: boolean; // Indicates if the form is currently being submitted
 }
 
 // Utility types for booking configuration validation

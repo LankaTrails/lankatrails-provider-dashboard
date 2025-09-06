@@ -4,7 +4,6 @@ import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
 import InputField from "@/components/forms/InputField";
 import type { TabData, PolicyData } from "@/types/serviceTypes";
-import { deletePolicy } from "@/services/policyService";
 
 interface ExpandableSectionProps {
   title: string;
@@ -61,9 +60,7 @@ const ExpandableSectionComponent: React.FC<ExpandableSectionProps> = ({
       onItemsChange(items.filter((item) => item.id !== id));
     }
     //delete - only call deletePolicy if id is not null (existing item)
-    if (id !== null) {
-      deletePolicy(id);
-    }
+    
   };
 
   const handleSaveClick = async () => {

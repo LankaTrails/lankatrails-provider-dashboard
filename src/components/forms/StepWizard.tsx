@@ -18,6 +18,8 @@ interface StepWizardProps {
   onSubmit: () => void;
   isNextDisabled?: boolean;
   isSubmitDisabled?: boolean;
+  submitButtonText?: string;
+  isSubmitting?: boolean;
   children: React.ReactNode;
 }
 
@@ -30,6 +32,8 @@ const StepWizard: React.FC<StepWizardProps> = ({
   onSubmit,
   isNextDisabled = false,
   isSubmitDisabled = false,
+  submitButtonText = "Create Service",
+  isSubmitting = false,
   children,
 }) => {
   const isLastStep = currentStep === steps.length - 1;
@@ -158,18 +162,48 @@ const StepWizard: React.FC<StepWizardProps> = ({
         {isLastStep ? (
           <button
             onClick={onSubmit}
-            disabled={isSubmitDisabled}
+            disabled={isSubmitDisabled || isSubmitting}
             className={`
               flex items-center px-6 py-2 rounded-md text-sm font-medium transition-colors
               ${
-                isSubmitDisabled
+                isSubmitDisabled || isSubmitting
                   ? "bg-gray-300 text-gray-500 cursor-not-allowed"
                   : "bg-green-600 text-white hover:bg-green-700"
               }
             `}
           >
-            <Check className="w-4 h-4 mr-2" />
-            Create Service
+            {isSubmitting ? (
+              <>
+                <svg
+                  className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                >
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                  ></circle>
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                  ></path>
+                </svg>
+                {submitButtonText === "Update Service"
+                  ? "Updating..."
+                  : "Creating..."}
+              </>
+            ) : (
+              <>
+                <Check className="w-4 h-4 mr-2" />
+                {submitButtonText}
+              </>
+            )}
           </button>
         ) : (
           <button
