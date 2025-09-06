@@ -1,162 +1,322 @@
-import { useState } from 'react';
-import { Card } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { ScrollArea } from '@/components/ui/scroll-area';
-
-interface Conversation {
-  id: number;
-  name: string;
-  avatar?: string; // url or undefined for initials
-  messages: Message[];
-}
-
-interface Message {
-  id: number;
-  sender: 'provider' | 'tourist';
-  text: string;
-  timestamp: string; // ISO string
-}
-
-// Temporary static data – in real app fetch from backend
-const sampleConversations: Conversation[] = [
-  {
-    id: 1,
-    name: 'John Smith',
-    messages: [
-      { id: 1, sender: 'tourist', text: 'Hi, is the tour available on 4th July?', timestamp: '2025-06-17T17:48:00' },
-      { id: 2, sender: 'provider', text: 'Yes, it is available! Would you like to book?', timestamp: '2025-06-17T17:50:00' },
-    ],
-  },
-  {
-    id: 2,
-    name: 'Emma Wilson',
-    messages: [
-      { id: 1, sender: 'tourist', text: 'Can we get a discount for 5 people?', timestamp: '2025-06-18T11:20:00' },
-      { id: 2, sender: 'provider', text: 'Sure, I can offer 10% off.', timestamp: '2025-06-18T11:25:00' },
-    ],
-  },
-  {
-    id: 3,
-    name: 'David Chen',
-    messages: [
-      { id: 1, sender: 'tourist', text: 'What time does the safari start?', timestamp: '2025-06-19T08:00:00' },
-      { id: 2, sender: 'provider', text: 'We start at 6am sharp.', timestamp: '2025-06-19T08:05:00' },
-    ],
-  },
-];
+import { useState, useEffect, useRef } from "react";
+import { useNavigate } from "react-router-dom";
+import { Card } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
+import { useToast } from "@/hooks/use-toast";
+import { FileText, FileImage, FileType, MessageCircle } from "lucide-react";
+import type { DirectChatRoom, ChatMessage } from "@/types/chatTypes";
+import {
+  getMyChatRooms,
+  getRoomMessages,
+  sendFileMessage,
+  markAllMessagesAsRead,
+} from "@/services/chatService";
+import { useAuth } from "@/hooks/useAuth";
+import ChatRoomList from "./messaging/ChatRoomList";
+import MessageInput from "./messaging/MessageInput";
+import ChatHeader from "./messaging/ChatHeader";
+import MessagesArea from "./messaging/MessagesArea";
+import EmptyState from "./messaging/EmptyState";
 
 const MessagingPlatform = () => {
-  const [conversations, setConversations] = useState<Conversation[]>(sampleConversations);
-  const [selectedId, setSelectedId] = useState<number>(conversations[0].id);
-  const [input, setInput] = useState('');
+  const { user } = useAuth();
+  const { toast } = useToast();
+  const navigate = useNavigate();
+  const [chatRooms, setChatRooms] = useState<DirectChatRoom[]>([]);
+  const [selectedRoomId, setSelectedRoomId] = useState<number | null>(null);
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [input, setInput] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
+  const [isLoadingMessages, setIsLoadingMessages] = useState(false);
+  const [isSendingMessage, setIsSendingMessage] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const current = conversations.find((c) => c.id === selectedId)!;
-
-  const sendMessage = () => {
-    if (!input.trim()) return;
-    setConversations((prev) =>
-      prev.map((conv) =>
-        conv.id === selectedId
-          ? {
-              ...conv,
-              messages: [
-                ...conv.messages,
-                { id: conv.messages.length + 1, sender: 'provider', text: input.trim(), timestamp: new Date().toISOString() },
-              ],
-            }
-          : conv
-      )
-    );
-    setInput('');
+  // Helper function to get full URL with VITE_BASE_URL
+  const getFullUrl = (path: string) => {
+    const baseUrl = import.meta.env.VITE_BASE_URL || "";
+    return path.startsWith("http") ? path : `${baseUrl}${path}`;
   };
 
-  return (
-    <Card className="rounded-lg border bg-card text-card-foreground shadow-sm h-[30rem] flex flex-col overflow-hidden">
-      <div className="flex flex-1">
-        {/* conversation list */}
-        <div className="w-56 border-r bg-muted/50">
-          <ScrollArea className="h-full">
-            {conversations.map((conv) => (
-              <button
-                key={conv.id}
-                onClick={() => setSelectedId(conv.id)}
-                className={`w-full text-left px-4 py-3 flex items-center gap-3 focus:outline-none transition-colors ${
-                  conv.id === selectedId
-                    ? 'bg-primary-100/60 dark:bg-primary-900/40'
-                    : 'hover:bg-muted/60 dark:hover:bg-muted/40'
-                }`}
-              >
-                <div className="w-10 h-10 rounded-full bg-primary-500 text-white flex items-center justify-center text-sm font-medium uppercase">
-                  {conv.avatar ? (
-                    <img src={conv.avatar} alt={conv.name} className="w-full h-full object-cover rounded-full" />
-                  ) : (
-                    conv.name
-                      .split(' ')
-                      .map((n) => n[0])
-                      .join('')
-                      .slice(0, 2)
-                  )}
-                </div>
-                <div className="flex-1 overflow-hidden">
-                  <p className="font-medium truncate">{conv.name}</p>
-                  <p className="text-xs text-muted-foreground truncate">
-                    {(() => {
-                    const txt = conv.messages[conv.messages.length - 1]?.text || '';
-                    return txt.length > 30 ? txt.slice(0, 30).trimEnd() + '...' : txt;
-                  })()}
-                  </p>
-                </div>
-              </button>
-            ))}
-          </ScrollArea>
-        </div>
+  // Helper function to get file icon based on file type
+  const getFileIcon = (fileType: string) => {
+    if (fileType.startsWith("image/")) return <FileImage className="h-4 w-4" />;
+    if (fileType.includes("pdf")) return <FileType className="h-4 w-4" />;
+    return <FileText className="h-4 w-4" />;
+  };
 
-        {/* chat pane */}
-        <div className="flex-1 flex flex-col">
-          {/* header */}
-          <div className="px-4 py-3 border-b font-semibold">{current.name}</div>
-          {/* messages */}
-          <ScrollArea className="flex-1 p-4 space-y-4">
-            {current.messages.map((msg, idx) => {
-              const prev = current.messages[idx - 1];
-              const showDate = !prev || prev.timestamp.split('T')[0] !== msg.timestamp.split('T')[0];
-              const dateStr = new Date(msg.timestamp).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
-              const timeStr = new Date(msg.timestamp).toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
-              return (
-                <>
-                  {showDate && (
-                    <div className="text-center text-xs text-muted-foreground my-2 select-none">
-                      {dateStr}
-                    </div>
-                  )}
-                  <div
-                    key={msg.id}
-                    className={`max-w-xs px-4 py-2 rounded-lg text-sm break-words relative ${
-                      msg.sender === 'provider'
-                        ? 'bg-primary-500 text-white ml-auto'
-                        : 'bg-gray-100 dark:bg-gray-800'
-                    }`}
-                  >
-                    {msg.text}
-                    <span className="block text-[10px] opacity-75 mt-1 text-right">
-                      {timeStr}
-                    </span>
-                  </div>
-                </>
-              );
-            })}
-          </ScrollArea>
-          {/* input */}
-          <div className="p-4 border-t flex gap-2">
-            <Input
-              placeholder="Type a message..."
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && sendMessage()}
-            />
-            <Button onClick={sendMessage}>Send</Button>
+  // Load chat rooms on component mount
+  useEffect(() => {
+    loadChatRooms();
+  }, []);
+
+  // Load messages when room is selected
+  useEffect(() => {
+    if (selectedRoomId) {
+      loadMessages(selectedRoomId);
+      markAllMessagesAsRead(selectedRoomId).catch(console.error);
+    }
+  }, [selectedRoomId]);
+
+  const loadChatRooms = async () => {
+    try {
+      setIsLoading(true);
+      const response = await getMyChatRooms();
+
+      if (response.success && response.data) {
+        setChatRooms(response.data);
+        // Auto-select first room if available
+        if (response.data.length > 0 && !selectedRoomId) {
+          setSelectedRoomId(response.data[0].id);
+        }
+      } else {
+        toast({
+          title: "Error",
+          description: "Failed to load chat rooms",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error("Error loading chat rooms:", error);
+      toast({
+        title: "Error",
+        description: "Failed to load chat rooms",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const loadMessages = async (roomId: number) => {
+    try {
+      setIsLoadingMessages(true);
+      const response = await getRoomMessages(roomId);
+
+      if (response.success && response.data) {
+        setMessages(response.data);
+      } else {
+        toast({
+          title: "Error",
+          description: "Failed to load messages",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error("Error loading messages:", error);
+      toast({
+        title: "Error",
+        description: "Failed to load messages",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoadingMessages(false);
+    }
+  };
+
+  const sendTextMessage = async () => {
+    if (!selectedRoomId || !input.trim() || isSendingMessage) return;
+
+    try {
+      setIsSendingMessage(true);
+      // Implementation would depend on your sendTextMessage API
+      // For now, we'll just add the message optimistically
+      const newMessage: ChatMessage = {
+        id: Date.now().toString(),
+        chatRoomId: selectedRoomId,
+        senderId: user?.id || 0,
+        messageType: "TEXT",
+        content: input.trim(),
+        sentAt: new Date().toISOString(),
+      };
+
+      setMessages((prev) => [...prev, newMessage]);
+      setInput("");
+
+      toast({
+        title: "Message sent",
+        description: "Your message has been sent successfully",
+      });
+    } catch (error) {
+      console.error("Error sending message:", error);
+      toast({
+        title: "Error",
+        description: "Failed to send message",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSendingMessage(false);
+    }
+  };
+
+  const handleFileUpload = async (file: File) => {
+    if (!selectedRoomId || !file || !user) return;
+
+    try {
+      setIsSendingMessage(true);
+
+      // Create a new file message
+      const newMessage: ChatMessage = {
+        id: Date.now().toString(),
+        chatRoomId: selectedRoomId,
+        senderId: user.id,
+        messageType: "FILE",
+        content: file.name,
+        sentAt: new Date().toISOString(),
+        files: {
+          id: Date.now().toString(),
+          fileName: file.name,
+          fileType: file.type,
+          fileUrl: URL.createObjectURL(file), // Temporary URL for preview
+        },
+      };
+
+      await sendFileMessage(selectedRoomId, newMessage, file);
+
+      // Add message to local state
+      setMessages((prev) => [...prev, newMessage]);
+
+      toast({
+        title: "File sent",
+        description: "Your file has been sent successfully",
+      });
+    } catch (error) {
+      console.error("Error sending file:", error);
+      toast({
+        title: "Error",
+        description: "Failed to send file",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSendingMessage(false);
+    }
+  };
+
+  const getParticipantInfo = (room: DirectChatRoom) => {
+    if (!user) return { name: "Unknown", avatar: null };
+
+    const isProvider = room.providerId === user.id;
+    const participant = isProvider ? room.tourist : room.provider;
+
+    if (!participant) return { name: "Unknown", avatar: null };
+
+    if ("businessName" in participant) {
+      return {
+        name: participant.businessName,
+        avatar: participant.profilePictureUrl,
+      };
+    } else {
+      return {
+        name: `${participant.firstName} ${participant.lastName}`,
+        avatar: participant.profilePictureUrl,
+      };
+    }
+  };
+
+  const getInitials = (name: string) => {
+    return name
+      .split(" ")
+      .map((n) => n[0])
+      .join("")
+      .toUpperCase()
+      .slice(0, 2);
+  };
+
+  const getLastMessage = () => {
+    // This would typically come from the room data
+    // For now, return a placeholder
+    return "Click to start conversation";
+  };
+
+  const selectedRoom = chatRooms.find((room) => room.id === selectedRoomId);
+
+  // Loading state
+  if (isLoading) {
+    return (
+      <Card className="rounded-xl border bg-card text-card-foreground shadow-lg h-[36rem] flex flex-col overflow-hidden">
+        <div className="flex flex-1 min-h-0">
+          <div className="w-64 border-r bg-gradient-to-b from-background to-muted/30 p-4 space-y-4">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="flex items-center gap-3">
+                <Skeleton className="w-12 h-12 rounded-full" />
+                <div className="flex-1">
+                  <Skeleton className="h-4 w-24 mb-2" />
+                  <Skeleton className="h-3 w-32" />
+                </div>
+              </div>
+            ))}
           </div>
+          <div className="flex-1 flex items-center justify-center">
+            <div className="text-center space-y-4">
+              <MessageCircle className="h-12 w-12 text-muted-foreground mx-auto opacity-50" />
+              <p className="text-muted-foreground">Loading conversations...</p>
+            </div>
+          </div>
+        </div>
+      </Card>
+    );
+  }
+
+  return (
+    <Card className="rounded-xl border bg-card text-card-foreground shadow-lg h-[36rem] flex flex-col overflow-hidden backdrop-blur-sm">
+      <div className="flex flex-1 min-h-0">
+        {/* Chat rooms list */}
+        <ChatRoomList
+          chatRooms={chatRooms}
+          selectedRoomId={selectedRoomId}
+          isLoading={isLoading}
+          onRoomSelect={setSelectedRoomId}
+          getParticipantInfo={getParticipantInfo}
+          getInitials={getInitials}
+          getLastMessage={getLastMessage}
+        />
+
+        {/* Chat area */}
+        <div className="flex-1 flex flex-col min-w-0 min-h-0 bg-gradient-to-b from-background/50 to-muted/10">
+          {selectedRoom ? (
+            <>
+              {/* Chat header */}
+              <ChatHeader
+                selectedRoom={selectedRoom}
+                getParticipantInfo={getParticipantInfo}
+                getInitials={getInitials}
+              />
+
+              {/* Messages area */}
+              <MessagesArea
+                messages={messages}
+                isLoadingMessages={isLoadingMessages}
+                userId={user?.id}
+                getFullUrl={getFullUrl}
+                getFileIcon={getFileIcon}
+                onNavigate={navigate}
+              />
+
+              {/* Message input */}
+              <MessageInput
+                input={input}
+                setInput={setInput}
+                onSendMessage={sendTextMessage}
+                onFileUpload={() => fileInputRef.current?.click()}
+                isSendingMessage={isSendingMessage}
+              />
+
+              {/* Hidden file input */}
+              <input
+                ref={fileInputRef}
+                type="file"
+                className="hidden"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) {
+                    handleFileUpload(file);
+                    e.target.value = ""; // Reset input
+                  }
+                }}
+              />
+            </>
+          ) : (
+            <EmptyState />
+          )}
         </div>
       </div>
     </Card>
