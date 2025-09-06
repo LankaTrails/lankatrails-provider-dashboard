@@ -1,6 +1,16 @@
 export type ServiceType = 'ACTIVITY' | 'TOUR_GUIDE' | 'TRANSPORT' | 'ACCOMMODATION' | 'FOOD_BEVERAGE';
 
-export type PriceType = 'FIXED' | 'PER_PERSON' | 'PER_KM' | 'PER_HOUR' | 'PER_DAY' | 'PER_NIGHT' | 'PER_WEEK' | 'PER_MONTH';
+export type PriceType = 'FIXED' | 'PER_PERSON' | 'PER_UNIT' | 'HYBRID' | 'PER_HOUR' | 'PER_DAY' | 'PER_NIGHT' | 'PER_KM';
+
+export type BookingType =
+  | 'TIME_SLOTS'     // Bookings are made for specific time slots
+  | 'MULTI_DAY'      // Bookings can span multiple days
+  | 'WHOLE_DAY'      // Bookings are for the entire day
+  | 'FIXED_TIME'     // Bookings are made for a fixed duration
+  | 'FLEXIBLE_HOURS' // Bookings allow customers to choose start and end times
+  | 'EVENT_BASED';   // Bookings are tied to specific events
+
+export type ServiceStatus = 'ACTIVE' | 'INACTIVE' | 'PENDING' | 'SUSPENDED';
 
 export type ActivityType = 'ADVENTURE' | 'CULTURAL' | 'NATURE' | 'RELAXATION' | 'SPORTS' | 'WATER_SPORTS' | 'WELLNESS' | 'EDUCATIONAL' | 'NIGHTLIFE';
 
@@ -15,6 +25,71 @@ export type TourGuideType = 'NATIONAL' | 'CHAUFFEUR' | 'SITE' | 'AREA';
 export type FuelType = 'PETROL' | 'DIESEL' | 'ELECTRIC' | 'HYBRID';
 
 export type TransmissionType = 'MANUAL' | 'AUTOMATIC' | 'SEMI_AUTOMATIC';
+
+export interface BreakTimeDTO {
+  breakId: number | null;
+  breakStart: string; // Format: "HH:mm"
+  breakEnd: string;   // Format: "HH:mm"
+}
+
+export interface AvailableTimeDTO {
+  availableTimeId: number | null;
+  dayOfWeek: string;
+  openTime: string;     // Format: "HH:mm"
+  closeTime: string;    // Format: "HH:mm"
+  is24Hours: boolean;
+  isClosed: boolean;
+  breakTimes: BreakTimeDTO[];
+}
+
+export interface BookingConfigDTO {
+  bookingType: BookingType;
+
+  // Capacity and unit management
+  totalUnits?: number;
+  manageCapacity?: boolean;
+  unitAdultCapacity?: number;
+  unitChildCapacity?: number;
+  minUnitsPerBooking?: number;
+  maxUnitsPerBooking?: number;
+  allowExtraCapacity?: boolean;
+  extraAdultCapacity?: number;
+  extraChildCapacity?: number;
+  extraAdultCapacityLimit?: number;
+  extraChildCapacityLimit?: number;
+
+  // For time-based bookings
+  slotDuration?: number; // in minutes
+  bufferTime?: number;   // in minutes
+  allowBackToBackBookings?: boolean;
+
+  // For date-based bookings
+  minimumBookingDays?: number;
+  maximumBookingDays?: number;
+  defaultCheckInTime?: string; // Format: "HH:mm"
+  defaultCheckOutTime?: string; // Format: "HH:mm"
+
+  // Common fields
+  advanceBookingPeriod?: number; // in days
+  lastMinuteBookingPeriod?: number; // in hours
+}
+
+export interface PriceConfigDTO {
+  fixedPrice?: number;
+  pricePerUnit?: number;
+  pricePerAdult?: number;
+  pricePerChild?: number;
+  priceType: PriceType;
+  extraChargePerUnit?: number;
+  extraPerAdult?: number;
+  extraPerChild?: number;
+  extraChargeType?: PriceType;
+  allowAdvancePayment?: boolean;
+  advancePaymentPercentage?: number;
+  advancePaymentFixedAmount?: number;
+  requiresDeposit?: boolean;
+  depositAmount?: number;
+}
 
 export interface TabData {
   id: number | null;
@@ -81,19 +156,15 @@ export interface ServiceFormData {
   serviceName: string;
   locations: LocationData[];
   contactNo: string;
-  status: boolean;
-  price: number;
-  priceType: PriceType;
+  status: ServiceStatus;
   tabsSection: TabSection[];
   policySection: PolicySection[];
   deletedImages?: ImageData[]; // Images to be deleted (for edit mode)
   deletedTabs?: TabSection[]; // Tabs to be deleted (for edit mode)
   deletedPolicies?: PolicySection[]; // Policies to be deleted (for edit mode)
-  availabilitySlots: {
-    dayOfWeek: string; 
-      openTime: string;
-      closeTime: string;  
-  }[];
+  availableTimeDTOS: AvailableTimeDTO[];
+  priceConfig?: PriceConfigDTO;
+  bookingConfig?: BookingConfigDTO;
 }
 // Add this to your existing types
 export interface ImageFile {
@@ -104,8 +175,6 @@ export interface ImageFile {
 }
 export interface AccommodationFormData extends ServiceFormData {
   accommodationType: AccommodationType;
-  numberOfRooms: number;
-  maxGuests: number;
   parkingAvailable: boolean;
   petFriendly: boolean;
   freeWifi: boolean;
@@ -122,12 +191,10 @@ export interface ActivityFormData extends ServiceFormData {
   activityType: ActivityType;
   activityDetails: string;
   safetyInstructions: string;
-  duration: string; // e.g., "2 hours", "1 day"
 }
 
 export interface FoodBeverageFormData extends ServiceFormData {
   foodAndBeverageType: FoodBeverageType;
-  openHours: string;
   cuisineType: string;
   vegetarianOptions: boolean;
   halalCertified: boolean;
@@ -143,8 +210,6 @@ export interface TourGuideFormData extends ServiceFormData {
 
 export interface TransportFormData extends ServiceFormData {
   vehicleCategory: VehicleType;
-  vehicleCapacity: number;
-  vehicleQty: number;
   fuelType: FuelType;
   transmissionType: TransmissionType;
   airConditioned: boolean;
@@ -157,7 +222,53 @@ export interface ServiceFormProps {
   initialImages?: ImageUploadItem[]; // fixed typo and type
   existingImages?: ImageData[]; // For edit mode - existing images from API
   onSubmit: (data: ServiceFormData, images: ImageFiles) => void;
+  isEditMode?: boolean; // Indicates if this is an edit operation
+  isSubmitting?: boolean; // Indicates if the form is currently being submitted
 }
+
+// Utility types for booking configuration validation
+export interface TimeSlotConfig {
+  slotDuration: number;
+  bufferTime?: number;
+  allowBackToBackBookings?: boolean;
+}
+
+export interface DateRangeConfig {
+  minimumBookingDays: number;
+  maximumBookingDays?: number;
+  defaultCheckInTime: string;
+  defaultCheckOutTime: string;
+}
+
+export interface CapacityConfig {
+  totalUnits: number;
+  unitAdultCapacity: number;
+  unitChildCapacity?: number;
+  allowExtraCapacity?: boolean;
+  extraAdultCapacity?: number;
+  extraChildCapacity?: number;
+}
+
+// Helper type for form validation
+export type BookingConfigByType = {
+  [K in BookingType]: BookingConfigDTO & (
+    K extends 'TIME_SLOTS' | 'FIXED_TIME' ? { slotDuration: number } :
+    K extends 'MULTI_DAY' ? { minimumBookingDays: number; defaultCheckInTime: string; defaultCheckOutTime: string } :
+    {}
+  );
+};
+
+// Export additional utility types
+export type PriceConfigValidation = {
+  [K in PriceType]: PriceConfigDTO & (
+    K extends 'FIXED' ? { fixedPrice: number } :
+    K extends 'PER_PERSON' ? { pricePerAdult: number } :
+    K extends 'PER_UNIT' ? { pricePerUnit: number } :
+    K extends 'HYBRID' ? { fixedPrice: number; pricePerAdult: number } :
+    {}
+  );
+};
+
 // export interface AddPolicyProps {
 //   serviceType: string;
 //   onSuccess: () => void;

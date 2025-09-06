@@ -486,7 +486,7 @@ const RegisterProvider: React.FC = () => {
                       updateField("location", locationData);
                       updateField(
                         "locationSearch",
-                        locationData.formattedAddress
+                        locationData?.formattedAddress
                       );
                     }}
                     selectedCoordinates={

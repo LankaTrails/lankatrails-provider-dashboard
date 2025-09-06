@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import NewServiceForm from "@/components/NewServiceForm";
 import ProviderTopBar from "@/components/provider/ProviderTopBar";
 import { useParams } from "react-router-dom";
 import { addNewService } from "@/services/services";
@@ -13,6 +12,7 @@ import type {
   TransportFormData,
 } from "@/types/serviceTypes";
 import AlertToast from "@/components/forms/AlertToast";
+import StepWizardServiceForm from "@/components/StepWizardServiceForm";
 
 // Helper to prettify the serviceType
 const formatServiceTitle = (type?: string): string => {
@@ -157,9 +157,12 @@ const AddServicePage: React.FC = () => {
         <ProviderTopBar />
       </div>
 
-      <div className={isSubmitting ? "opacity-50 pointer-events-none" : ""}>
-        <NewServiceForm serviceType={serviceType} onSubmit={handleAddSubmit} />
-      </div>
+      <StepWizardServiceForm
+        serviceType={serviceType}
+        onSubmit={handleAddSubmit}
+        isEditMode={false}
+        isSubmitting={isSubmitting}
+      />
 
       {toast && (
         <AlertToast
@@ -167,17 +170,6 @@ const AddServicePage: React.FC = () => {
           type={toast.type}
           onClose={handleCloseToast}
         />
-      )}
-
-      {isSubmitting && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white p-6 rounded-lg shadow-lg">
-            <div className="flex items-center space-x-3">
-              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
-              <p className="text-gray-700">Submitting service...</p>
-            </div>
-          </div>
-        </div>
       )}
     </div>
   );
