@@ -32,6 +32,13 @@ export interface BreakTimeDTO {
   breakEnd: string;   // Format: "HH:mm"
 }
 
+export interface ApiResponse<T> {
+    success: boolean;
+    data: T;
+    message?: string;
+    details?: string;
+}
+
 export interface AvailableTimeDTO {
   availableTimeId: number | null;
   dayOfWeek: string;
