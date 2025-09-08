@@ -45,29 +45,39 @@ export async function getRoomMessages(
 }
 
 /**
- * Send a file message to a chat room
+ * Send a file message to a chat room with proper multipart/form-data structure
  */
 export async function sendFileMessage(
     roomId: number,
-    message: ChatMessage,
+    messageData: {
+        messageType: string;
+        content: string;
+        caption?: string;
+    },
     file: File
-): Promise<void> {
+): Promise<ApiResponse<ChatMessage>> {
     try {
-        console.log(`[Chat] Sending file message to room ${roomId}`);
+        console.log(`[Chat] Sending file message to room ${roomId}`, { messageData, fileName: file.name });
 
         const formData = new FormData();
-        formData.append('message', JSON.stringify(message));
+
+        // Add the message data as JSON
+        formData.append('messageData', JSON.stringify(messageData));
+
+        // Add the file
         formData.append('file', file);
 
-        await api.post(`/chat/${roomId}/send-file`, formData, {
+        const response = await api.post<ApiResponse<ChatMessage>>(`/chat/rooms/${roomId}/send-file`, formData, {
             headers: {
-                'Content-Type': 'multipart/form-data',
+                // Don't set Content-Type explicitly - let the browser set it with boundary
+                // 'Content-Type': 'multipart/form-data' would override boundary
             },
         });
 
-        console.log(`[Chat] File message sent successfully to room ${roomId}`);
+        console.log(`[Chat] File message sent successfully to room ${roomId}:`, response.data);
+        return response.data;
     } catch (error) {
-        console.log('[Chat] Error sending file message:', error);
+        console.error('[Chat] Error sending file message:', error);
         throw error;
     }
 }

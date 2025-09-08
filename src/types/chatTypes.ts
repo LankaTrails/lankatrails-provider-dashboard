@@ -79,3 +79,41 @@ export interface ChatMessage {
     files?: ChatFilesDto | null;
     readBy?: Record<number, string>; // userId -> timestamp when read
 }
+
+// WebSocket-related types
+export type ConnectionStatus = 'connecting' | 'connected' | 'disconnected' | 'reconnecting' | 'error';
+
+export interface WebSocketError {
+    code: string;
+    message: string;
+    type: 'auth_error' | 'chat_error' | 'system_error';
+}
+
+export interface TypingEvent {
+    userId: number;
+    username: string;
+    typing: boolean;
+    roomId: number;
+}
+
+export interface ReadReceiptPayload {
+    roomId?: number;
+    messageId?: string;
+}
+
+export interface OutgoingMessage {
+    chatRoomId: number;
+    messageType: ChatMessageType;
+    content: string;
+    serviceCardId?: number;
+}
+
+export interface ChatState {
+    rooms: DirectChatRoom[];
+    activeRoomId: number | null;
+    messages: Record<number, ChatMessage[]>;
+    connectionStatus: ConnectionStatus;
+    typingUsers: Record<number, TypingEvent[]>;
+    isLoading: boolean;
+    error: string | null;
+}
