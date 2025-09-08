@@ -47,6 +47,7 @@ export interface BookingConfigDTO {
 
   // Capacity and unit management
   totalUnits?: number;
+  requireChildInfo?: boolean;
   manageCapacity?: boolean;
   unitAdultCapacity?: number;
   unitChildCapacity?: number;

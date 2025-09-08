@@ -4,6 +4,7 @@ import SelectField from "./SelectField";
 import CheckboxField from "./CheckboxField";
 import type {
   PriceConfigDTO,
+  BookingConfigDTO,
   PriceType,
   ServiceType,
 } from "@/types/serviceTypes";
@@ -12,12 +13,14 @@ import { getServiceTypeRecommendations } from "@/utils/serviceRecommendations";
 
 interface PriceConfigurationFormProps {
   priceConfig?: PriceConfigDTO;
+  bookingConfig?: BookingConfigDTO;
   serviceType: ServiceType;
   onChange: (config: PriceConfigDTO) => void;
 }
 
 const PriceConfigurationForm: React.FC<PriceConfigurationFormProps> = ({
   priceConfig,
+  bookingConfig,
   serviceType,
   onChange,
 }) => {
@@ -171,7 +174,7 @@ const PriceConfigurationForm: React.FC<PriceConfigurationFormProps> = ({
           {showPerPersonPricing() && (
             <div className="bg-gray-50 p-4 rounded-lg space-y-4">
               <h4 className="font-medium text-gray-800">Per Person Pricing</h4>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <InputField
                   label="Price per Adult"
                   type="number"
@@ -182,16 +185,30 @@ const PriceConfigurationForm: React.FC<PriceConfigurationFormProps> = ({
                   placeholder="Enter adult price"
                   required
                 />
-                <InputField
-                  label="Price per Child"
-                  type="number"
-                  value={priceConfig?.pricePerChild?.toString() || ""}
-                  onChange={(value) =>
-                    handleConfigChange("pricePerChild", parseFloat(value) || 0)
-                  }
-                  placeholder="Enter child price"
-                />
+
+                {/* Only show child pricing if requireChildInfo is enabled */}
+                {bookingConfig?.requireChildInfo && (
+                  <InputField
+                    label="Price per Child"
+                    type="number"
+                    value={priceConfig?.pricePerChild?.toString() || ""}
+                    onChange={(value) =>
+                      handleConfigChange(
+                        "pricePerChild",
+                        parseFloat(value) || 0
+                      )
+                    }
+                    placeholder="Enter child price"
+                  />
+                )}
               </div>
+
+              {!bookingConfig?.requireChildInfo && (
+                <p className="text-sm text-gray-600 italic">
+                  Child and adult pricing is the same. Only adult rate will be
+                  used for all guests.
+                </p>
+              )}
             </div>
           )}
 
@@ -293,31 +310,55 @@ const PriceConfigurationForm: React.FC<PriceConfigurationFormProps> = ({
                 {/* Per Person Extra Charges */}
                 {(priceConfig.extraChargeType === "PER_PERSON" ||
                   priceConfig.extraChargeType === "HYBRID") && (
-                  <div className="grid grid-cols-2 gap-4">
-                    <InputField
-                      label="Extra Charge per Adult"
-                      type="number"
-                      value={priceConfig?.extraPerAdult?.toString() || ""}
-                      onChange={(value) =>
-                        handleConfigChange(
-                          "extraPerAdult",
-                          parseFloat(value) || 0
-                        )
-                      }
-                      placeholder="Enter extra adult charge"
-                    />
-                    <InputField
-                      label="Extra Charge per Child"
-                      type="number"
-                      value={priceConfig?.extraPerChild?.toString() || ""}
-                      onChange={(value) =>
-                        handleConfigChange(
-                          "extraPerChild",
-                          parseFloat(value) || 0
-                        )
-                      }
-                      placeholder="Enter extra child charge"
-                    />
+                  <div className="space-y-4">
+                    <div
+                      className={`grid ${
+                        bookingConfig?.requireChildInfo
+                          ? "grid-cols-2"
+                          : "grid-cols-1"
+                      } gap-4`}
+                    >
+                      <InputField
+                        label={
+                          bookingConfig?.requireChildInfo
+                            ? "Extra Charge per Adult"
+                            : "Extra Charge per Person"
+                        }
+                        type="number"
+                        value={priceConfig?.extraPerAdult?.toString() || ""}
+                        onChange={(value) =>
+                          handleConfigChange(
+                            "extraPerAdult",
+                            parseFloat(value) || 0
+                          )
+                        }
+                        placeholder={
+                          bookingConfig?.requireChildInfo
+                            ? "Enter extra adult charge"
+                            : "Enter extra person charge"
+                        }
+                      />
+                      {bookingConfig?.requireChildInfo && (
+                        <InputField
+                          label="Extra Charge per Child"
+                          type="number"
+                          value={priceConfig?.extraPerChild?.toString() || ""}
+                          onChange={(value) =>
+                            handleConfigChange(
+                              "extraPerChild",
+                              parseFloat(value) || 0
+                            )
+                          }
+                          placeholder="Enter extra child charge"
+                        />
+                      )}
+                    </div>
+                    {!bookingConfig?.requireChildInfo && (
+                      <p className="text-sm text-muted-foreground italic">
+                        Child-specific extra charges are not required for this
+                        service. The adult rate will apply to all persons.
+                      </p>
+                    )}
                   </div>
                 )}
 
