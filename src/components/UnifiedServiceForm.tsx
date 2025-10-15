@@ -933,6 +933,7 @@ const UnifiedServiceForm: React.FC<ServiceFormProps> = ({
               priceConfig={formData.priceConfig}
               serviceType={getServiceTypeEnum()}
               onChange={handlePriceConfigChange}
+              bookingConfig={formData.bookingConfig}
             />
           </CollapsibleSection>
 

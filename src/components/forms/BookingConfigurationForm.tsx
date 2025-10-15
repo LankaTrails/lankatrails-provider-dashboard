@@ -192,6 +192,23 @@ const BookingConfigurationForm: React.FC<BookingConfigurationFormProps> = ({
                       "Number of vehicles in your fleet"}
                   </p>
                 </div>
+                <div className="space-y-2">
+                  <CheckboxField
+                    label="Separate Child & Adult Pricing"
+                    checked={bookingConfig?.requireChildInfo || false}
+                    onChange={(value) =>
+                      handleConfigChange("requireChildInfo", value)
+                    }
+                  />
+                  <p className="text-xs text-gray-500">
+                    Enable to collect separate child and adult information with
+                    different rates and capacities. If disabled, all guests are
+                    treated as adults.
+                  </p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     {getCapacityLabel()} (Adults)
@@ -215,32 +232,38 @@ const BookingConfigurationForm: React.FC<BookingConfigurationFormProps> = ({
                     {serviceType === "TRANSPORT" && "Max adults per vehicle"}
                   </p>
                 </div>
+
+                {/* Only show child capacity if requireChildInfo is enabled */}
+                {bookingConfig?.requireChildInfo && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      {getCapacityLabel()} (Children)
+                    </label>
+                    <CounterInput
+                      value={bookingConfig?.unitChildCapacity || 0}
+                      onChange={(value) =>
+                        handleConfigChange("unitChildCapacity", value)
+                      }
+                      min={0}
+                      max={20}
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      {serviceType === "ACTIVITY" &&
+                        "Max children per activity session"}
+                      {serviceType === "FOOD_BEVERAGE" &&
+                        "Max children per table/seating"}
+                      {serviceType === "TOUR_GUIDE" &&
+                        "Max children per tour group"}
+                      {serviceType === "ACCOMMODATION" &&
+                        "Max children per room"}
+                      {serviceType === "TRANSPORT" &&
+                        "Max children per vehicle"}
+                    </p>
+                  </div>
+                )}
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    {getCapacityLabel()} (Children)
-                  </label>
-                  <CounterInput
-                    value={bookingConfig?.unitChildCapacity || 0}
-                    onChange={(value) =>
-                      handleConfigChange("unitChildCapacity", value)
-                    }
-                    min={0}
-                    max={20}
-                  />
-                  <p className="text-xs text-gray-500 mt-1">
-                    {serviceType === "ACTIVITY" &&
-                      "Max children per activity session"}
-                    {serviceType === "FOOD_BEVERAGE" &&
-                      "Max children per table/seating"}
-                    {serviceType === "TOUR_GUIDE" &&
-                      "Max children per tour group"}
-                    {serviceType === "ACCOMMODATION" && "Max children per room"}
-                    {serviceType === "TRANSPORT" && "Max children per vehicle"}
-                  </p>
-                </div>
                 <div className="space-y-2">
                   <CheckboxField
                     label="Allow Extra Capacity"
@@ -284,19 +307,23 @@ const BookingConfigurationForm: React.FC<BookingConfigurationFormProps> = ({
                         max={10}
                       />
                     </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Extra Children
-                      </label>
-                      <CounterInput
-                        value={bookingConfig?.extraChildCapacity || 0}
-                        onChange={(value) =>
-                          handleConfigChange("extraChildCapacity", value)
-                        }
-                        min={0}
-                        max={10}
-                      />
-                    </div>
+
+                    {/* Only show extra child capacity if requireChildInfo is enabled */}
+                    {bookingConfig?.requireChildInfo && (
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Extra Children
+                        </label>
+                        <CounterInput
+                          value={bookingConfig?.extraChildCapacity || 0}
+                          onChange={(value) =>
+                            handleConfigChange("extraChildCapacity", value)
+                          }
+                          min={0}
+                          max={10}
+                        />
+                      </div>
+                    )}
                   </div>
                 </div>
               )}
