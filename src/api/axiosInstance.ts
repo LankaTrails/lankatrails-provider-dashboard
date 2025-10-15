@@ -3,6 +3,7 @@ import { jwtDecode } from 'jwt-decode';
 import store from '../store';
 import { refreshToken } from '@/store/authSlice';
 import { sessionExpired } from '@/store/authSlice';
+import { setCurrentToken } from '@/services/tokenService';
 
 let accessToken: string | null = null;
 let isRefreshing = false;
@@ -35,12 +36,13 @@ export const setAccessToken = (token: string | null) => {
     tokenLength: token ? token.length : 0
   });
   accessToken = token;
+  setCurrentToken(token); // Update token service
 };
 
 const baseUrl = import.meta.env.VITE_API_BASE_URL;
 
 const api = axios.create({
-  baseURL:  baseUrl,
+  baseURL: baseUrl,
   withCredentials: true,
 });
 
