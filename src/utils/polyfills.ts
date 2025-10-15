@@ -1,5 +1,7 @@
 // Polyfills for Node.js globals in browser environment
-// This ensures compatibility with libraries like @stomp/stompjs
+// This ensures compatibility with libraries like @stomp/stompjs and react-quill
+
+import { Buffer } from 'buffer';
 
 // Define global if it doesn't exist
 if (typeof global === 'undefined') {
@@ -18,21 +20,7 @@ if (typeof process === 'undefined') {
     };
 }
 
-// Define Buffer if it doesn't exist (some WebSocket libraries might need it)
-if (typeof Buffer === 'undefined') {
-    (globalThis as any).Buffer = class Buffer {
-        static from(data: any): Buffer {
-            return new Buffer(data);
-        }
-
-        static alloc(size: number): Buffer {
-            return new Buffer(new ArrayBuffer(size));
-        }
-
-        constructor(data: any) {
-            // Simple Buffer implementation for browser compatibility
-        }
-    };
-}
-
-export { };
+// Define Buffer globally for libraries that expect it (like react-quill)
+if (typeof (globalThis as any).Buffer === 'undefined') {
+    (globalThis as any).Buffer = Buffer;
+} export { };

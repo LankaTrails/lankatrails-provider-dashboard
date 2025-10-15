@@ -25,6 +25,11 @@ export default defineConfig(({ mode }) => ({
     'process.env': {},
   },
   optimizeDeps: {
-    include: ['@stomp/stompjs', 'sockjs-client'],
+    include: ['@stomp/stompjs', 'sockjs-client', 'buffer'],
+  },
+  build: {
+    rollupOptions: {
+      plugins: []
+    }
   },
 }));
