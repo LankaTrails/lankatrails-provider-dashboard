@@ -1425,6 +1425,8 @@ const StepWizardServiceForm: React.FC<ServiceFormProps> = ({
                   bookingConfig={formData.bookingConfig}
                   serviceType={getServiceTypeEnum()}
                   onChange={handleBookingConfigChange}
+                  priceConfig={formData.priceConfig}
+                  onPriceConfigChange={handlePriceConfigChange}
                 />
               </div>
 
