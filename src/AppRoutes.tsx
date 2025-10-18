@@ -20,7 +20,6 @@ import Profile from "@/pages/provider/Profile";
 import NotFound from "@/pages/NotFound";
 import ContactPerson from "./pages/provider/ContactPerson";
 import AllPolicy from "./pages/provider/AllPolicy";
-import AddPolicy from "./pages/provider/AddPolicy";
 import AddActivityPolicy from "./pages/provider/AddActivityPolicy";
 import AddTransportPolicy from "./pages/provider/AddTransportPolicy";
 import AddTourGuidePolicy from "./pages/provider/AddTourGuidePolicy";
@@ -67,13 +66,15 @@ const AppRoutes = () => {
           <Route index element={<ServiceListPage />} />
           <Route path="list" element={<ServiceListPage />} />
           <Route path="add" element={<AddServicePage />} />
-          <Route path="bookings" element={<ServiceBookingsPage />} />
-          <Route path="reviews" element={<ServiceReviewsPage />} />
           <Route path="analytics" element={<ServiceAnalyticsPage />} />
-          <Route path=":id" element={<ServiceViewPage />} />
-          <Route path="edit/:id" element={<ServiceEditPage />} />
+          <Route path=":id">
+            <Route index element={<ServiceViewPage />} />
+            <Route path="view" element={<ServiceViewPage />} />
+            <Route path="edit" element={<ServiceEditPage />} />
+            <Route path="bookings" element={<ServiceBookingsPage />} />
+            <Route path="reviews" element={<ServiceReviewsPage />} />
+          </Route>
         </Route>
-
         <Route path="messages" element={<MessagesPage />} />
         <Route path="analytics" element={<AnalyticsPage />} />
         <Route path="profile">

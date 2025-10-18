@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
-import BackButton from "@/components/BackButton";
+import { useParams, useNavigate } from "react-router-dom";
 import type {
   ServiceFormData,
   ImageUploadItem,
@@ -8,15 +7,34 @@ import type {
   ImageData,
 } from "@/types/serviceTypes";
 import { findServiceById, updateService } from "@/services/services";
+import AlertToast from "@/components/forms/AlertToast";
 import StepWizardServiceForm from "@/components/StepWizardServiceForm";
+import ProviderTopBar from "@/components/provider/ProviderTopBar";
+
+// Helper to prettify the serviceType
+const formatServiceTitle = (type?: string): string => {
+  if (!type) return "Service";
+  return type
+    .split("-")
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(" ");
+};
+
+interface ToastState {
+  message: string;
+  type: "success" | "error";
+}
 
 const ServiceEditPage: React.FC = () => {
-  const { id, serviceType } = useParams();
+  const { id, serviceType } = useParams<{ id: string; serviceType: string }>();
   const [initialData, setInitialData] = useState<ServiceFormData | undefined>();
   const [loading, setLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [initialImages, setInitialImages] = useState<ImageUploadItem[]>([]);
   const [existingImages, setExistingImages] = useState<ImageData[]>([]);
+  const [toast, setToast] = useState<ToastState | null>(null);
+  const navigate = useNavigate();
+  const title = formatServiceTitle(serviceType);
 
   useEffect(() => {
     const fetchServiceData = async () => {
@@ -26,13 +44,11 @@ const ServiceEditPage: React.FC = () => {
         const data = await findServiceById(serviceType, Number(id));
         // Map data to match the form structure
         if (data) {
-          const mappedData = {
+          const mappedData: ServiceFormData = {
             ...data,
             // Ensure all required fields are present
             serviceName: data.serviceName || "",
             contactNo: data.contactNo || "",
-            price: data.price || 0,
-            priceType: data.priceType || "PER_NIGHT",
             locations: data.locations || [
               {
                 locationId: null,
@@ -49,22 +65,22 @@ const ServiceEditPage: React.FC = () => {
             tabsSection: data.tabsSection || [{ heading: "", content: "" }],
             policySection: data.policySection || [{ heading: "", policy: "" }],
             // Map accommodation specific fields
-            accommodationType: data.accommodationType || "HOTEL",
-            numberOfRooms: data.numberOfRooms || 1,
-            maxGuests: data.maxGuests || 1,
-            parkingAvailable: data.parkingAvailable || false,
-            petFriendly: data.petFriendly || false,
-            freeWifi: data.freeWifi || false,
-            breakfastIncluded: data.breakfastIncluded || false,
-            airConditioned: data.airConditioned || false,
-            swimmingPool: data.swimmingPool || false,
-            laundryService: data.laundryService || false,
-            roomService: data.roomService || false,
-            gymAccess: data.gymAccess || false,
-            spaServices: data.spaServices || false,
+            // accommodationType: data.accommodationType || "HOTEL",
+            // numberOfRooms: data.numberOfRooms || 1,
+            // maxGuests: data.maxGuests || 1,
+            // parkingAvailable: data.parkingAvailable || false,
+            // petFriendly: data.petFriendly || false,
+            // freeWifi: data.freeWifi || false,
+            // breakfastIncluded: data.breakfastIncluded || false,
+            // airConditioned: data.airConditioned || false,
+            // swimmingPool: data.swimmingPool || false,
+            // laundryService: data.laundryService || false,
+            // roomService: data.roomService || false,
+            // gymAccess: data.gymAccess || false,
+            // spaServices: data.spaServices || false,
           };
 
-          if (data.images) {
+          if (data.images && Array.isArray(data.images)) {
             // Set existing images for deletion tracking
             setExistingImages(
               data.images.map((img: any) => ({
@@ -88,6 +104,10 @@ const ServiceEditPage: React.FC = () => {
         }
       } catch (error) {
         console.error("Error fetching service data:", error);
+        setToast({
+          message: "Error loading service data.",
+          type: "error",
+        });
       } finally {
         setLoading(false);
       }
@@ -96,11 +116,11 @@ const ServiceEditPage: React.FC = () => {
     fetchServiceData();
   }, [id, serviceType]);
 
-  const handleBack = () => {
-    console.log("Navigate back");
+  const handleCloseToast = (): void => {
+    setToast(null);
   };
 
-  const handleEditSubmit = async (data: any, images: ImageFiles) => {
+  const handleEditSubmit = async (data: ServiceFormData, images: ImageFiles) => {
     if (!id || !serviceType) return;
 
     setIsSubmitting(true);
@@ -108,24 +128,49 @@ const ServiceEditPage: React.FC = () => {
       console.log("Updating service with data:", data);
       const result = await updateService(serviceType, Number(id), data, images);
       console.log("Update result:", result);
-      // TODO: Add success notification and navigation
+
+      // Show success toast
+      setToast({
+        message: "Service updated successfully!",
+        type: "success",
+      });
+
+      // Redirect to the service view page after a short delay
+      setTimeout(() => {
+        navigate(`/provider/${serviceType}/${id}/view`);
+      }, 1500);
     } catch (error) {
       console.error("Error updating service:", error);
-      // TODO: Add error notification
+      setToast({
+        message: "Error updating service. Please try again.",
+        type: "error",
+      });
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  if (loading) return <div>Loading...</div>;
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-lg">Loading...</div>
+      </div>
+    );
+  }
+
+  if (!initialData) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-lg text-red-600">Service not found</div>
+      </div>
+    );
+  }
 
   return (
-    <div className="max-w-7xl mx-auto p-6 mt-4 bg-white">
-      <div className="flex items-center mb-8">
-        <BackButton onClick={handleBack} className="mr-4" />
-        <h1 className="text-3xl font-bold text-gray-800">
-          Edit {serviceType} Service
-        </h1>
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-2xl p-2 font-bold">Edit {title} Service</h1>
+        <ProviderTopBar />
       </div>
 
       <StepWizardServiceForm
@@ -137,6 +182,14 @@ const ServiceEditPage: React.FC = () => {
         isEditMode={true}
         isSubmitting={isSubmitting}
       />
+
+      {toast && (
+        <AlertToast
+          message={toast.message}
+          type={toast.type}
+          onClose={handleCloseToast}
+        />
+      )}
     </div>
   );
 };

@@ -258,7 +258,7 @@ const ServiceListPage = () => {
                       size="sm"
                       className="flex-1"
                       onClick={() =>
-                        navigate(`/provider/${serviceType}/${service.id}`)
+                        navigate(`/provider/${serviceType}/${service.id}/view`)
                       }
                     >
                       <Eye className="w-4 h-4 mr-1" />
@@ -269,7 +269,7 @@ const ServiceListPage = () => {
                       size="sm"
                       className="flex-1"
                       onClick={() =>
-                        navigate(`/provider/${serviceType}/edit/${service.id}`)
+                        navigate(`/provider/${serviceType}/${service.id}/edit`)
                       }
                     >
                       <Edit className="w-4 h-4 mr-1" />

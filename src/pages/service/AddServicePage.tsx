@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import ProviderTopBar from "@/components/provider/ProviderTopBar";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { addNewService } from "@/services/services";
 import type {
   AccommodationFormData,
@@ -30,6 +30,7 @@ interface ToastState {
 
 const AddServicePage: React.FC = () => {
   const { serviceType } = useParams<{ serviceType: string }>();
+  const navigate = useNavigate();
   console.log("Service Type:", serviceType);
 
   const title = formatServiceTitle(serviceType);
@@ -86,8 +87,8 @@ const AddServicePage: React.FC = () => {
         type: "success",
       });
 
-      // Optional: Reset form or redirect after success
-      // You might want to redirect to a service list page or clear the form
+      // Redirect to the service list page
+      navigate(`/provider/${serviceType}/list`);
     } catch (error: any) {
       console.error("Error adding service:", error);
 
