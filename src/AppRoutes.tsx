@@ -19,13 +19,7 @@ import AnalyticsPage from "@/pages/provider/AnalyticsPage";
 import Profile from "@/pages/provider/Profile";
 import NotFound from "@/pages/NotFound";
 import ContactPerson from "./pages/provider/ContactPerson";
-import AllPolicy from "./pages/provider/AllPolicy";
-import AddPolicy from "./pages/provider/AddPolicy";
-import AddActivityPolicy from "./pages/provider/AddActivityPolicy";
-import AddTransportPolicy from "./pages/provider/AddTransportPolicy";
-import AddTourGuidePolicy from "./pages/provider/AddTourGuidePolicy";
-import AddFoodBeveragePolicy from "./pages/provider/AddFoodBeveragePolicy";
-import AddAccommodationPolicy from "./pages/provider/AddAccommodationPolicy";
+import PolicyManagement from "./pages/provider/PolicyManagement";
 
 const AppRoutes = () => {
   const { isLoading, restoreSession } = useAuth();
@@ -82,14 +76,9 @@ const AppRoutes = () => {
           <Route path="contact" element={<ContactPerson />} />
         </Route>
         <Route path="policy">
-          <Route index element={<AllPolicy />} />
-          <Route path="all" element={<AllPolicy />} />
-          {/* <Route path="add" element={<AddPolicy />} /> */}
-          <Route path="activity" element={<AddActivityPolicy />} />
-          <Route path="tour-guide" element={<AddTourGuidePolicy />} /> 
-          <Route path="transport" element={<AddTransportPolicy />} />
-          <Route path="food-beverage" element={<AddFoodBeveragePolicy />} />
-          <Route path="accommodation" element={<AddAccommodationPolicy />} />
+          <Route index element={<PolicyManagement />} />
+          <Route path="all" element={<PolicyManagement />} />
+          <Route path=":serviceType" element={<PolicyManagement />} />
         </Route>
       </Route>
 
