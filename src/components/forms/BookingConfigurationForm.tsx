@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import InputField from "./InputField";
 import SelectField from "./SelectField";
 import CheckboxField from "./CheckboxField";
@@ -7,6 +7,7 @@ import type {
   BookingConfigDTO,
   BookingType,
   ServiceType,
+  PriceConfigDTO,
 } from "@/types/serviceTypes";
 import { Info } from "lucide-react";
 import { getServiceTypeRecommendations } from "@/utils/serviceRecommendations";
@@ -15,20 +16,76 @@ interface BookingConfigurationFormProps {
   bookingConfig?: BookingConfigDTO;
   serviceType: ServiceType;
   onChange: (config: BookingConfigDTO) => void;
+  priceConfig?: PriceConfigDTO;
+  onPriceConfigChange?: (config: PriceConfigDTO) => void;
 }
 
 const BookingConfigurationForm: React.FC<BookingConfigurationFormProps> = ({
   bookingConfig,
   serviceType,
   onChange,
+  priceConfig,
+  onPriceConfigChange,
 }) => {
   const handleConfigChange = (field: keyof BookingConfigDTO, value: any) => {
     const updatedConfig = {
       ...bookingConfig,
       [field]: value,
     } as BookingConfigDTO;
+
+    // Special handling for requireChildInfo changes
+    if (field === "requireChildInfo" && onPriceConfigChange && priceConfig) {
+      const updatedPriceConfig = { ...priceConfig };
+
+      if (!value) {
+        // If separate child pricing is disabled, set child prices equal to adult prices
+        if (priceConfig.pricePerAdult !== undefined) {
+          updatedPriceConfig.pricePerChild = priceConfig.pricePerAdult;
+        }
+        if (priceConfig.extraPerAdult !== undefined) {
+          updatedPriceConfig.extraPerChild = priceConfig.extraPerAdult;
+        }
+      }
+      // If separate child pricing is enabled, don't auto-change child prices
+      // Let user set them manually
+
+      onPriceConfigChange(updatedPriceConfig);
+    }
+
     onChange(updatedConfig);
   };
+
+  // Effect to sync prices when the component initializes and requireChildInfo is false
+  useEffect(() => {
+    if (
+      !bookingConfig?.requireChildInfo &&
+      onPriceConfigChange &&
+      priceConfig
+    ) {
+      const needsSync =
+        (priceConfig.pricePerAdult !== undefined &&
+          priceConfig.pricePerChild !== priceConfig.pricePerAdult) ||
+        (priceConfig.extraPerAdult !== undefined &&
+          priceConfig.extraPerChild !== priceConfig.extraPerAdult);
+
+      if (needsSync) {
+        const updatedPriceConfig = { ...priceConfig };
+        if (priceConfig.pricePerAdult !== undefined) {
+          updatedPriceConfig.pricePerChild = priceConfig.pricePerAdult;
+        }
+        if (priceConfig.extraPerAdult !== undefined) {
+          updatedPriceConfig.extraPerChild = priceConfig.extraPerAdult;
+        }
+        onPriceConfigChange(updatedPriceConfig);
+      }
+    }
+  }, [
+    bookingConfig?.requireChildInfo,
+    priceConfig?.pricePerAdult,
+    priceConfig?.extraPerAdult,
+    onPriceConfigChange,
+    priceConfig,
+  ]);
 
   // Get service-specific booking types
   const getBookingTypeOptions = () => {
@@ -201,9 +258,9 @@ const BookingConfigurationForm: React.FC<BookingConfigurationFormProps> = ({
                     }
                   />
                   <p className="text-xs text-gray-500">
-                    Enable to collect separate child and adult information with
-                    different rates and capacities. If disabled, all guests are
-                    treated as adults.
+                    {bookingConfig?.requireChildInfo
+                      ? "Separate child and adult information will be collected with different rates and capacities."
+                      : "All guests are treated as adults with the same rates. Child prices will automatically match adult prices."}
                   </p>
                 </div>
               </div>

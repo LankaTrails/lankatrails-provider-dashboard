@@ -7,10 +7,37 @@ const ProviderTopBar = () => {
   const match = location.pathname.match(/^\/provider\/([^/]+)/);
   const base = match ? match[1] : null;
 
+  // Check if we're on an individual service item page (with ID)
+  const serviceIdMatch = location.pathname.match(
+    /^\/provider\/([^/]+)\/([^/]+)(?:\/|$)/
+  );
+  const serviceId = serviceIdMatch ? serviceIdMatch[2] : null;
+
+  // Check if the second segment is actually an ID (not a predefined route like 'list', 'add', etc.)
+  const predefinedRoutes = ["list", "add", "bookings", "reviews", "analytics"];
+  const isServiceItemPage = serviceId && !predefinedRoutes.includes(serviceId);
+
   // Define topbar links based on base
   let links: { to: string; label: string }[] = [];
 
   if (
+    [
+      "activity",
+      "transportation",
+      "accommodation",
+      "food-beverage",
+      "tour-guides",
+    ].includes(base || "") &&
+    isServiceItemPage
+  ) {
+    // Individual service item pages
+    links = [
+      { to: `/provider/${base}/${serviceId}/view`, label: "View" },
+      { to: `/provider/${base}/${serviceId}/edit`, label: "Edit" },
+      { to: `/provider/${base}/${serviceId}/bookings`, label: "Bookings" },
+      { to: `/provider/${base}/${serviceId}/reviews`, label: "Reviews" },
+    ];
+  } else if (
     [
       "activity",
       "transportation",
@@ -42,7 +69,7 @@ const ProviderTopBar = () => {
       { to: `/provider/profile/details`, label: "Profile" },
       { to: `/provider/profile/contact`, label: "Contact Person" },
     ];
-  }else if (base === "policy") {
+  } else if (base === "policy") {
     links = [
       { to: `/provider/policy/all`, label: "All Policies" },
       // { to: `/provider/policy/add`, label: "New Policy" },
@@ -63,6 +90,23 @@ const ProviderTopBar = () => {
     isActive: boolean
   ) => {
     const isBaseUrl = location.pathname === `/provider/${base}`;
+    const isServiceItemBaseUrl =
+      location.pathname === `/provider/${base}/${serviceId}`;
+
+    // For individual service item pages
+    if (
+      [
+        "activity",
+        "transportation",
+        "accommodation",
+        "food-beverage",
+        "tour-guides",
+      ].includes(base || "") &&
+      isServiceItemPage
+    ) {
+      const isViewButton = link.label === "View";
+      return isActive || (isViewButton && isServiceItemBaseUrl);
+    }
 
     // For service types, make List button active when at base URL or /list
     if (

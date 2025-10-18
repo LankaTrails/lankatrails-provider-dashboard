@@ -1,5 +1,5 @@
 import api from "@/api/axiosInstance";
-import type { ImageFiles, PolicySection, ServiceFormData } from "@/types/serviceTypes";
+import type { AccommodationFormData, ImageFiles, PolicySection, ServiceFormData } from "@/types/serviceTypes";
 
 
 //Add new accommodation policy
@@ -153,7 +153,7 @@ export const updateAccommodation = async (
 };
 
 //find an accommodation service by the Id
-export const findAccommodationById = async (id : any): Promise<any> =>{
+export const findAccommodationById = async (id : any): Promise<AccommodationFormData> =>{
   try {
     const response = await api.get(`/provider/accommodation/${id}`);
     console.log('findAccommodationById response: ',response);
