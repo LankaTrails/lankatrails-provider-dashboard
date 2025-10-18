@@ -30,18 +30,24 @@ export interface PolicyWithMeta extends Policy {
 
 // API Response types
 export interface PolicyApiResponse {
-  success: boolean;
+  success?: boolean;
   message?: string;
-  data: Policy;
+  data?: Policy;
 }
 
 export interface PoliciesListResponse {
-  success: boolean;
+  success?: boolean;
   message?: string;
-  data: Policy[];
+  data?: Policy[];
+  content?: Policy[]; // For paginated responses
   totalElements?: number;
   totalPages?: number;
   currentPage?: number;
+  pageable?: any;
+  last?: boolean;
+  first?: boolean;
+  size?: number;
+  number?: number;
 }
 
 // Query keys for React Query

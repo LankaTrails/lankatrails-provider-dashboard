@@ -93,8 +93,17 @@ export const useUpdatePolicy = () => {
       }
       toast.error(error.message || 'Failed to update policy');
     },
-    onSuccess: () => {
+    onSuccess: (_data, variables) => {
+      // Invalidate all related queries
       queryClient.invalidateQueries({ queryKey: policyQueryKeys.all });
+      
+      // If service type is specified, invalidate that specific list too
+      if (variables.serviceType) {
+        queryClient.invalidateQueries({
+          queryKey: policyQueryKeys.list(variables.serviceType as ServiceType),
+        });
+      }
+      
       toast.success('Policy updated successfully!');
     },
   });

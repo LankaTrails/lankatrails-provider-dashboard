@@ -30,6 +30,7 @@ import {
   usePolicies,
   usePoliciesByServiceType,
   useCreatePolicy,
+  useUpdatePolicy,
   useDeletePolicy,
 } from '@/services/policies/usePolicies';
 import {
@@ -70,6 +71,7 @@ export const PolicyManagement: React.FC = () => {
 
   // Mutations
   const createMutation = useCreatePolicy();
+  const updateMutation = useUpdatePolicy();
   const deleteMutation = useDeletePolicy();
 
   // Filter policies based on search query
@@ -90,6 +92,19 @@ export const PolicyManagement: React.FC = () => {
   // Handle edit policy
   const handleEdit = (policy: Policy) => {
     setEditingPolicy(policy);
+  };
+
+  // Handle update policy
+  const handleUpdate = async (data: { heading: string; policy: string }) => {
+    if (!editingPolicy?.id) return;
+    
+    await updateMutation.mutateAsync({
+      id: editingPolicy.id,
+      heading: data.heading,
+      policy: data.policy,
+      serviceType: isServiceTypeView ? selectedServiceType as ServiceType : undefined,
+    });
+    setEditingPolicy(null);
   };
 
   // Handle delete policy
@@ -234,12 +249,9 @@ export const PolicyManagement: React.FC = () => {
           {editingPolicy && (
             <PolicyForm
               policy={editingPolicy}
-              onSubmit={async (data) => {
-                // TODO: Implement update mutation
-                console.log('Update policy:', data);
-                setEditingPolicy(null);
-              }}
+              onSubmit={handleUpdate}
               onCancel={() => setEditingPolicy(null)}
+              isSubmitting={updateMutation.isPending}
               submitButtonText="Update Policy"
             />
           )}

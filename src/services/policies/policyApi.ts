@@ -28,9 +28,23 @@ const ENDPOINTS = {
 export const fetchPolicies = async (): Promise<Policy[]> => {
   try {
     const response = await api.get<PoliciesListResponse>(ENDPOINTS.general);
-    return response.data.data || response.data as any;
+    console.log('📥 Fetched policies response:', response.data);
+    
+    // Handle different backend response structures
+    if (Array.isArray(response.data)) {
+      return response.data;
+    }
+    if (response.data.data && Array.isArray(response.data.data)) {
+      return response.data.data;
+    }
+    if (response.data.content && Array.isArray(response.data.content)) {
+      // Handle paginated response
+      return response.data.content;
+    }
+    
+    return [];
   } catch (error) {
-    console.error('Error fetching policies:', error);
+    console.error('❌ Error fetching policies:', error);
     throw error;
   }
 };
@@ -41,10 +55,22 @@ export const fetchPolicies = async (): Promise<Policy[]> => {
 export const fetchPoliciesByServiceType = async (serviceType: ServiceType): Promise<Policy[]> => {
   try {
     const response = await api.get<PoliciesListResponse>(ENDPOINTS.byServiceType(serviceType));
-    // Handle different response structures
-    return response.data.data || response.data as any || [];
+    console.log(`📥 Fetched ${serviceType} policies response:`, response.data);
+    
+    // Handle different backend response structures
+    if (Array.isArray(response.data)) {
+      return response.data;
+    }
+    if (response.data.data && Array.isArray(response.data.data)) {
+      return response.data.data;
+    }
+    if (response.data.content && Array.isArray(response.data.content)) {
+      return response.data.content;
+    }
+    
+    return [];
   } catch (error) {
-    console.error(`Error fetching ${serviceType} policies:`, error);
+    console.error(`❌ Error fetching ${serviceType} policies:`, error);
     throw error;
   }
 };
@@ -64,15 +90,23 @@ export const createPolicy = async (payload: CreatePolicyPayload): Promise<Policy
       ? ENDPOINTS.byServiceType(payload.serviceType as ServiceType)
       : ENDPOINTS.add;
 
+    console.log('📤 Creating policy:', { endpoint, payload: dataToSend });
     const response = await api.post<PolicyApiResponse>(endpoint, dataToSend);
-    return response.data.data || response.data as any;
+    console.log('✅ Policy created successfully:', response.data);
+    
+    // Handle different response structures
+    if (response.data.data) {
+      return response.data.data;
+    }
+    // If backend returns the policy directly
+    return response.data as any;
   } catch (error: any) {
-    console.error('Error creating policy:', error);
+    console.error('❌ Error creating policy:', error);
     
     // Extract error message from response
     if (error.response?.data) {
-      const { message, userMessage, details } = error.response.data;
-      throw new Error(userMessage || message || details || 'Failed to create policy');
+      const { message, userMessage, details, error: errorMsg } = error.response.data;
+      throw new Error(userMessage || message || errorMsg || details || 'Failed to create policy');
     }
     
     throw new Error('Failed to create policy. Please try again.');
@@ -84,17 +118,25 @@ export const createPolicy = async (payload: CreatePolicyPayload): Promise<Policy
  */
 export const updatePolicy = async (payload: UpdatePolicyPayload): Promise<Policy> => {
   try {
+    console.log('📝 Updating policy:', { id: payload.id, payload });
     const response = await api.put<PolicyApiResponse>(
       ENDPOINTS.update(payload.id),
       payload
     );
-    return response.data.data || response.data as any;
+    console.log('✅ Policy updated successfully:', response.data);
+    
+    // Handle different response structures
+    if (response.data.data) {
+      return response.data.data;
+    }
+    // If backend returns the policy directly
+    return response.data as any;
   } catch (error: any) {
-    console.error('Error updating policy:', error);
+    console.error('❌ Error updating policy:', error);
     
     if (error.response?.data) {
-      const { message, userMessage, details } = error.response.data;
-      throw new Error(userMessage || message || details || 'Failed to update policy');
+      const { message, userMessage, details, error: errorMsg } = error.response.data;
+      throw new Error(userMessage || message || errorMsg || details || 'Failed to update policy');
     }
     
     throw new Error('Failed to update policy. Please try again.');
@@ -106,13 +148,15 @@ export const updatePolicy = async (payload: UpdatePolicyPayload): Promise<Policy
  */
 export const deletePolicy = async (id: number): Promise<void> => {
   try {
+    console.log(`🗑️ Deleting policy with ID: ${id}`);
     await api.delete(ENDPOINTS.delete(id));
+    console.log(`✅ Policy ${id} deleted successfully`);
   } catch (error: any) {
-    console.error('Error deleting policy:', error);
+    console.error('❌ Error deleting policy:', error);
     
     if (error.response?.data) {
-      const { message, userMessage, details } = error.response.data;
-      throw new Error(userMessage || message || details || 'Failed to delete policy');
+      const { message, userMessage, details, error: errorMsg } = error.response.data;
+      throw new Error(userMessage || message || errorMsg || details || 'Failed to delete policy');
     }
     
     throw new Error('Failed to delete policy. Please try again.');
