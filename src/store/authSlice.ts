@@ -26,9 +26,40 @@ export const login = createAsyncThunk(
       setAccessToken(jwtToken);
       const profileRes = await api.get('/auth/logged-user');
       console.log('Profile fetched after login:', profileRes.data.data);
-      return profileRes.data.data as User;
+      
+      const user = profileRes.data.data as User;
+      
+      // Check if account is not verified/approved
+      if (user.status === 'PENDING' || user.status === 'NOT_VERIFIED') {
+        setAccessToken(null); // Clear token
+        return rejectWithValue('Your account is pending verification by an administrator. Please wait for approval.');
+      }
+      
+      return user;
     } catch (err: any) {
-      return rejectWithValue(err.response?.data?.message || 'Login failed');
+      console.error('Login error in authSlice:', err);
+      const status = err.response?.status;
+      const message = err.response?.data?.message;
+      
+      console.log('Error details:', { status, message, fullError: err.response?.data });
+      
+      // Handle specific error cases
+      if (status === 401 || status === 403) {
+        if (message?.toLowerCase().includes('credential')) {
+          console.log('Returning: Invalid credentials error');
+          return rejectWithValue('Invalid email or password. Please check your credentials and try again.');
+        }
+        console.log('Returning: 401/403 error');
+        return rejectWithValue(message || 'Invalid email or password.');
+      }
+      
+      if (status === 404) {
+        console.log('Returning: 404 Account not found error');
+        return rejectWithValue('Account not found. Please check your email or sign up.');
+      }
+      
+      console.log('Returning: Generic error');
+      return rejectWithValue(message || 'Login failed. Please try again.');
     }
   }
 );

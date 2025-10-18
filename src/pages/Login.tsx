@@ -1,28 +1,71 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Link, useNavigate } from 'react-router-dom';
-import { Eye, EyeOff, LogIn } from 'lucide-react';
-import { motion } from 'framer-motion';
-import Header from '@/components/Header';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { Eye, EyeOff, LogIn, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '@/hooks/useAuth';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 const Login = () => {
-  const { login } = useAuth();
+  const { login, error: authError } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const navigate = useNavigate();
+  const location = useLocation();
+
+  // Debug: Log errorMessage changes
+  useEffect(() => {
+    console.log('🔴 errorMessage state changed:', errorMessage);
+  }, [errorMessage]);
+
+  // Debug: Log renders
+  console.log('🎨 Login component rendering, errorMessage:', errorMessage, 'isLoading:', isLoading);
+
+  // Sync authError from Redux to local state
+  useEffect(() => {
+    if (authError) {
+      console.log('📥 Syncing authError from Redux:', authError);
+      setErrorMessage(authError);
+    }
+  }, [authError]);
+
+  // Handle registration success message from location state
+  useEffect(() => {
+    if (location.state?.message) {
+      setSuccessMessage(location.state.message);
+      // Clear the message from location state
+      window.history.replaceState({}, document.title);
+    }
+  }, [location]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    e.stopPropagation();
+    
+    console.log('=== Login attempt started ===');
+    setErrorMessage(null);
+    setSuccessMessage(null);
+    setIsLoading(true);
+
     try {
+      console.log('Attempting login with:', email);
       await login(email, password);
+      console.log('Login successful, navigating to provider dashboard');
       navigate('/provider');
     } catch (err: any) {
-      alert(err.message || 'Login failed');
+      console.error('=== Login error caught in component ===', err);
+      // Error will be synced from Redux via useEffect
+      // The authError from Redux will be automatically set to local errorMessage
+    } finally {
+      console.log('=== Login attempt finished, setting loading to false');
+      setIsLoading(false);
     }
   };
 
@@ -75,6 +118,48 @@ const Login = () => {
                 </CardDescription>
               </CardHeader>
               <CardContent>
+                {/* Success Message */}
+                <AnimatePresence>
+                  {successMessage && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -10 }}
+                      transition={{ duration: 0.3 }}
+                      className="mb-4"
+                    >
+                      <Alert className="bg-green-50 border-green-200">
+                        <CheckCircle2 className="h-4 w-4 text-green-600" />
+                        <AlertDescription className="text-green-800">
+                          {successMessage}
+                        </AlertDescription>
+                      </Alert>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+
+                {/* Error Message */}
+                <AnimatePresence>
+                  {errorMessage && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -10 }}
+                      transition={{ duration: 0.3 }}
+                      className="mb-4"
+                      onAnimationStart={() => console.log('🎬 Alert animation started')}
+                      onAnimationComplete={() => console.log('✅ Alert animation completed')}
+                    >
+                      <Alert variant="destructive">
+                        <AlertCircle className="h-4 w-4" />
+                        <AlertDescription>
+                          {errorMessage}
+                        </AlertDescription>
+                      </Alert>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+
                 <form onSubmit={handleLogin} className="space-y-4 mt-4">
                   <div className="space-y-2">
                     <Label htmlFor="email">Email</Label>
@@ -112,8 +197,12 @@ const Login = () => {
                   </div>
 
                   <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-                    <Button type="submit" className="w-full bg-primary-500 hover:bg-primary-600 text-white font-bold py-3 text-base h-auto">
-                      Sign In
+                    <Button 
+                      type="submit" 
+                      className="w-full bg-primary-500 hover:bg-primary-600 text-white font-bold py-3 text-base h-auto"
+                      disabled={isLoading}
+                    >
+                      {isLoading ? 'Signing In...' : 'Sign In'}
                     </Button>
                   </motion.div>
                 </form>

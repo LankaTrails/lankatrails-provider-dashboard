@@ -413,9 +413,23 @@ const RegisterProvider: React.FC = () => {
           message: "Registration successful! Please login to continue.",
         },
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error("Registration failed:", error);
-      setErrors({ general: "Registration failed. Please try again." });
+      
+      // Extract error message from response
+      const errorMessage = error.response?.data?.message || 
+                          error.response?.data?.error ||
+                          error.message ||
+                          "Registration failed. Please try again.";
+      
+      // Check for specific error types
+      if (error.response?.status === 409) {
+        setErrors({ general: "An account with this email already exists. Please login or use a different email." });
+      } else if (error.response?.status === 400) {
+        setErrors({ general: errorMessage });
+      } else {
+        setErrors({ general: errorMessage });
+      }
     } finally {
       setIsSubmitting(false);
     }

@@ -27,7 +27,7 @@ export const useAuth = () => {
 
   return {
     ...authState,
-    login: (email: string, password: string) => dispatch(login({ email, password })),
+    login: (email: string, password: string) => dispatch(login({ email, password })).unwrap(),
     logout: () => dispatch(logoutUser()),
     restoreSession
   };
