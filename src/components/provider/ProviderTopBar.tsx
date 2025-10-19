@@ -50,8 +50,6 @@ const ProviderTopBar = () => {
     links = [
       { to: `/provider/${base}/list`, label: "List" },
       { to: `/provider/${base}/add`, label: "Add New" },
-      { to: `/provider/${base}/bookings`, label: "Bookings" },
-      { to: `/provider/${base}/reviews`, label: "Reviews" },
       { to: `/provider/${base}/analytics`, label: "Analytics" },
     ];
   } else if (base === "messages") {

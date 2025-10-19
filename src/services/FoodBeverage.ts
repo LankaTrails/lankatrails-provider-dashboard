@@ -37,15 +37,15 @@ export const fetchAllFoodPolicies = async (): Promise<any> => {
 export const fetchAllFoodAndBeverages = async (
   pageNumber: number = 0,
   pageSize: number = 10
-): Promise<any> => {
+): Promise<FoodBeverageFormData[]> => {
   const response = await api.get(`/provider/food-beverage/getAll`, {
     params: {
       pageNumber,
       pageSize,
     },
   });
-  console.log("fetch all", response.data.data);
-  return response.data.data; // Assuming the response contains an array of activities
+  console.log("fetch all", response.data.data.content);
+  return response.data.data.content; // Assuming the response contains an array of activities
 }
 
 
@@ -162,9 +162,16 @@ export const updateFoodBeverage = async (
   }
 };
 
-// delete food and beverage service
-export const deleteFoodBeverage = async (id: number): Promise<any> => {
-  const response = await api.put(`/provider/food-beverage/remove/${id}`);
-  console.log("Deleting food and beverage service with ID:", response);
+// deactivate food and beverage service
+export const deactivateFoodBeverage = async (id: number): Promise<any> => {
+  const response = await api.put(`/provider/food-beverage/deactivate/${id}`);
+  console.log("Deactivating food and beverage service with ID:", response);
+  return response.data.data;
+};
+
+// activate food and beverage service
+export const activateFoodBeverage = async (id: number): Promise<any> => {
+  const response = await api.put(`/provider/food-beverage/activate/${id}`);
+  console.log("Activating food and beverage service with ID:", response);
   return response.data.data;
 };

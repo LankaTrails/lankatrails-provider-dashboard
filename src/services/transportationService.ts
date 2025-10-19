@@ -37,15 +37,15 @@ export const fetchAllTransportPolicies = async (): Promise<any> => {
 export const fetchAllTransports = async (
   pageNumber: number = 0,
   pageSize: number = 10
-): Promise<any> => {
+): Promise<TransportFormData[]> => {
   const response = await api.get(`/provider/transport/getAll`, {
     params: {
       pageNumber,
       pageSize,
     },
   });
-  console.log("fetch all", response.data.data);
-  return response.data.data; // Assuming the response contains an array of activities
+  console.log("fetch all", response.data.data.content);
+  return response.data.data.content; // Assuming the response contains an array of activities
 }
 
 
@@ -161,9 +161,16 @@ export const updateTransport = async (
   }
 };
 
-// delete transportation service
-export const deleteTransportation = async (id: number): Promise<any> => {
-  const response = await api.put(`/provider/transport/remove/${id}`);
-  console.log("Deleting transportation service with ID:", response);
+// deactivate transportation service
+export const deactivateTransportation = async (id: number): Promise<any> => {
+  const response = await api.put(`/provider/transport/deactivate/${id}`);
+  console.log("Deactivating transportation service with ID:", response);
+  return response.data.data;
+}
+
+// activate transportation service
+export const activateTransportation = async (id: number): Promise<any> => {
+  const response = await api.put(`/provider/transport/activate/${id}`);
+  console.log("Activating transportation service with ID:", response);
   return response.data.data;
 }
