@@ -66,6 +66,7 @@ const ProviderTopBar = () => {
     links = [
       { to: `/provider/profile/details`, label: "Profile" },
       { to: `/provider/profile/contact`, label: "Contact Person" },
+      { to: `/provider/profile/license`, label: "License" },
     ];
   } else if (base === "policy") {
     links = [

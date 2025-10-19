@@ -287,6 +287,7 @@ const StepWizardServiceForm: React.FC<ServiceFormProps> = ({
     };
 
     const baseData: ServiceFormData = {
+      serviceId: null,
       serviceName: "",
       locations: [
         {
@@ -474,7 +475,7 @@ const StepWizardServiceForm: React.FC<ServiceFormProps> = ({
   // Handle guiding area selection for tour guides
   const handleGuidingAreaSelection = (selectedValues: string[]) => {
     const selectedAreas = guidingAreas.filter((area) =>
-      selectedValues.includes(area.district)
+      selectedValues.includes(area.city)
     );
     setSelectedGuidingAreas(selectedAreas);
     handleInputChange("locations", selectedAreas);

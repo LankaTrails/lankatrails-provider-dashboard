@@ -1,4 +1,5 @@
 import api from "@/api/axiosInstance";
+import type { LicenseDTO, licenseResponse } from "@/types/authTypes";
 import type { RegistrationRequestBody, RegistrationFiles, BusinessDetails } from "@/types/registration";
 
 export const registerProvider = async (
@@ -148,6 +149,95 @@ export const updateBusinessDetails = async (
     throw error;
   }
 };
+
+export const getLicense = async (): Promise<licenseResponse[]> => {
+  try {
+    const response = await api.get("/provider/licenses");
+    return response.data.data;
+  } catch (error: any) {
+    console.error('❌ Fetching licenses failed:', {
+      message: error.message,
+      status: error.response?.status,
+      statusText: error.response?.statusText,
+      url: error.config?.url,
+      method: error.config?.method,
+    });
+    throw error;
+  }
+};
+
+export const renewLicense = async (
+  licenses: LicenseDTO[],
+  files: File[] // allows multiple file uploads
+): Promise<licenseResponse[]> => {
+  try {
+    const formData = new FormData();
+
+    // 🟢 Attach JSON array of licenses
+    formData.append(
+      "license",
+      new Blob([JSON.stringify(licenses)], { type: "application/json" })
+    );
+
+    // 🟢 Attach files (optional list)
+    files.forEach(file => {
+      formData.append("licenseFiles", file);
+    });
+
+    // 🟢 Send multipart/form-data request
+    const response = await api.post("/provider/licenses", formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+
+    return response.data.data;
+  } catch (error: any) {
+    console.error("❌ License renewal failed:", {
+      message: error.message,
+      status: error.response?.status,
+      statusText: error.response?.statusText,
+      url: error.config?.url,
+      method: error.config?.method,
+    });
+    throw error;
+  }
+};
+
+export const requestApproval = async (
+  licenses: LicenseDTO[],
+  files: File[] // allows multiple file uploads
+): Promise<licenseResponse[]> => {
+  try {
+    const formData = new FormData();
+
+    // 🟢 Attach JSON array of licenses
+    formData.append(
+      "license",
+      new Blob([JSON.stringify(licenses)], { type: "application/json" })
+    );
+
+    // 🟢 Attach files (optional list)
+    files.forEach(file => {
+      formData.append("licenseFiles", file);
+    });
+
+    // 🟢 Send multipart/form-data request
+    const response = await api.put("/provider/approval", formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+
+    return response.data.data;
+  } catch (error: any) {
+    console.error("❌ License renewal failed:", {
+      message: error.message,
+      status: error.response?.status,
+      statusText: error.response?.statusText,
+      url: error.config?.url,
+      method: error.config?.method,
+    });
+    throw error;
+  }
+};
+
 
 // const uploadFiles = async (userId: string, files: RegistrationFiles) => {
 //   try {
