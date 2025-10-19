@@ -61,7 +61,7 @@ const categories: Category[] = [
   { label: "Accommodation", value: "ACCOMMODATION" },
   { label: "Food & Beverages", value: "FOOD_BEVERAGE" },
   { label: "Transport", value: "TRANSPORT" },
-  { label: "Tour Guides", value: "TOUR_GUIDES" },
+  { label: "Tour Guides", value: "TOUR_GUIDE" },
 ];
 
 const stepTitles: StepTitles = {
@@ -347,7 +347,7 @@ const RegisterProvider: React.FC = () => {
       const accommodationApprovalStatus = licenseCategories.has("ACCOMMODATION")
         ? "PENDING"
         : "NOT_REQUESTED";
-      const tourGuideApprovalStatus = licenseCategories.has("TOUR_GUIDES")
+      const tourGuideApprovalStatus = licenseCategories.has("TOUR_GUIDE")
         ? "PENDING"
         : "NOT_REQUESTED";
       const transportApprovalStatus = licenseCategories.has("TRANSPORT")
