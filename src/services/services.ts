@@ -1,4 +1,4 @@
-import type { ImageFiles, TourGuideFormData, TransportFormData, AccommodationFormData, ActivityFormData, FoodBeverageFormData } from "@/types/serviceTypes";
+import type { ImageFiles, TourGuideFormData, TransportFormData, AccommodationFormData, ActivityFormData, FoodBeverageFormData, ServiceFormData } from "@/types/serviceTypes";
 import { addNewTourGuide, updateTourGuide, findTourGuideById, fetchAllTourGuides, deleteTourGuide } from "@/services/guideService";
 import { addNewTransport, findTransportationById, fetchAllTransports, updateTransport, deleteTransportation } from "@/services/transportationService";
 import { addNewAccommodation, findAccommodationById, fetchAllAccommodations, updateAccommodation, deleteAccommodation } from "@/services/accomodation";
@@ -89,7 +89,7 @@ export const updateService = async (
 export const findServiceById = async (
   serviceType: string,
   id: number
-): Promise<any> => {
+): Promise<ServiceFormData> => {
   if (serviceType === 'tour-guides') {
     return await findTourGuideById(id);
   } else if (serviceType === 'activity') {

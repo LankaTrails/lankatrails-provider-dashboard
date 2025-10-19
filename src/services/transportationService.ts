@@ -1,5 +1,5 @@
 import api from "@/api/axiosInstance";
-import type { ImageFiles, PolicySection, ServiceFormData } from "@/types/serviceTypes";
+import type { ImageFiles, PolicySection, ServiceFormData, TransportFormData } from "@/types/serviceTypes";
 
 //Add new transport policy
 export async function createTransportPolicy(policyData: PolicySection): Promise<PolicySection> {
@@ -99,7 +99,7 @@ export const addNewTransport = async (
 };
 
 //find a transportation service by the Id
-export const findTransportationById = async (id : any): Promise<any> =>{
+export const findTransportationById = async (id : any): Promise<TransportFormData> =>{
   try {
     const response = await api.get(`/provider/transport/${id}`);
     console.log('findTransporationById response: ',response);

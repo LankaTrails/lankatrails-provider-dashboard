@@ -1,5 +1,5 @@
 import api from "@/api/axiosInstance";
-import type { ImageFiles, PolicySection, ServiceFormData } from "@/types/serviceTypes";
+import type { ActivityFormData, ImageFiles, PolicySection, ServiceFormData } from "@/types/serviceTypes";
 
 
 //Add new activity policy
@@ -108,7 +108,7 @@ export const addNewActivity = async (
 };
 
 //find an activity service by the serviceId
-export const findActivityById = async (id: any): Promise<any> => {
+export const findActivityById = async (id: any): Promise<ActivityFormData> => {
   try {
     const response = await api.get(`/provider/activity-service/${id}`);
     // Log response for debugging

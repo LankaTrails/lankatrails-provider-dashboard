@@ -29,6 +29,16 @@ const PriceConfigurationForm: React.FC<PriceConfigurationFormProps> = ({
       ...priceConfig,
       [field]: value,
     } as PriceConfigDTO;
+
+    // Auto-sync child prices with adult prices when separate pricing is disabled
+    if (!bookingConfig?.requireChildInfo) {
+      if (field === "pricePerAdult") {
+        updatedConfig.pricePerChild = value;
+      } else if (field === "extraPerAdult") {
+        updatedConfig.extraPerChild = value;
+      }
+    }
+
     onChange(updatedConfig);
   };
 
@@ -205,8 +215,9 @@ const PriceConfigurationForm: React.FC<PriceConfigurationFormProps> = ({
 
               {!bookingConfig?.requireChildInfo && (
                 <p className="text-sm text-gray-600 italic">
-                  Child and adult pricing is the same. Only adult rate will be
-                  used for all guests.
+                  Child and adult pricing is the same. Child prices are
+                  automatically set to match adult prices when "Separate Child &
+                  Adult Pricing" is disabled.
                 </p>
               )}
             </div>
@@ -356,7 +367,8 @@ const PriceConfigurationForm: React.FC<PriceConfigurationFormProps> = ({
                     {!bookingConfig?.requireChildInfo && (
                       <p className="text-sm text-muted-foreground italic">
                         Child-specific extra charges are not required for this
-                        service. The adult rate will apply to all persons.
+                        service. Extra child charges are automatically set to
+                        match adult charges.
                       </p>
                     )}
                   </div>

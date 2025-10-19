@@ -1,5 +1,5 @@
 import api from "@/api/axiosInstance";
-import type { ImageFiles, ServiceFormData, LocationData, PolicySection } from "@/types/serviceTypes";
+import type { ImageFiles, ServiceFormData, LocationData, PolicySection, TourGuideFormData } from "@/types/serviceTypes";
 
 
 //Add new policy for tour guide
@@ -159,7 +159,7 @@ export const updateTourGuide = async (
 };
 
 //find a tourist guide by the serviceId
-export const findTourGuideById = async (id: any): Promise<any> => {
+export const findTourGuideById = async (id: any): Promise<TourGuideFormData> => {
   try {
     const response = await api.get(`/provider/tour-guide/${id}`);
     // Log response for debugging

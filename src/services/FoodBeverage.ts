@@ -1,6 +1,6 @@
 
 import api from "@/api/axiosInstance";
-import type { ImageFiles, PolicySection, ServiceFormData } from "@/types/serviceTypes";
+import type { FoodBeverageFormData, ImageFiles, PolicySection, ServiceFormData } from "@/types/serviceTypes";
 
 //Add new activity policy
 export async function createFoodPolicy(policyData: PolicySection): Promise<PolicySection> {
@@ -100,7 +100,7 @@ export const addNewFoodBeverage = async (
 };
 
 //find a food-beverage service by the Id
-export const findFoodBeverageById = async (id : any): Promise<any> =>{
+export const findFoodBeverageById = async (id : any): Promise<FoodBeverageFormData> =>{
   try {
     const response = await api.get(`/provider/food-beverage/${id}`);
     console.log('findFoodBeverageById response: ',response);
