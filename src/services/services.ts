@@ -1,9 +1,9 @@
 import type { ImageFiles, TourGuideFormData, TransportFormData, AccommodationFormData, ActivityFormData, FoodBeverageFormData, ServiceFormData } from "@/types/serviceTypes";
-import { addNewTourGuide, updateTourGuide, findTourGuideById, fetchAllTourGuides, deleteTourGuide } from "@/services/guideService";
-import { addNewTransport, findTransportationById, fetchAllTransports, updateTransport, deleteTransportation } from "@/services/transportationService";
-import { addNewAccommodation, findAccommodationById, fetchAllAccommodations, updateAccommodation, deleteAccommodation } from "@/services/accomodation";
-import { addNewFoodBeverage, findFoodBeverageById, fetchAllFoodAndBeverages, updateFoodBeverage, deleteFoodBeverage } from "./FoodBeverage";
-import { addNewActivity, findActivityById, fetchAllActivities, deleteActivityService, updateActivity } from "@/services/activityService";
+import { addNewTourGuide, updateTourGuide, findTourGuideById, fetchAllTourGuides, deactivateTourGuide, activateTourGuide } from "@/services/guideService";
+import { addNewTransport, findTransportationById, fetchAllTransports, updateTransport, deactivateTransportation, activateTransportation } from "@/services/transportationService";
+import { addNewAccommodation, findAccommodationById, fetchAllAccommodations, updateAccommodation, deactivateAccommodation, activateAccommodation } from "@/services/accomodation";
+import { addNewFoodBeverage, findFoodBeverageById, fetchAllFoodAndBeverages, updateFoodBeverage, deactivateFoodBeverage, activateFoodBeverage } from "@/services/FoodBeverage";
+import { addNewActivity, findActivityById, fetchAllActivities, updateActivity, deactivateActivityService, activateActivityService } from "@/services/activityService";
 import api from "@/api/axiosInstance";
 
 //remove policy
@@ -20,20 +20,20 @@ export const fetchPoliciesByServiceType = async (serviceType: string): Promise<a
   let typeId: number;
   switch (serviceType) {
     case 'tour-guides':
-        typeId=5;
-        break;
+      typeId = 5;
+      break;
     case 'activity':
-        typeId=4;
-        break;
+      typeId = 4;
+      break;
     case 'transportation':
-        typeId=2;
-        break;
+      typeId = 2;
+      break;
     case 'accommodation':
-        typeId=1;
-        break;
+      typeId = 1;
+      break;
     case 'food-beverage':
-        typeId=3;
-        break;
+      typeId = 3;
+      break;
     default:
       throw new Error(`Unsupported service type: ${serviceType}`);
   }
@@ -76,7 +76,7 @@ export const updateService = async (
     return await updateActivity(id, payload, images);
   } else if (serviceType === 'transportation') {
     return await updateTransport(id, payload, images);
-  } else if (serviceType === 'accommodation') { 
+  } else if (serviceType === 'accommodation') {
     return await updateAccommodation(id, payload, images);
   } else if (serviceType === 'food-beverage') {
     return await updateFoodBeverage(id, payload, images);
@@ -110,7 +110,7 @@ export const fetchAllServices = async (
   serviceType: string,
   pageNumber: number = 0,
   pageSize: number = 10
-): Promise<any> => {
+): Promise<ServiceFormData[]> => {
   if (serviceType === 'tour-guides') {
     return await fetchAllTourGuides(pageNumber, pageSize);
   } else if (serviceType === 'activity') {
@@ -125,22 +125,42 @@ export const fetchAllServices = async (
     throw new Error(`Unsupported service type: ${serviceType}`);
   }
 };
-
-// Generic function to delete any service by ID
-export const deleteService = async (
+  
+// Generic function to deactivate any service by ID
+export const deactivateService = async (
   serviceType: string,
   id: number
 ): Promise<any> => {
   if (serviceType === 'activity') {
-    return await deleteActivityService(id);
+    return await deactivateActivityService(id);
   } else if (serviceType === 'transportation') {
-    return await deleteTransportation(id);
+    return await deactivateTransportation(id);
   } else if (serviceType === 'accommodation') {
-    return await deleteAccommodation(id);
+    return await deactivateAccommodation(id);
   } else if (serviceType === 'food-beverage') {
-    return await deleteFoodBeverage(id);
+    return await deactivateFoodBeverage(id);
   } else if (serviceType === 'tour-guides') {
-    return await deleteTourGuide(id);
+    return await deactivateTourGuide(id);
+  } else {
+    throw new Error(`Unsupported service type: ${serviceType}`);
+  }
+};
+
+// Generic function to activate any service by ID
+export const activateService = async (
+  serviceType: string,
+  id: number
+): Promise<any> => {
+  if (serviceType === 'activity') {
+    return await activateActivityService(id);
+  } else if (serviceType === 'transportation') {
+    return await activateTransportation(id);
+  } else if (serviceType === 'accommodation') {
+    return await activateAccommodation(id);
+  } else if (serviceType === 'food-beverage') {
+    return await activateFoodBeverage(id);
+  } else if (serviceType === 'tour-guides') {
+    return await activateTourGuide(id);
   } else {
     throw new Error(`Unsupported service type: ${serviceType}`);
   }

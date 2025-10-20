@@ -52,10 +52,10 @@ const EditContactPersonModal: React.FC<EditContactPersonModalProps> = ({
   useEffect(() => {
     if (isOpen && businessDetails) {
       setFormData({
-        contactPersonName: businessDetails.contactPerson.name || "",
-        contactPersonPosition: businessDetails.contactPerson.position || "",
-        contactPersonPhone: businessDetails.contactPerson.phoneNumber || "",
-        contactPersonEmail: businessDetails.contactPerson.email || "",
+        contactPersonName: businessDetails.contactPerson?.name || "",
+        contactPersonPosition: businessDetails.contactPerson?.position || "",
+        contactPersonPhone: businessDetails.contactPerson?.phoneNumber || "",
+        contactPersonEmail: businessDetails.contactPerson?.email || "",
         contactPersonIdentityFile: null,
       });
       setErrors({});
@@ -69,43 +69,93 @@ const EditContactPersonModal: React.FC<EditContactPersonModalProps> = ({
     switch (key) {
       case "contactPersonEmail":
         if (typeof value === "string") {
-          return !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)
-            ? "Invalid email format"
+          const trimmedValue = value.trim();
+          if (!trimmedValue) return "Email is required";
+          return !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedValue)
+            ? "Please enter a valid email address"
             : "";
         }
-        return "";
+        return "Email is required";
       case "contactPersonPhone":
         if (typeof value === "string") {
-          const cleanPhone = value.replace(/\s|-/g, "");
+          const trimmedValue = value.trim();
+          if (!trimmedValue) return "Phone number is required";
+          const cleanPhone = trimmedValue.replace(/\s|-|\(|\)/g, "");
           return !/^(\+94|0)?[1-9]\d{8}$/.test(cleanPhone)
-            ? "Invalid Sri Lankan phone number (10 digits)"
+            ? "Please enter a valid Sri Lankan phone number (e.g., 0771234567 or +94771234567)"
             : "";
         }
-        return "";
+        return "Phone number is required";
       case "contactPersonName":
+        if (typeof value === "string") {
+          const trimmedValue = value.trim();
+          if (!trimmedValue) return "Name is required";
+          if (trimmedValue.length < 2)
+            return "Name must be at least 2 characters";
+          if (trimmedValue.length > 100)
+            return "Name must be less than 100 characters";
+          return "";
+        }
+        return "Name is required";
       case "contactPersonPosition":
         if (typeof value === "string") {
-          return value.trim() === "" ? "This field is required" : "";
+          const trimmedValue = value.trim();
+          if (!trimmedValue) return "Position is required";
+          if (trimmedValue.length < 2)
+            return "Position must be at least 2 characters";
+          if (trimmedValue.length > 50)
+            return "Position must be less than 50 characters";
+          return "";
         }
-        return "";
+        return "Position is required";
       default:
         return "";
     }
   };
 
   const updateField = (key: keyof ContactPersonFormData, value: any) => {
-    setFormData((prev) => ({ ...prev, [key]: value }));
+    // Trim string values for consistent validation
+    const processedValue = typeof value === "string" ? value.trim() : value;
 
-    // Clear error when user starts typing
+    setFormData((prev) => ({
+      ...prev,
+      [key]: typeof value === "string" ? value : processedValue, // Keep original value for input display, but use trimmed for validation
+    }));
+
+    // Clear error when user starts typing and validate on change for immediate feedback
     if (errors[key]) {
       setErrors((prev) => ({ ...prev, [key]: "" }));
+    }
+
+    // Immediate validation for better UX (only show errors after user has finished typing)
+    const validationError = validateField(key, processedValue);
+    if (validationError && typeof value === "string" && value.length > 0) {
+      // Debounce validation to avoid showing errors while typing
+      setTimeout(() => {
+        setFormData((currentFormData) => {
+          const currentValue = currentFormData[key];
+          if (currentValue === value) {
+            // Only show error if value hasn't changed
+            const error = validateField(
+              key,
+              typeof currentValue === "string"
+                ? currentValue.trim()
+                : currentValue
+            );
+            if (error) {
+              setErrors((prev) => ({ ...prev, [key]: error }));
+            }
+          }
+          return currentFormData;
+        });
+      }, 1000); // 1 second debounce
     }
   };
 
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};
 
-    // Validate all required fields
+    // Validate all required fields with trimmed values
     const fieldsToValidate: (keyof ContactPersonFormData)[] = [
       "contactPersonName",
       "contactPersonPosition",
@@ -114,8 +164,29 @@ const EditContactPersonModal: React.FC<EditContactPersonModalProps> = ({
     ];
 
     for (const field of fieldsToValidate) {
-      const error = validateField(field, formData[field]);
+      const value = formData[field];
+      const trimmedValue = typeof value === "string" ? value.trim() : value;
+      const error = validateField(field, trimmedValue);
       if (error) newErrors[field] = error;
+    }
+
+    // Validate file if provided
+    if (formData.contactPersonIdentityFile) {
+      const file = formData.contactPersonIdentityFile;
+      const maxSize = 5 * 1024 * 1024; // 5MB
+      const allowedTypes = [
+        "application/pdf",
+        "image/jpeg",
+        "image/jpg",
+        "image/png",
+      ];
+
+      if (file.size > maxSize) {
+        newErrors.contactPersonIdentityFile = "File size must be less than 5MB";
+      } else if (!allowedTypes.includes(file.type)) {
+        newErrors.contactPersonIdentityFile =
+          "Only PDF, JPG, JPEG, and PNG files are allowed";
+      }
     }
 
     setErrors(newErrors);
@@ -218,7 +289,7 @@ const EditContactPersonModal: React.FC<EditContactPersonModalProps> = ({
 
             <div className="mt-8">
               <FileUploadGroup
-                label="Contact Person Identity File"
+                label="Contact Person Identity Document"
                 required={false}
                 uploadedFiles={
                   formData.contactPersonIdentityFile
@@ -237,11 +308,14 @@ const EditContactPersonModal: React.FC<EditContactPersonModalProps> = ({
                 error={errors.contactPersonIdentityFile}
               />
               {!formData.contactPersonIdentityFile &&
-                businessDetails.contactPerson.identityDocumentUrl && (
+                businessDetails.contactPerson?.identityDocumentUrl && (
                   <p className="text-sm text-gray-600 mt-2">
-                    Current file will be kept if no new file is uploaded.
+                    📄 Current file will be kept if no new file is uploaded.
                   </p>
                 )}
+              <p className="text-xs text-gray-500 mt-1">
+                Accepted formats: PDF, JPG, JPEG, PNG (Max 5MB)
+              </p>
             </div>
           </div>
 

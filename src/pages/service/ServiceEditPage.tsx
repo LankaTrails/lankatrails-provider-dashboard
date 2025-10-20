@@ -126,7 +126,7 @@ const ServiceEditPage: React.FC = () => {
     setIsSubmitting(true);
     try {
       console.log("Updating service with data:", data);
-      const result = await updateService(serviceType, Number(id), data, images);
+      const result = await updateService(serviceType, Number(id), data as any, images);
       console.log("Update result:", result);
 
       // Show success toast

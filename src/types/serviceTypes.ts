@@ -161,6 +161,7 @@ export interface OptionType {
 
 export interface ServiceFormData {
   // Common fields for all service types
+  serviceId: number | null;
   serviceName: string;
   locations: LocationData[];
   contactNo: string;
@@ -173,6 +174,11 @@ export interface ServiceFormData {
   availableTimeDTOS: AvailableTimeDTO[];
   priceConfig?: PriceConfigDTO;
   bookingConfig?: BookingConfigDTO;
+  averageRating?: number;
+  reviewCount?: number;
+  futureBookingCount?: number;
+  pastBookingCount?: number;
+  images?: ImageData[];
 }
 // Add this to your existing types
 export interface ImageFile {

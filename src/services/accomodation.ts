@@ -37,15 +37,15 @@ export const fetchAllAccommodationPolicies = async (): Promise<any> => {
 export const fetchAllAccommodations = async (
   pageNumber: number = 0,
   pageSize: number = 10
-): Promise<any> => {
+): Promise<AccommodationFormData[]> => {
   const response = await api.get(`/provider/accommodation/getAll`, {
     params: {
       pageNumber,
       pageSize,
     },
   });
-  console.log("fetch all", response.data.data);
-  return response.data.data; // Assuming the response contains an array of activities
+  console.log("fetch all", response.data.data.content);
+  return response.data.data.content; // Assuming the response contains an array of activities
 }
 
 
@@ -164,9 +164,16 @@ export const findAccommodationById = async (id : any): Promise<AccommodationForm
   }
 }
 
-// delete accommodation service
-export const deleteAccommodation = async (id: number): Promise<any> => {
-  const response = await api.put(`/provider/accommodation/remove/${id}`);
-  console.log("Deleting accommodation service with ID:", response);
+// deactivate accommodation service
+export const deactivateAccommodation = async (id: number): Promise<any> => {
+  const response = await api.put(`/provider/accommodation/deactivate/${id}`);
+  console.log("Deactivating accommodation service with ID:", response);
+  return response.data.data;
+}
+
+// activate accommodation service
+export const activateAccommodation = async (id: number): Promise<any> => {
+  const response = await api.put(`/provider/accommodation/activate/${id}`);
+  console.log("Activating accommodation service with ID:", response);
   return response.data.data;
 }

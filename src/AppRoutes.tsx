@@ -19,6 +19,7 @@ import AnalyticsPage from "@/pages/provider/AnalyticsPage";
 import Profile from "@/pages/provider/Profile";
 import NotFound from "@/pages/NotFound";
 import ContactPerson from "./pages/provider/ContactPerson";
+import License from "./pages/provider/License";
 import AllPolicy from "./pages/provider/AllPolicy";
 import AddActivityPolicy from "./pages/provider/AddActivityPolicy";
 import AddTransportPolicy from "./pages/provider/AddTransportPolicy";
@@ -81,13 +82,14 @@ const AppRoutes = () => {
           <Route index element={<Profile />} />
           <Route path="details" element={<Profile />} />
           <Route path="contact" element={<ContactPerson />} />
+          <Route path="license" element={<License />} />
         </Route>
         <Route path="policy">
           <Route index element={<AllPolicy />} />
           <Route path="all" element={<AllPolicy />} />
           {/* <Route path="add" element={<AddPolicy />} /> */}
           <Route path="activity" element={<AddActivityPolicy />} />
-          <Route path="tour-guide" element={<AddTourGuidePolicy />} /> 
+          <Route path="tour-guide" element={<AddTourGuidePolicy />} />
           <Route path="transport" element={<AddTransportPolicy />} />
           <Route path="food-beverage" element={<AddFoodBeveragePolicy />} />
           <Route path="accommodation" element={<AddAccommodationPolicy />} />

@@ -1,14 +1,17 @@
 import { useParams, useNavigate } from "react-router-dom";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Eye, Edit, Star, Package, Plus } from "lucide-react";
+import { Package, Plus } from "lucide-react";
 import ProviderTopBar from "@/components/provider/ProviderTopBar";
+import ServiceCard from "@/components/service/ServiceCard";
 import { useState, useEffect } from "react";
-import { Trash2 } from "lucide-react";
-import ConfirmDeleteModal from "@/components/forms/ConfirmDeleteModal";
-import { fetchAllServices, deleteService } from "@/services/services";
-
+import ConfirmActionModal from "@/components/forms/ConfirmActionModal";
+import {
+  fetchAllServices,
+  deactivateService,
+  activateService,
+} from "@/services/services";
+import type { ServiceFormData } from "@/types/serviceTypes";
 
 // Helper to prettify the serviceType
 const formatServiceTitle = (type?: string) => {
@@ -19,290 +22,241 @@ const formatServiceTitle = (type?: string) => {
     .join(" ");
 };
 
-type Activity = {
-  serviceId: number;
-  serviceName?: string;
-  status: boolean;
-  // add other properties if needed
-};
-
-type TourGuide = {
-  serviceId: number;
-  serviceName?: string;
-  status: boolean;
-};
-
-type Transportation = {
-  serviceId: number;
-  serviceName?: string;
-  status: boolean;
-};
-
-type Accommodation = {
-  serviceId: number;
-  serviceName?: string;
-  status: boolean;
-};
-
-type FoodBeverage = {
-  serviceId: number;
-  serviceName?: string;
-  status: boolean;
-};
-
 const ServiceListPage = () => {
   const { serviceType } = useParams();
   const navigate = useNavigate();
-  //for activities
-  const [fetchedActivities, setFetchedActivities] = useState<Activity[]>([]);
-  //for tour guides
-  const [fetchedGuides, setFetchedGuides] = useState<TourGuide[]>([]);
-  //for transportation
-  const [fetchedTransports, setFetchedTransports] = useState<Transportation[]>(
-    []
-  );
-  //for Accommodation
-  const [fetchedAccommodations, setFetchedAccommodations] = useState<
-    Accommodation[]
-  >([]);
-  //for food and beverage
-  const [fetchedFoodBeverages, setFetchedFoodBeverages] = useState<
-    FoodBeverage[]
-  >([]);
 
-  const services =
-    serviceType === "activity"
-      ? fetchedActivities.map((item) => ({
-          id: item.serviceId, // fallback since serviceId is null
-          title: item.serviceName ?? "Untitled Activity",
-          type: "Activity",
-          category: "activity",
-          bookings: "N/A",
-          rating: 2,
-          status: item.status ? "active" : "inactive",
-        }))
-      : serviceType === "tour-guides"
-      ? fetchedGuides.map((item) => ({
-          id: item.serviceId,
-          title: item.serviceName ?? "Unnamed Guide",
-          type: "Tour Guide",
-          category: "tour-guide",
-          bookings: "N/A", // replace if real data exists
-          rating: 2,
-          status: item.status ? "active" : "inactive",
-        }))
-      : serviceType === "transportation"
-      ? fetchedTransports.map((item) => ({
-          id: item.serviceId,
-          title: item.serviceName ?? "Unnamed Transport",
-          type: "Transport",
-          category: "transportation",
-          bookings: "N/A", // replace if real data exists
-          rating: 2,
-          status: item.status ? "active" : "inactive",
-        }))
-      : serviceType === "accommodation"
-      ? fetchedAccommodations.map((item) => ({
-          id: item.serviceId,
-          title: item.serviceName ?? "Unnamed Accommodation",
-          type: "Accommodation",
-          category: "accommodation",
-          bookings: "N/A", // replace if real data exists
-          rating: 2,
-          status: item.status ? "active" : "inactive",
-        }))
-      : serviceType === "food-beverage"
-      ? fetchedFoodBeverages.map((item) => ({
-          id: item.serviceId,
-          title: item.serviceName ?? "Unnamed Food/Beverage Service",
-          type: "food-beverage",
-          category: "food-beverage",
-          bookings: "N/A", // replace if real data exists
-          rating: 2,
-          status: item.status ? "active" : "inactive",
-        }))
-      : [];
+  // Use the unified ServiceListItem interface for all service types
+  const [services, setServices] = useState<ServiceFormData[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const title = formatServiceTitle(serviceType);
 
-  const [isDeleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [isToggleModalOpen, setToggleModalOpen] = useState(false);
   const [selectedServiceId, setSelectedServiceId] = useState<number | null>(
     null
   );
+  const [selectedServiceStatus, setSelectedServiceStatus] =
+    useState<string>("");
 
-  //handle delete click
-  const handleDeleteClick = (id: number) => {
+  // Handle toggle status click
+  const handleToggleStatusClick = (id: number, currentStatus: string) => {
     setSelectedServiceId(id);
-    setDeleteModalOpen(true);
+    setSelectedServiceStatus(currentStatus);
+    setToggleModalOpen(true);
   };
 
-  //doing the backend process for deletion
-  const confirmDelete = () => {
+  // Confirm and perform status toggle
+  const confirmToggleStatus = async () => {
     if (selectedServiceId != null && serviceType) {
-      console.log("Deleting service:", selectedServiceId);
-      // Call delete API here
-      const performDelete = async () => {
-        const result = await deleteService(serviceType, selectedServiceId);
-        console.log("Delete result:", result);
-      };
-      performDelete()
-        .then(() => {
-          console.log("Service deleted successfully");
-          // Refresh the service list based on service type
-          if (serviceType == "activity") {
-            setFetchedActivities((prev) =>
-              prev.filter((service) => service.serviceId != selectedServiceId)
-            );
-          } else if (serviceType == "tour-guides") {
-            setFetchedGuides((prev) =>
-              prev.filter((service) => service.serviceId != selectedServiceId)
-            );
-          } else if (serviceType == "transportation") {
-            setFetchedTransports((prev) =>
-              prev.filter((service) => service.serviceId != selectedServiceId)
-            );
-          } else if (serviceType == "accommodation") {
-            setFetchedAccommodations((prev) =>
-              prev.filter((service) => service.serviceId != selectedServiceId)
-            );
-          } else if (serviceType == "food-beverage") {
-            setFetchedFoodBeverages((prev) =>
-              prev.filter((service) => service.serviceId != selectedServiceId)
-            );
-          }
-        })
-        .catch((error) => {
-          console.error("Error deleting service:", error);
-          // Optionally, show an error message
-        });
+      try {
+        const isCurrentlyActive = selectedServiceStatus === "ACTIVE";
+        console.log(
+          `${isCurrentlyActive ? "Deactivating" : "Activating"} service:`,
+          selectedServiceId
+        );
 
-      setDeleteModalOpen(false);
+        if (isCurrentlyActive) {
+          await deactivateService(serviceType, selectedServiceId);
+        } else {
+          await activateService(serviceType, selectedServiceId);
+        }
+
+        // Update the service status in the state
+        setServices((prev) =>
+          prev.map((service) =>
+            service.serviceId === selectedServiceId
+              ? {
+                  ...service,
+                  status: isCurrentlyActive ? "INACTIVE" : "ACTIVE",
+                }
+              : service
+          )
+        );
+
+        console.log(
+          `Service ${
+            isCurrentlyActive ? "deactivated" : "activated"
+          } successfully`
+        );
+      } catch (error) {
+        console.error("Error toggling service status:", error);
+        setError(
+          `Failed to ${
+            selectedServiceStatus === "ACTIVE" ? "deactivate" : "activate"
+          } service. Please try again.`
+        );
+      }
+
+      setToggleModalOpen(false);
+      setSelectedServiceId(null);
+      setSelectedServiceStatus("");
     }
   };
 
-  //get respective services based on each category
+  // Fetch services based on service type
   useEffect(() => {
     const loadServices = async () => {
       if (!serviceType) return;
 
       try {
-        const result = await fetchAllServices(serviceType, 0, 15);
+        setIsLoading(true);
+        setError(null);
+
+        const result = await fetchAllServices(serviceType, 0, 50); // Increased page size
         console.log(`Fetched ${serviceType}:`, result);
 
-        if (serviceType == "activity") {
-          setFetchedActivities(result.content);
-        } else if (serviceType == "tour-guides") {
-          setFetchedGuides(result.content);
-        } else if (serviceType == "transportation") {
-          setFetchedTransports(result.content);
-        } else if (serviceType == "accommodation") {
-          setFetchedAccommodations(result.content);
-        } else if (serviceType == "food-beverage") {
-          setFetchedFoodBeverages(result.content);
-        }
+        // Filter out services without serviceId and ensure serviceId is not null
+        const validServices = result.filter(
+          (service: ServiceFormData) =>
+            service.serviceId !== null && service.serviceId !== undefined
+        );
+
+        setServices(validServices);
       } catch (error) {
         console.error(`Error fetching ${serviceType}:`, error);
+        setError(
+          `Failed to load ${title.toLowerCase()} services. Please try again.`
+        );
+      } finally {
+        setIsLoading(false);
       }
     };
 
     loadServices();
-  }, [serviceType]);
+  }, [serviceType, title]);
+
+  if (isLoading) {
+    return (
+      <div className="space-y-6">
+        <div>
+          <h1 className="text-2xl p-2 font-bold">{title} Services</h1>
+          <ProviderTopBar />
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {[...Array(6)].map((_, index) => (
+            <Card key={index} className="animate-pulse">
+              <div className="h-48 bg-gray-200 rounded-t-lg"></div>
+              <CardContent className="p-4 space-y-3">
+                <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+                <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+                <div className="space-y-2">
+                  <div className="h-3 bg-gray-200 rounded w-full"></div>
+                  <div className="h-3 bg-gray-200 rounded w-full"></div>
+                </div>
+                <div className="flex gap-2">
+                  <div className="h-8 bg-gray-200 rounded flex-1"></div>
+                  <div className="h-8 bg-gray-200 rounded flex-1"></div>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="space-y-6">
+        <div>
+          <h1 className="text-2xl p-2 font-bold">{title} Services</h1>
+          <ProviderTopBar />
+        </div>
+        <Card>
+          <CardContent className="p-6">
+            <div className="text-center text-red-500">
+              <p className="font-medium">{error}</p>
+              <Button
+                variant="outline"
+                className="mt-4"
+                onClick={() => window.location.reload()}
+              >
+                Try Again
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl p-2 font-bold">{title} Services</h1>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl p-2 font-bold">{title} Services</h1>
+          </div>
+          <div className="p-2">
+            <Button
+              onClick={() => navigate(`/provider/${serviceType}/add`)}
+              className="bg-primary hover:bg-primary/90"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Add {title}
+            </Button>
+          </div>
+        </div>
         <ProviderTopBar />
       </div>
+
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {services.length > 0 ? (
           services.map((service) => (
-            <Card
-              key={service.id}
-              className="hover:shadow-lg transition-shadow"
-            >
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  {/* <Badge variant="outline">{service.type}</Badge> */}
-                  <Badge variant={service.status ? "default" : "secondary"}>
-                    {service.status}
-                  </Badge>
-                  <Trash2
-                    className="w-4 h-4 text-red-500 cursor-pointer ml-2 hover:scale-110 transition-transform"
-                    onClick={() => handleDeleteClick(service.id)}
-                    // title="Delete Service"
-                  />
-                </div>
-                <CardTitle className="text-lg">{service.title}</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    {/* <span className="text-sm text-gray-600">Price:</span> */}
-                    {/* <span className="font-semibold text-primary-500">{service.price}</span> */}
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-600">Bookings:</span>
-                    <span className="font-medium">{service.bookings}</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-600">Rating:</span>
-                    <div className="flex items-center">
-                      <Star className="w-4 h-4 text-yellow-400 fill-current" />
-                      <span className="font-medium ml-1">{service.rating}</span>
-                    </div>
-                  </div>
-                  <div className="flex gap-2 pt-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="flex-1"
-                      onClick={() =>
-                        navigate(`/provider/${serviceType}/${service.id}/view`)
-                      }
-                    >
-                      <Eye className="w-4 h-4 mr-1" />
-                      View
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="flex-1"
-                      onClick={() =>
-                        navigate(`/provider/${serviceType}/${service.id}/edit`)
-                      }
-                    >
-                      <Edit className="w-4 h-4 mr-1" />
-                      Edit
-                    </Button>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+            <ServiceCard
+              key={service.serviceId || `service-${Math.random()}`}
+              service={service}
+              serviceType={serviceType || ""}
+              onToggleStatus={(id, currentStatus) =>
+                handleToggleStatusClick(id, currentStatus)
+              }
+            />
           ))
         ) : (
-          <div className="col-span-full flex flex-col items-center justify-center space-y-4 py-12 bg-white border-2 border-dashed border-gray-200 rounded-lg shadow-sm">
-            <Package className="w-12 h-12 text-gray-400" />
-            <h3 className="text-lg font-medium text-gray-700">
-              No services in this category
+          <div className="col-span-full flex flex-col items-center justify-center space-y-4 py-16 bg-white border-2 border-dashed border-gray-200 rounded-lg shadow-sm">
+            <Package className="w-16 h-16 text-gray-400" />
+            <h3 className="text-xl font-medium text-gray-700">
+              No {title.toLowerCase()} services yet
             </h3>
-            <p className="text-sm text-gray-500">
-              Click below to add your first service.
+            <p className="text-sm text-gray-500 text-center max-w-md">
+              Start building your service portfolio by adding your first{" "}
+              {title.toLowerCase()} service. Customers will be able to discover
+              and book your services.
             </p>
             <Button
               onClick={() => navigate(`/provider/${serviceType}/add`)}
-              className="bg-primary-500 hover:bg-primary-600 text-white"
+              className="bg-primary hover:bg-primary/90 mt-4"
             >
               <Plus className="w-4 h-4 mr-2" />
-              Add Service
+              Add Your First {title}
             </Button>
           </div>
         )}
       </div>
-      <ConfirmDeleteModal
-        isOpen={isDeleteModalOpen}
-        onClose={() => setDeleteModalOpen(false)}
-        onConfirm={confirmDelete}
+
+      <ConfirmActionModal
+        isOpen={isToggleModalOpen}
+        onClose={() => {
+          setToggleModalOpen(false);
+          setSelectedServiceId(null);
+          setSelectedServiceStatus("");
+        }}
+        onConfirm={confirmToggleStatus}
+        title={`${
+          selectedServiceStatus === "ACTIVE" ? "Deactivate" : "Activate"
+        } Service`}
+        description={`Are you sure you want to ${
+          selectedServiceStatus === "ACTIVE" ? "deactivate" : "activate"
+        } this service? ${
+          selectedServiceStatus === "ACTIVE"
+            ? "This will make the service unavailable to customers."
+            : "This will make the service available to customers again."
+        }`}
+        actionType={
+          selectedServiceStatus === "ACTIVE" ? "deactivate" : "activate"
+        }
       />
     </div>
   );

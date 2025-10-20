@@ -50,8 +50,6 @@ const ProviderTopBar = () => {
     links = [
       { to: `/provider/${base}/list`, label: "List" },
       { to: `/provider/${base}/add`, label: "Add New" },
-      { to: `/provider/${base}/bookings`, label: "Bookings" },
-      { to: `/provider/${base}/reviews`, label: "Reviews" },
       { to: `/provider/${base}/analytics`, label: "Analytics" },
     ];
   } else if (base === "messages") {
@@ -68,6 +66,7 @@ const ProviderTopBar = () => {
     links = [
       { to: `/provider/profile/details`, label: "Profile" },
       { to: `/provider/profile/contact`, label: "Contact Person" },
+      { to: `/provider/profile/license`, label: "License" },
     ];
   } else if (base === "policy") {
     links = [

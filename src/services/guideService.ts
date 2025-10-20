@@ -88,15 +88,15 @@ export const addNewTourGuide = async (
 export const fetchAllTourGuides = async (
   pageNumber: number = 0,
   pageSize: number = 10
-): Promise<any> => {
+): Promise<TourGuideFormData[]> => {
   const response = await api.get(`/provider/tour-guide/getAll`, {
     params: {
       pageNumber,
       pageSize,
     },
   });
-  console.log("fetch all tour guides", response.data.data);
-  return response.data.data; // Assuming the response contains an array of tour guides
+  console.log("fetch all tour guides", response.data.data.content);
+  return response.data.data.content; // Assuming the response contains an array of tour guides
 }
 
 //fetch all guiding areas
@@ -172,9 +172,16 @@ export const findTourGuideById = async (id: any): Promise<TourGuideFormData> => 
 }
 
 
-// delete a tourist guide
-export const deleteTourGuide = async (id: number): Promise<any> => {
-  const response = await api.put(`/provider/tour-guide/remove/${id}`);
-  console.log("Deleting tour guide with ID:", response);
+// deactivate a tourist guide
+export const deactivateTourGuide = async (id: number): Promise<any> => {
+  const response = await api.put(`/provider/tour-guide/deactivate/${id}`);
+  console.log("Deactivating tour guide with ID:", response);
+  return response.data.data;
+}
+
+// activate a tourist guide
+export const activateTourGuide = async (id: number): Promise<any> => {
+  const response = await api.put(`/provider/tour-guide/activate/${id}`);
+  console.log("Activating tour guide with ID:", response);
   return response.data.data;
 }

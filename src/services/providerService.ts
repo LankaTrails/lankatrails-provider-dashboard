@@ -1,4 +1,5 @@
 import api from "@/api/axiosInstance";
+import type { LicenseDTO, licenseResponse } from "@/types/authTypes";
 import type { RegistrationRequestBody, RegistrationFiles, BusinessDetails } from "@/types/registration";
 
 export const registerProvider = async (
@@ -91,15 +92,32 @@ export const getBusinessDetails = async (): Promise<BusinessDetails> => {
   try {
     console.log('🌐 Making GET request to /provider/business-details');
 
-    const response = await api.get("/provider/business-details");
+    const response = await api.get("/provider/provider-details");
 
     console.log('✅ Business details API success:', {
       status: response.status,
       statusText: response.statusText,
-      hasData: !!response.data,
+      fullResponseData: response.data,
+      hasData: !!response.data.data,
+      hasContent: !!response.data.data?.content,
+      data: response.data.data,
+      content: response.data.data?.content,
+      hasContactPerson: !!response.data.data?.contactPerson,
+      hasContactPersonInContent: !!response.data.data?.content?.contactPerson,
+      contactPersonKeys: response.data.data?.contactPerson ? Object.keys(response.data.data.contactPerson) : [],
+      contactPersonKeysInContent: response.data.data?.content?.contactPerson ? Object.keys(response.data.data.content.contactPerson) : []
     });
 
-    return response.data.data;
+    // Check if the actual data is nested under 'content'
+    const businessDetails = response.data.data?.content || response.data.data;
+
+    console.log('🔍 Final business details being returned:', {
+      businessDetails,
+      hasContactPerson: !!businessDetails?.contactPerson,
+      contactPersonData: businessDetails?.contactPerson
+    });
+
+    return businessDetails;
   } catch (error: any) {
     console.error('❌ Business details fetch failed:', {
       message: error.message,
@@ -148,6 +166,153 @@ export const updateBusinessDetails = async (
     throw error;
   }
 };
+
+export const getLicense = async (): Promise<licenseResponse[]> => {
+  try {
+    const response = await api.get("/provider/licenses");
+    return response.data.data;
+  } catch (error: any) {
+    console.error('❌ Fetching licenses failed:', {
+      message: error.message,
+      status: error.response?.status,
+      statusText: error.response?.statusText,
+      url: error.config?.url,
+      method: error.config?.method,
+    });
+    throw error;
+  }
+};
+
+export const renewLicense = async (
+  licenses: LicenseDTO[],
+  files: File[] // allows multiple file uploads
+): Promise<licenseResponse[]> => {
+  try {
+    const formData = new FormData();
+
+    // 🟢 Attach JSON array of licenses
+    formData.append(
+      "license",
+      new Blob([JSON.stringify(licenses)], { type: "application/json" })
+    );
+
+    // 🟢 Attach files (optional list)
+    files.forEach(file => {
+      formData.append("licenseFiles", file);
+    });
+
+    // 🟢 Send multipart/form-data request
+    const response = await api.post("/provider/licenses", formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+
+    return response.data.data;
+  } catch (error: any) {
+    console.error("❌ License renewal failed:", {
+      message: error.message,
+      status: error.response?.status,
+      statusText: error.response?.statusText,
+      url: error.config?.url,
+      method: error.config?.method,
+    });
+    throw error;
+  }
+};
+
+export const updateContactPerson = async (
+  contactPersonData: {
+    name: string;
+    position: string;
+    email: string;
+    phoneNumber: string;
+  },
+  identityFile?: File | null
+): Promise<BusinessDetails> => {
+  try {
+    console.log('🌐 Making PUT request to /provider/contact-person');
+
+    const formData = new FormData();
+
+    // Add contact person data as JSON blob
+    const contactPersonBlob = new Blob([JSON.stringify(contactPersonData)], {
+      type: 'application/json'
+    });
+    formData.append("contactPerson", contactPersonBlob);
+
+    // Add identity file if provided
+    if (identityFile) {
+      formData.append("identityDocument", identityFile);
+    }
+
+    console.log('📦 Contact person data:', contactPersonData);
+    console.log('📂 Identity file:', identityFile ? identityFile.name : 'None');
+
+    const response = await api.put("/provider/contact-person", formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
+
+    console.log('✅ Contact person update API success:', {
+      status: response.status,
+      statusText: response.statusText,
+      hasData: !!response.data,
+    });
+
+    return response.data.data;
+  } catch (error: any) {
+    console.error('❌ Contact person update failed:', {
+      message: error.message,
+      status: error.response?.status,
+      statusText: error.response?.statusText,
+      url: error.config?.url,
+      method: error.config?.method,
+    });
+
+    if (error.response?.data) {
+      console.error('📦 Error response data:', error.response.data);
+    }
+
+    throw error;
+  }
+};
+
+export const requestApproval = async (
+  licenses: LicenseDTO[],
+  files: File[] // allows multiple file uploads
+): Promise<licenseResponse[]> => {
+  try {
+    const formData = new FormData();
+
+    // 🟢 Attach JSON array of licenses
+    formData.append(
+      "license",
+      new Blob([JSON.stringify(licenses)], { type: "application/json" })
+    );
+
+    // 🟢 Attach files (optional list)
+    files.forEach(file => {
+      formData.append("licenseFiles", file);
+    });
+
+    // 🟢 Send multipart/form-data request
+    const response = await api.put("/provider/approval", formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+
+    return response.data.data;
+  } catch (error: any) {
+    console.error("❌ License renewal failed:", {
+      message: error.message,
+      status: error.response?.status,
+      statusText: error.response?.statusText,
+      url: error.config?.url,
+      method: error.config?.method,
+    });
+    throw error;
+  }
+};
+
 
 // const uploadFiles = async (userId: string, files: RegistrationFiles) => {
 //   try {

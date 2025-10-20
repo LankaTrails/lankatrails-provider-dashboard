@@ -34,10 +34,17 @@ export const fetchAllActivityPolicies = async (): Promise<any> => {
 }
 
 
-//delete an activity service
-export const deleteActivityService = async (id: number): Promise<any> => {
-  const response = await api.put(`/provider/activity-service/remove/${id}`);
-  console.log("Deleting activity service with ID:", response);
+//deactivate an activity service
+export const deactivateActivityService = async (id: number): Promise<any> => {
+  const response = await api.put(`/provider/activity-service/deactivate/${id}`);
+  console.log("Deactivating activity service with ID:", response);
+  return response.data.data;
+}
+
+// activate an activity service
+export const activateActivityService = async (id: number): Promise<any> => {
+  const response = await api.put(`/provider/activity-service/activate/${id}`);
+  console.log("Activating activity service with ID:", response);
   return response.data.data;
 }
 
@@ -45,15 +52,15 @@ export const deleteActivityService = async (id: number): Promise<any> => {
 export const fetchAllActivities = async (
   pageNumber: number = 0,
   pageSize: number = 10
-): Promise<any> => {
+): Promise<ActivityFormData[]> => {
   const response = await api.get(`/activity-service/getAll`, {
     params: {
       pageNumber,
       pageSize,
     },
   });
-  console.log("fetch all", response.data.data);
-  return response.data.data; // Assuming the response contains an array of activities
+  console.log("fetch all", response.data.data.content);
+  return response.data.data.content; // Assuming the response contains an array of activities
 }
 //Add a new activity service
 export const addNewActivity = async (
