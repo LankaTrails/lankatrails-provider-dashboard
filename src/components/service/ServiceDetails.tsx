@@ -155,9 +155,89 @@ const ServiceDetails: React.FC<ServiceDetailsProps> = ({
   const [isTabsOpen, setIsTabsOpen] = useState(false);
   const [isPoliciesOpen, setIsPoliciesOpen] = useState(false);
 
+  // Debug logging for ServiceDetails
+  console.log(`=== DEBUG: ServiceDetails Component - ${serviceType} ===`);
+  console.log("Received serviceData:", serviceData);
+  console.log("Service Type:", serviceType);
+  console.log("Service Category:", serviceData?.serviceCategory);
+  console.log(
+    "Available Fields in serviceData:",
+    serviceData ? Object.keys(serviceData) : "No data"
+  );
+  console.log("=== END ServiceDetails DEBUG ===");
+
   if (!serviceData) {
     return <div>No service data available</div>;
   }
+
+  // Create enhanced serviceData with proper category mapping and field normalization
+  const enhancedServiceData = {
+    ...serviceData,
+    // Ensure serviceCategory is set based on serviceType if missing
+    serviceCategory:
+      serviceData.serviceCategory ||
+      (() => {
+        const categoryMapping: { [key: string]: string } = {
+          transportation: "TRANSPORTATION",
+          accommodation: "ACCOMMODATION",
+          activity: "ACTIVITY",
+          "food-beverage": "FOOD_BEVERAGE",
+          "tour-guides": "GUIDE",
+        };
+        const mapped = categoryMapping[serviceType || ""];
+        console.log(
+          `=== Mapped serviceType "${serviceType}" to serviceCategory "${mapped}" ===`
+        );
+        return mapped;
+      })(),
+
+    // Add normalized field mappings for common API variations (using flexible field access)
+    ...(() => {
+      const normalizedFields: any = {};
+      const dataAsAny = serviceData as any; // Flexible access for API field variations
+
+      // Transportation field mappings
+      if (serviceType === "transportation") {
+        // Map common vehicle type field variations
+        normalizedFields.vehicleType =
+          dataAsAny.vehicleType ||
+          dataAsAny.vehicleCategory ||
+          dataAsAny.vehicleTypeName;
+        normalizedFields.vehicleCategory =
+          dataAsAny.vehicleCategory || dataAsAny.vehicleType;
+      }
+
+      // Activity field mappings
+      if (serviceType === "activity") {
+        normalizedFields.activityType =
+          dataAsAny.activityType || dataAsAny.activityCategory;
+        normalizedFields.difficultyLevel =
+          dataAsAny.difficultyLevel || dataAsAny.difficulty;
+        normalizedFields.ageRestriction =
+          dataAsAny.ageRestriction ||
+          (dataAsAny.minimumAge ? `${dataAsAny.minimumAge}+` : null);
+      }
+
+      // Guide field mappings
+      if (serviceType === "tour-guides") {
+        normalizedFields.specialization =
+          dataAsAny.specialization ||
+          (dataAsAny.specializations && dataAsAny.specializations.join(", "));
+        normalizedFields.experienceLevel =
+          dataAsAny.experienceLevel ||
+          (dataAsAny.experienceYears
+            ? `${dataAsAny.experienceYears} years`
+            : null);
+      }
+
+      console.log(
+        `=== Added normalized fields for ${serviceType}:`,
+        normalizedFields,
+        "==="
+      );
+      return normalizedFields;
+    })(),
+  };
 
   const renderBasicAndServiceInfo = () => {
     return (
@@ -272,7 +352,7 @@ const ServiceDetails: React.FC<ServiceDetailsProps> = ({
             <div className="space-y-3">
               {/* Use serviceType prop or serviceCategory to determine service type */}
               {(serviceType === "transportation" ||
-                serviceData.serviceCategory === "TRANSPORTATION") && (
+                enhancedServiceData.serviceCategory === "TRANSPORTATION") && (
                 <>
                   {(serviceData.vehicleType || serviceData.vehicleCategory) && (
                     <div>
@@ -331,7 +411,7 @@ const ServiceDetails: React.FC<ServiceDetailsProps> = ({
                 </>
               )}
 
-              {serviceData.serviceCategory === "ACCOMMODATION" && (
+              {enhancedServiceData.serviceCategory === "ACCOMMODATION" && (
                 <>
                   {serviceData.propertyType && (
                     <div>
@@ -372,7 +452,7 @@ const ServiceDetails: React.FC<ServiceDetailsProps> = ({
                 </>
               )}
 
-              {serviceData.serviceCategory === "ACTIVITY" && (
+              {enhancedServiceData.serviceCategory === "ACTIVITY" && (
                 <>
                   {serviceData.activityType && (
                     <div>
@@ -405,7 +485,7 @@ const ServiceDetails: React.FC<ServiceDetailsProps> = ({
                 </>
               )}
 
-              {serviceData.serviceCategory === "FOOD_BEVERAGE" && (
+              {enhancedServiceData.serviceCategory === "FOOD_BEVERAGE" && (
                 <>
                   {serviceData.cuisineType && (
                     <div>
@@ -440,7 +520,7 @@ const ServiceDetails: React.FC<ServiceDetailsProps> = ({
                 </>
               )}
 
-              {serviceData.serviceCategory === "GUIDE" && (
+              {enhancedServiceData.serviceCategory === "GUIDE" && (
                 <>
                   {serviceData.specialization && (
                     <div>
@@ -749,7 +829,7 @@ const ServiceDetails: React.FC<ServiceDetailsProps> = ({
                 className="relative w-64 h-48 rounded-lg overflow-hidden group border hover:shadow-md transition-shadow flex-shrink-0"
               >
                 <img
-                  src={image.imageUrl}
+                  src={`http:localhost:8080${image.imageUrl}`}
                   alt={`Service image ${index + 1}`}
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
                   loading="lazy"

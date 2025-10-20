@@ -33,7 +33,7 @@ export interface BusinessDetails {
     businessType: string;
     businessRegistrationNumber: string;
     businessRegistrationUrl: string;
-    contactPerson: ContactPerson;
+    contactPerson?: ContactPerson;
 }
 
 export interface License {

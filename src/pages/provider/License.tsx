@@ -26,6 +26,7 @@ import {
   requestApproval,
 } from "@/services/providerService";
 import ProviderTopBar from "@/components/provider/ProviderTopBar";
+import DocumentViewer from "@/components/ui/DocumentViewer";
 
 const serviceCategories = [
   { value: "ACCOMMODATION", label: "Accommodation" },
@@ -661,15 +662,16 @@ const License: React.FC = () => {
                                           License File
                                         </label>
                                         {license.licenseUrl ? (
-                                          <a
-                                            href={license.licenseUrl}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            className="text-blue-600 hover:text-blue-800 text-sm flex items-center"
-                                          >
-                                            <FileText className="w-4 h-4 mr-1" />
-                                            View Document
-                                          </a>
+                                          <DocumentViewer
+                                            url={license.licenseUrl}
+                                            title={`${license.category} License - ${license.licenseNumber}`}
+                                            triggerButton={
+                                              <button className="text-blue-600 hover:text-blue-800 text-sm flex items-center">
+                                                <FileText className="w-4 h-4 mr-1" />
+                                                View Document
+                                              </button>
+                                            }
+                                          />
                                         ) : (
                                           <p className="text-gray-500 text-sm">
                                             No file available

@@ -41,6 +41,14 @@ const ServiceViewPage: React.FC = () => {
 
       try {
         const data = await findServiceById(serviceType, Number(id));
+        console.log(
+          `=== DEBUG: ServiceViewPage - API Response for ${serviceType} ID ${id} ===`
+        );
+        console.log("Full API Response:", data);
+        console.log("Service Category:", (data as any)?.serviceCategory);
+        console.log("Available Fields:", Object.keys(data || {}));
+        console.log("=== END DEBUG ===");
+
         if (data) {
           setServiceData(data);
         } else {
