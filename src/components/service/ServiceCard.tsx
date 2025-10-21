@@ -3,6 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Eye, Edit, Star, Phone, PowerOff, Power } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { formatRating } from "@/lib/utils";
 import type { ServiceFormData } from "@/types/serviceTypes";
 
 interface ServiceCardProps {
@@ -119,7 +120,7 @@ const ServiceCard: React.FC<ServiceCardProps> = ({
                 <div className="flex items-center">
                   <Star className="w-4 h-4 text-yellow-400 fill-current mr-1" />
                   <span className="font-semibold">
-                    {service.averageRating ?? 0}
+                    {formatRating(service.averageRating)}
                   </span>
                   <span className="text-sm text-gray-500 ml-1">
                     ({service.reviewCount})

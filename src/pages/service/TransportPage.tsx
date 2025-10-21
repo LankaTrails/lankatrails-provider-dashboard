@@ -14,7 +14,7 @@ const services = [
     price: "30 - 100",
     bookings: "10 this month",
     rating: 4.6,
-    status: "active"
+    status: "active",
   },
   {
     id: 5,
@@ -24,13 +24,11 @@ const services = [
     price: "40+/day",
     bookings: "7 this month",
     rating: 4.5,
-    status: "active"
+    status: "active",
   },
 ];
 
-
 // Reuse the same card layout as ActivityPage
-
 
 const TransportPage = () => {
   const navigate = useNavigate();
@@ -43,12 +41,16 @@ const TransportPage = () => {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {services.map(service => (
+        {services.map((service) => (
           <Card key={service.id}>
             <CardHeader>
               <div className="flex items-center justify-between">
                 <Badge variant="outline">{service.type}</Badge>
-                <Badge variant={service.status === "active" ? "default" : "secondary"}>
+                <Badge
+                  variant={
+                    service.status === "active" ? "default" : "secondary"
+                  }
+                >
                   {service.status}
                 </Badge>
               </div>
@@ -68,14 +70,24 @@ const TransportPage = () => {
                   <span className="text-gray-500">Rating:</span>
                   <div className="flex items-center">
                     <Star className="w-4 h-4 text-yellow-400 fill-current" />
-                    <span className="ml-1">{service.rating}</span>
+                    <span className="ml-1">{service.rating.toFixed(1)}</span>
                   </div>
                 </div>
                 <div className="flex gap-2 pt-2">
-                  <Button variant="outline" size="sm" className="flex-1" onClick={() => navigate(`/services/${service.id}`)}>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="flex-1"
+                    onClick={() => navigate(`/services/${service.id}`)}
+                  >
                     <Eye className="w-4 h-4 mr-1" /> View
                   </Button>
-                  <Button variant="outline" size="sm" className="flex-1" onClick={() => navigate(`/services/${service.id}/edit`)}>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="flex-1"
+                    onClick={() => navigate(`/services/${service.id}/edit`)}
+                  >
                     <Edit className="w-4 h-4 mr-1" /> Edit
                   </Button>
                 </div>

@@ -57,7 +57,7 @@ const ActivityPage = () => {
                   <span className="text-gray-500">Rating:</span>
                   <div className="flex items-center">
                     <Star className="w-4 h-4 text-yellow-400 fill-current" />
-                    <span className="ml-1">{service.rating}</span>
+                    <span className="ml-1">{service.rating.toFixed(1)}</span>
                   </div>
                 </div>
                 <div className="flex gap-2 pt-2">
