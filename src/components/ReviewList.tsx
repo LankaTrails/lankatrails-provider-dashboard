@@ -1,5 +1,6 @@
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Star } from "lucide-react";
+import { formatRating } from "@/lib/utils";
 import type { ReviewResponse } from "@/types/reviewTypes";
 
 const stars = (n: number) => Array.from({ length: 5 }, (_, i) => i < n);
@@ -31,7 +32,7 @@ const ReviewList: React.FC<{
             <div className="flex items-center gap-1">
               <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
               <span className="font-medium">
-                {reviewData.averageRating.toFixed(1)}
+                {formatRating(reviewData.averageRating)}
               </span>
             </div>
             <span>•</span>
