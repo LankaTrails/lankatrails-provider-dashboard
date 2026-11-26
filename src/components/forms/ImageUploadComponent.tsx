@@ -1,6 +1,7 @@
 import React, { useState, useCallback } from "react";
 import { Upload, X } from "lucide-react";
 import type { ImageFile } from "@/types/serviceTypes";
+import { fileUrl } from "@/lib/config";
 
 interface ImageUploadProps {
   images: ImageFile[];
@@ -10,7 +11,6 @@ interface ImageUploadProps {
   onImageDelete?: (imageId: string) => void; // Optional custom delete handler
 }
 
-const baseUrl = import.meta.env.VITE_BASE_URL;
 
 const ImageUploadComponent: React.FC<ImageUploadProps> = ({
   images,
@@ -111,7 +111,7 @@ const ImageUploadComponent: React.FC<ImageUploadProps> = ({
                     images[selectedImageIndex]?.url?.startsWith("blob:") ||
                     images[selectedImageIndex]?.url?.startsWith("http")
                       ? images[selectedImageIndex]?.url
-                      : baseUrl + images[selectedImageIndex]?.url
+                      : fileUrl(images[selectedImageIndex]?.url ?? "")
                   }
                   alt="Preview"
                   className="w-full h-full object-cover rounded-lg"
@@ -160,7 +160,7 @@ const ImageUploadComponent: React.FC<ImageUploadProps> = ({
                   image.url?.startsWith("blob:") ||
                   image.url?.startsWith("http")
                     ? image.url
-                    : baseUrl + image.url
+                    : fileUrl(image.url)
                 }
                 alt={`Thumbnail ${index + 1}`}
                 className="w-full h-full object-cover"

@@ -4,6 +4,7 @@ import React, {
   useReducer,
   useCallback,
   useEffect,
+  useRef,
 } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { useWebSocket } from "@/hooks/useWebSocket";
@@ -177,7 +178,6 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({ children }) => {
   // WebSocket event handlers
   const handleMessageReceived = useCallback(
     (message: ChatMessage) => {
-      // console.log("[Chat] Message received:", message);
       dispatch({ type: "ADD_MESSAGE", payload: message });
 
       if (message.chatRoomId !== state.activeRoomId) {
@@ -192,13 +192,8 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({ children }) => {
 
   const handleTypingEvent = useCallback(
     (event: TypingEvent) => {
-      console.log("[Chat] Typing event received:", event);
-      console.log(
-        "[Chat] Current user ID:",
-        user?.id,
-        "Event user ID:",
-        event.userId
-      );
+      // The server echoes our own typing events back to the room
+      if (event.userId === user?.id) return;
 
       if (event.typing) {
         const currentUsers = state.typingUsers[event.roomId] || [];
@@ -213,12 +208,6 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({ children }) => {
           nextUsers.push(event);
         }
 
-        console.log(
-          "[Chat] Updated typing users for room",
-          event.roomId,
-          ":",
-          nextUsers
-        );
 
         dispatch({
           type: "SET_TYPING_USERS",
@@ -227,7 +216,6 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({ children }) => {
 
         // Auto-clear typing after 3 seconds
         setTimeout(() => {
-          console.log("[Chat] Auto-clearing typing for user:", event.userId);
           dispatch({
             type: "CLEAR_TYPING_USER",
             payload: { roomId: event.roomId, userId: event.userId },
@@ -235,12 +223,6 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({ children }) => {
         }, 3000);
       } else {
         // Remove typing user
-        console.log(
-          "[Chat] Removing typing user:",
-          event.userId,
-          "from room:",
-          event.roomId
-        );
         dispatch({
           type: "CLEAR_TYPING_USER",
           payload: { roomId: event.roomId, userId: event.userId },
@@ -252,7 +234,6 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({ children }) => {
 
   const handleWebSocketError = useCallback(
     (error: WebSocketError) => {
-      console.error("[Chat] WebSocket error:", error);
 
       let title = "Connection Error";
       let description = error.message;
@@ -283,7 +264,6 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({ children }) => {
 
   const handleConnectionStatusChange = useCallback(
     (status: ConnectionStatus) => {
-      // console.log("[Chat] Connection status changed:", status);
       dispatch({ type: "SET_CONNECTION_STATUS", payload: status });
 
       if (status === "connected") {
@@ -336,7 +316,6 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({ children }) => {
         throw new Error("Failed to load chat rooms");
       }
     } catch (error) {
-      console.error("[Chat] Error loading rooms:", error);
       dispatch({ type: "SET_ERROR", payload: "Failed to load chat rooms" });
       toast({
         title: "Error",
@@ -368,7 +347,6 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({ children }) => {
           throw new Error("Failed to load messages");
         }
       } catch (error) {
-        console.error("[Chat] Error loading messages:", error);
         toast({
           title: "Error",
           description: "Failed to load messages",
@@ -428,7 +406,7 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({ children }) => {
   // Read receipts
   const markMessageAsRead = useCallback(
     (messageId: number | string) => {
-      markAsRead({ messageId } as any);
+      markAsRead({ messageId: String(messageId) });
     },
     [markAsRead]
   );
@@ -460,48 +438,26 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({ children }) => {
   // Auto-subscribe to active room when connected or when activeRoom changes
   useEffect(() => {
     if (state.activeRoomId && state.connectionStatus === "connected") {
-      console.log("[Chat] Subscribing to room:", state.activeRoomId);
       const unsubscribe = subscribeToRoom(state.activeRoomId);
       return () => {
-        console.log(
-          "[Chat] Cleaning up subscription for room:",
-          state.activeRoomId
-        );
         try {
           unsubscribe();
-        } catch (error) {
-          console.warn("[Chat] Error during cleanup:", error);
+        } catch {
+          // the subscription is already closed
         }
       };
-    } else {
-      console.log(
-        "[Chat] Not subscribing - room:",
-        state.activeRoomId,
-        "status:",
-        state.connectionStatus
-      );
     }
-  }, [state.activeRoomId, state.connectionStatus]);
+  }, [state.activeRoomId, state.connectionStatus, subscribeToRoom]);
 
-  // Load messages when active room changes
+  // Load a room's history the first time it is opened; live messages arrive over the socket
+  const loadedRoomsRef = useRef<Set<number>>(new Set());
   useEffect(() => {
-    if (state.activeRoomId) {
-      console.log("[Chat] Active room changed to:", state.activeRoomId);
-      // Check if we already have messages for this room
-      const existingMessages = state.messages[state.activeRoomId];
-      if (!existingMessages || existingMessages.length === 0) {
-        console.log("[Chat] Loading messages for room:", state.activeRoomId);
-        loadRoomMessages(state.activeRoomId);
-      } else {
-        console.log(
-          "[Chat] Messages already loaded for room:",
-          state.activeRoomId,
-          "count:",
-          existingMessages.length
-        );
-      }
+    const roomId = state.activeRoomId;
+    if (roomId && !loadedRoomsRef.current.has(roomId)) {
+      loadedRoomsRef.current.add(roomId);
+      loadRoomMessages(roomId);
     }
-  }, [state.activeRoomId]);
+  }, [state.activeRoomId, loadRoomMessages]);
 
   // Load rooms on mount
   useEffect(() => {
@@ -549,6 +505,7 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({ children }) => {
 };
 
 // Custom hook to use chat context
+// eslint-disable-next-line react-refresh/only-export-components -- the hook is colocated with its provider
 export const useChat = (): ChatContextType => {
   const context = useContext(ChatContext);
   if (!context) {

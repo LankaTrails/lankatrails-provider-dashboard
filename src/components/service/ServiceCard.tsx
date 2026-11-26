@@ -5,6 +5,7 @@ import { Eye, Edit, Star, Phone, PowerOff, Power } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { formatRating } from "@/lib/utils";
 import type { ServiceFormData } from "@/types/serviceTypes";
+import { fileUrl } from "@/lib/config";
 
 interface ServiceCardProps {
   service: ServiceFormData;
@@ -21,7 +22,7 @@ const ServiceCard: React.FC<ServiceCardProps> = ({
 
   // Get the main image
   const mainImage = service.images?.[0]?.imageUrl
-    ? `http://localhost:8080${service.images[0].imageUrl}`
+    ? fileUrl(service.images[0].imageUrl)
     : null;
 
   // Check if service is active

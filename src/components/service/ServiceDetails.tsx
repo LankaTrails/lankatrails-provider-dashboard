@@ -3,16 +3,7 @@ import {
   MapPin,
   Phone,
   Star,
-  Users,
-  Calendar,
-  Car,
-  Wifi,
-  Car as Parking,
-  Heart,
   Coffee,
-  Utensils,
-  Dumbbell,
-  Waves,
   DollarSign,
   Clock,
   Settings,
@@ -29,12 +20,25 @@ import type {
   ServiceFormData,
   ImageData,
   PriceType,
-  PriceConfigDTO,
-  BookingConfigDTO,
-  AvailableTimeDTO,
-  LocationData,
 } from "@/types/serviceTypes";
 import MapSelectorComponent from "@/components/forms/MapSelectorComponent";
+import { fileUrl } from "@/lib/config";
+
+interface LegacyServiceFields {
+  vehicleType?: string;
+  vehicleCategory?: string;
+  vehicleTypeName?: string;
+  activityType?: string;
+  activityCategory?: string;
+  difficultyLevel?: string;
+  difficulty?: string;
+  ageRestriction?: string;
+  minimumAge?: number;
+  specialization?: string;
+  specializations?: string[];
+  experienceLevel?: string;
+  experienceYears?: number;
+}
 
 // Extended interface for API response data (includes additional fields not in form types)
 interface ServiceApiResponse extends ServiceFormData {
@@ -116,38 +120,6 @@ interface ServiceDetailsProps {
   serviceType?: string;
 }
 
-// Helper to format service type for display
-const formatServiceTitle = (type?: string): string => {
-  if (!type) return "Service";
-  return type
-    .split("-")
-    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-    .join(" ");
-};
-
-// Helper to format price
-const formatPrice = (price?: number, priceType?: PriceType): string => {
-  if (price === undefined || price === null) {
-    return "Price not specified";
-  }
-
-  const formattedPrice = `LKR ${price.toLocaleString()}`;
-  if (priceType) {
-    const typeMap: { [key in PriceType]: string } = {
-      FIXED: "fixed price",
-      PER_PERSON: "per person",
-      PER_UNIT: "per unit",
-      HYBRID: "hybrid pricing",
-      PER_HOUR: "per hour",
-      PER_DAY: "per day",
-      PER_NIGHT: "per night",
-      PER_KM: "per kilometer",
-    };
-    return `${formattedPrice} ${typeMap[priceType] || priceType.toLowerCase()}`;
-  }
-  return formattedPrice;
-};
-
 const ServiceDetails: React.FC<ServiceDetailsProps> = ({
   serviceData,
   serviceType,
@@ -156,15 +128,6 @@ const ServiceDetails: React.FC<ServiceDetailsProps> = ({
   const [isPoliciesOpen, setIsPoliciesOpen] = useState(false);
 
   // Debug logging for ServiceDetails
-  console.log(`=== DEBUG: ServiceDetails Component - ${serviceType} ===`);
-  console.log("Received serviceData:", serviceData);
-  console.log("Service Type:", serviceType);
-  console.log("Service Category:", serviceData?.serviceCategory);
-  console.log(
-    "Available Fields in serviceData:",
-    serviceData ? Object.keys(serviceData) : "No data"
-  );
-  console.log("=== END ServiceDetails DEBUG ===");
 
   if (!serviceData) {
     return <div>No service data available</div>;
@@ -185,16 +148,14 @@ const ServiceDetails: React.FC<ServiceDetailsProps> = ({
           "tour-guides": "GUIDE",
         };
         const mapped = categoryMapping[serviceType || ""];
-        console.log(
-          `=== Mapped serviceType "${serviceType}" to serviceCategory "${mapped}" ===`
-        );
         return mapped;
       })(),
 
     // Add normalized field mappings for common API variations (using flexible field access)
     ...(() => {
-      const normalizedFields: any = {};
-      const dataAsAny = serviceData as any; // Flexible access for API field variations
+      const normalizedFields: Record<string, string | null | undefined> = {};
+      // Older API responses used different field names
+      const dataAsAny = serviceData as unknown as LegacyServiceFields;
 
       // Transportation field mappings
       if (serviceType === "transportation") {
@@ -230,11 +191,6 @@ const ServiceDetails: React.FC<ServiceDetailsProps> = ({
             : null);
       }
 
-      console.log(
-        `=== Added normalized fields for ${serviceType}:`,
-        normalizedFields,
-        "==="
-      );
       return normalizedFields;
     })(),
   };
@@ -617,7 +573,7 @@ const ServiceDetails: React.FC<ServiceDetailsProps> = ({
               (serviceData.tabsData && serviceData.tabsData.length > 0) ? (
                 <div className="space-y-4 mt-4">
                   {(serviceData.tabs || serviceData.tabsData || []).map(
-                    (tab: any, index: number) => (
+                    (tab: { title?: string; tabTitle?: string; content?: string; tabContent?: string; description?: string }, index: number) => (
                       <div
                         key={index}
                         className="border rounded-lg p-4 bg-gray-50"
@@ -674,7 +630,7 @@ const ServiceDetails: React.FC<ServiceDetailsProps> = ({
                 serviceData.policiesData.length > 0) ? (
                 <div className="space-y-4 mt-4">
                   {(serviceData.policies || serviceData.policiesData || []).map(
-                    (policy: any, index: number) => (
+                    (policy: { policyType?: string; type?: string; description?: string; content?: string }, index: number) => (
                       <div
                         key={index}
                         className="border rounded-lg p-4 bg-gray-50"
@@ -711,93 +667,6 @@ const ServiceDetails: React.FC<ServiceDetailsProps> = ({
     );
   };
 
-  const renderBasicInfo = () => (
-    <div className="bg-white rounded-lg shadow-sm border p-6">
-      <h2 className="text-xl font-semibold mb-4">Basic Information</h2>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Service Name
-          </label>
-          <p className="text-gray-900 font-medium">
-            {serviceData.serviceName || "N/A"}
-          </p>
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Contact Number
-          </label>
-          <div className="flex items-center">
-            <Phone className="w-4 h-4 mr-2 text-gray-500" />
-            <p className="text-gray-900">{serviceData.contactNo || "N/A"}</p>
-          </div>
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Service Type
-          </label>
-          <p className="text-gray-900">{formatServiceTitle(serviceType)}</p>
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Status
-          </label>
-          <span
-            className={`px-2 py-1 text-xs rounded-full ${
-              serviceData.status === "ACTIVE"
-                ? "bg-green-100 text-green-800"
-                : serviceData.status === "INACTIVE"
-                ? "bg-red-100 text-red-800"
-                : serviceData.status === "PENDING"
-                ? "bg-yellow-100 text-yellow-800"
-                : "bg-gray-100 text-gray-800"
-            }`}
-          >
-            {serviceData.status || "Unknown"}
-          </span>
-        </div>
-
-        {(serviceData.price || serviceData.priceConfig) && (
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Price
-            </label>
-            <p className="text-green-600 font-semibold text-lg">
-              {serviceData.price
-                ? formatPrice(serviceData.price, serviceData.priceType)
-                : serviceData.priceConfig?.fixedPrice
-                ? `LKR ${serviceData.priceConfig.fixedPrice.toLocaleString()}`
-                : "Contact for pricing"}
-            </p>
-          </div>
-        )}
-
-        {serviceData.id && (
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Service ID
-            </label>
-            <p className="text-gray-600 text-sm font-mono">#{serviceData.id}</p>
-          </div>
-        )}
-      </div>
-
-      {serviceData.description && (
-        <div className="mt-6 pt-4 border-t">
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Description
-          </label>
-          <p className="text-gray-900 whitespace-pre-wrap leading-relaxed">
-            {serviceData.description}
-          </p>
-        </div>
-      )}
-    </div>
-  );
-
   const renderImages = () => {
     if (!serviceData.images || serviceData.images.length === 0) {
       return (
@@ -829,7 +698,7 @@ const ServiceDetails: React.FC<ServiceDetailsProps> = ({
                 className="relative w-64 h-48 rounded-lg overflow-hidden group border hover:shadow-md transition-shadow flex-shrink-0"
               >
                 <img
-                  src={`http:localhost:8080${image.imageUrl}`}
+                  src={fileUrl(image.imageUrl)}
                   alt={`Service image ${index + 1}`}
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
                   loading="lazy"
@@ -927,500 +796,6 @@ const ServiceDetails: React.FC<ServiceDetailsProps> = ({
             </div>
           ))}
         </div>
-      </div>
-    );
-  };
-
-  const renderTabsSection = () => {
-    if (!serviceData.tabsSection || serviceData.tabsSection.length === 0)
-      return null;
-
-    return (
-      <div className="bg-white rounded-lg shadow-sm border p-6">
-        <h2 className="text-xl font-semibold mb-4">Additional Information</h2>
-        <div className="space-y-4">
-          {serviceData.tabsSection.map((tab, index) => (
-            <div key={index} className="border rounded-lg p-4">
-              <h3 className="font-medium text-lg mb-2">{tab.heading}</h3>
-              <p className="text-gray-700 whitespace-pre-wrap">{tab.content}</p>
-            </div>
-          ))}
-        </div>
-      </div>
-    );
-  };
-
-  const renderPolicySection = () => {
-    if (!serviceData.policySection || serviceData.policySection.length === 0)
-      return null;
-
-    return (
-      <div className="bg-white rounded-lg shadow-sm border p-6">
-        <h2 className="text-xl font-semibold mb-4">Policies</h2>
-        <div className="space-y-4">
-          {serviceData.policySection.map((policy, index) => (
-            <div key={index} className="border rounded-lg p-4">
-              <h3 className="font-medium text-lg mb-2">{policy.heading}</h3>
-              <p className="text-gray-700 whitespace-pre-wrap">
-                {policy.policy}
-              </p>
-            </div>
-          ))}
-        </div>
-      </div>
-    );
-  };
-
-  const renderAccommodationSpecific = () => {
-    if (serviceType !== "accommodation") return null;
-
-    const data = serviceData; // Use the typed serviceData
-
-    return (
-      <div className="bg-white rounded-lg shadow-sm border p-6">
-        <h2 className="text-xl font-semibold mb-4">Accommodation Details</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Accommodation Type
-            </label>
-            <p className="text-gray-900 capitalize">
-              {data.accommodationType?.toLowerCase() || "N/A"}
-            </p>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Number of Rooms
-            </label>
-            <p className="text-gray-900">{data.numberOfRooms || "N/A"}</p>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Max Guests
-            </label>
-            <div className="flex items-center">
-              <Users className="w-4 h-4 mr-2 text-gray-500" />
-              <p className="text-gray-900">{data.maxGuests || "N/A"}</p>
-            </div>
-          </div>
-        </div>
-
-        <h3 className="text-lg font-medium mb-3">Amenities</h3>
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-          {data.parkingAvailable && (
-            <div className="flex items-center text-green-600">
-              <Parking className="w-4 h-4 mr-2" />
-              <span className="text-sm">Parking Available</span>
-            </div>
-          )}
-          {data.petFriendly && (
-            <div className="flex items-center text-green-600">
-              <Heart className="w-4 h-4 mr-2" />
-              <span className="text-sm">Pet Friendly</span>
-            </div>
-          )}
-          {data.freeWifi && (
-            <div className="flex items-center text-green-600">
-              <Wifi className="w-4 h-4 mr-2" />
-              <span className="text-sm">Free WiFi</span>
-            </div>
-          )}
-          {data.breakfastIncluded && (
-            <div className="flex items-center text-green-600">
-              <Coffee className="w-4 h-4 mr-2" />
-              <span className="text-sm">Breakfast Included</span>
-            </div>
-          )}
-          {data.airConditioned && (
-            <div className="flex items-center text-green-600">
-              <Star className="w-4 h-4 mr-2" />
-              <span className="text-sm">Air Conditioned</span>
-            </div>
-          )}
-          {data.swimmingPool && (
-            <div className="flex items-center text-green-600">
-              <Waves className="w-4 h-4 mr-2" />
-              <span className="text-sm">Swimming Pool</span>
-            </div>
-          )}
-          {data.laundryService && (
-            <div className="flex items-center text-green-600">
-              <Star className="w-4 h-4 mr-2" />
-              <span className="text-sm">Laundry Service</span>
-            </div>
-          )}
-          {data.roomService && (
-            <div className="flex items-center text-green-600">
-              <Utensils className="w-4 h-4 mr-2" />
-              <span className="text-sm">Room Service</span>
-            </div>
-          )}
-          {data.gymAccess && (
-            <div className="flex items-center text-green-600">
-              <Dumbbell className="w-4 h-4 mr-2" />
-              <span className="text-sm">Gym Access</span>
-            </div>
-          )}
-          {data.spaServices && (
-            <div className="flex items-center text-green-600">
-              <Star className="w-4 h-4 mr-2" />
-              <span className="text-sm">Spa Services</span>
-            </div>
-          )}
-        </div>
-      </div>
-    );
-  };
-
-  const renderTransportationSpecific = () => {
-    if (serviceType !== "transportation") return null;
-
-    const data = serviceData; // Use the typed serviceData
-
-    return (
-      <div className="bg-white rounded-lg shadow-sm border p-6">
-        <h2 className="text-xl font-semibold mb-4">Transportation Details</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {(data.vehicleCategory || data.vehicleType) && (
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Vehicle Type
-              </label>
-              <div className="flex items-center">
-                <Car className="w-4 h-4 mr-2 text-gray-500" />
-                <p className="text-gray-900 capitalize">
-                  {(data.vehicleCategory || data.vehicleType)?.toLowerCase()}
-                </p>
-              </div>
-            </div>
-          )}
-          {data.fuelType && (
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Fuel Type
-              </label>
-              <p className="text-gray-900 capitalize">
-                {data.fuelType.toLowerCase()}
-              </p>
-            </div>
-          )}
-          {data.transmissionType && (
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Transmission
-              </label>
-              <p className="text-gray-900 capitalize">
-                {data.transmissionType.toLowerCase()}
-              </p>
-            </div>
-          )}
-          {(data.airConditioned !== undefined ||
-            data.hasAirConditioning !== undefined) && (
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Air Conditioning
-              </label>
-              <p
-                className={`text-sm ${
-                  data.airConditioned || data.hasAirConditioning
-                    ? "text-green-600"
-                    : "text-gray-500"
-                }`}
-              >
-                {data.airConditioned || data.hasAirConditioning
-                  ? "Available"
-                  : "Not Available"}
-              </p>
-            </div>
-          )}
-          {data.driverIncluded !== undefined && (
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Driver Included
-              </label>
-              <p
-                className={`text-sm ${
-                  data.driverIncluded ? "text-green-600" : "text-gray-500"
-                }`}
-              >
-                {data.driverIncluded ? "Yes" : "No"}
-              </p>
-            </div>
-          )}
-          {data.seatingCapacity && (
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Seating Capacity
-              </label>
-              <div className="flex items-center">
-                <Users className="w-4 h-4 mr-2 text-gray-500" />
-                <p className="text-gray-900">
-                  {data.seatingCapacity} passengers
-                </p>
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
-    );
-  };
-
-  const renderActivitySpecific = () => {
-    if (serviceType !== "activity") return null;
-
-    const data = serviceData; // Use the typed serviceData
-
-    return (
-      <div className="bg-white rounded-lg shadow-sm border p-6">
-        <h2 className="text-xl font-semibold mb-4">Activity Details</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {data.activityType && (
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Activity Type
-              </label>
-              <p className="text-gray-900 capitalize">
-                {data.activityType.toLowerCase()}
-              </p>
-            </div>
-          )}
-          {data.duration && (
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Duration
-              </label>
-              <div className="flex items-center">
-                <Calendar className="w-4 h-4 mr-2 text-gray-500" />
-                <p className="text-gray-900">{data.duration}</p>
-              </div>
-            </div>
-          )}
-          {data.maxParticipants && (
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Max Participants
-              </label>
-              <div className="flex items-center">
-                <Users className="w-4 h-4 mr-2 text-gray-500" />
-                <p className="text-gray-900">{data.maxParticipants} people</p>
-              </div>
-            </div>
-          )}
-          {data.difficultyLevel && (
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Difficulty Level
-              </label>
-              <p className="text-gray-900 capitalize">
-                {data.difficultyLevel.toLowerCase()}
-              </p>
-            </div>
-          )}
-          {data.ageRestriction && (
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Age Restriction
-              </label>
-              <p className="text-gray-900">{data.ageRestriction}</p>
-            </div>
-          )}
-        </div>
-        {data.activityDetails && (
-          <div className="mt-4">
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Activity Details
-            </label>
-            <p className="text-gray-900 whitespace-pre-wrap">
-              {data.activityDetails}
-            </p>
-          </div>
-        )}
-        {data.safetyInstructions && (
-          <div className="mt-4">
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Safety Instructions
-            </label>
-            <p className="text-gray-900 whitespace-pre-wrap">
-              {data.safetyInstructions}
-            </p>
-          </div>
-        )}
-      </div>
-    );
-  };
-
-  const renderTourGuideSpecific = () => {
-    if (serviceType !== "tour-guides") return null;
-
-    const data = serviceData; // Use the typed serviceData
-
-    return (
-      <div className="bg-white rounded-lg shadow-sm border p-6">
-        <h2 className="text-xl font-semibold mb-4">Tour Guide Details</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {data.tourGuideType && (
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Tour Guide Type
-              </label>
-              <p className="text-gray-900 capitalize">
-                {data.tourGuideType.toLowerCase()}
-              </p>
-            </div>
-          )}
-          {data.experienceYears && (
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Experience
-              </label>
-              <p className="text-gray-900">{data.experienceYears} years</p>
-            </div>
-          )}
-          {data.specializations && data.specializations.length > 0 && (
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Specializations
-              </label>
-              <div className="flex flex-wrap gap-2">
-                {data.specializations.map((spec: string, index: number) => (
-                  <span
-                    key={index}
-                    className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded"
-                  >
-                    {spec}
-                  </span>
-                ))}
-              </div>
-            </div>
-          )}
-          {data.languages && data.languages.length > 0 && (
-            <div className="md:col-span-2">
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Languages
-              </label>
-              <div className="flex flex-wrap gap-2">
-                {data.languages.map((lang: string, index: number) => (
-                  <span
-                    key={index}
-                    className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded"
-                  >
-                    {lang}
-                  </span>
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
-    );
-  };
-
-  const renderFoodBeverageSpecific = () => {
-    if (serviceType !== "food-beverage") return null;
-
-    const data = serviceData; // Use the typed serviceData
-
-    return (
-      <div className="bg-white rounded-lg shadow-sm border p-6">
-        <h2 className="text-xl font-semibold mb-4">Food & Beverage Details</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {data.foodAndBeverageType && (
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Food & Beverage Type
-              </label>
-              <p className="text-gray-900 capitalize">
-                {data.foodAndBeverageType.toLowerCase()}
-              </p>
-            </div>
-          )}
-          {data.cuisineType && (
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Cuisine Type
-              </label>
-              <p className="text-gray-900 capitalize">
-                {data.cuisineType.toLowerCase()}
-              </p>
-            </div>
-          )}
-          {data.seatingCapacity && (
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Seating Capacity
-              </label>
-              <div className="flex items-center">
-                <Users className="w-4 h-4 mr-2 text-gray-500" />
-                <p className="text-gray-900">{data.seatingCapacity} people</p>
-              </div>
-            </div>
-          )}
-          {data.openingHours && (
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Opening Hours
-              </label>
-              <p className="text-gray-900">{data.openingHours}</p>
-            </div>
-          )}
-        </div>
-
-        <h3 className="text-lg font-medium mb-3 mt-6">Features</h3>
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-          {data.vegetarianOptions && (
-            <div className="flex items-center text-green-600">
-              <Star className="w-4 h-4 mr-2" />
-              <span className="text-sm">Vegetarian Options</span>
-            </div>
-          )}
-          {data.halalCertified && (
-            <div className="flex items-center text-green-600">
-              <Star className="w-4 h-4 mr-2" />
-              <span className="text-sm">Halal Certified</span>
-            </div>
-          )}
-          {data.alcoholServed && (
-            <div className="flex items-center text-green-600">
-              <Star className="w-4 h-4 mr-2" />
-              <span className="text-sm">Alcohol Served</span>
-            </div>
-          )}
-          {data.outdoorSeating && (
-            <div className="flex items-center text-green-600">
-              <Star className="w-4 h-4 mr-2" />
-              <span className="text-sm">Outdoor Seating</span>
-            </div>
-          )}
-          {data.liveMusic && (
-            <div className="flex items-center text-green-600">
-              <Star className="w-4 h-4 mr-2" />
-              <span className="text-sm">Live Music</span>
-            </div>
-          )}
-        </div>
-
-        {data.dietaryOptions && data.dietaryOptions.length > 0 && (
-          <div className="mt-4">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Dietary Options
-            </label>
-            <div className="flex flex-wrap gap-2">
-              {(Array.isArray(data.dietaryOptions)
-                ? data.dietaryOptions
-                : data.dietaryOptions
-                ? [data.dietaryOptions]
-                : []
-              ).map((option: string, index: number) => (
-                <span
-                  key={index}
-                  className="px-2 py-1 bg-orange-100 text-orange-800 text-xs rounded"
-                >
-                  {option}
-                </span>
-              ))}
-            </div>
-          </div>
-        )}
       </div>
     );
   };

@@ -5,9 +5,11 @@ import { useChat } from "@/contexts/ChatContext";
 import MessageDisplay from "./MessageDisplay";
 import EmptyState from "./EmptyState";
 import { Loader2, FileText, Image, File } from "lucide-react";
+import { fileUrl } from "@/lib/config";
+import type { TypingEvent } from "@/types/chatTypes";
 
 // Simple typing indicator component since TypingIndicator has import issues
-const SimpleTypingIndicator: React.FC<{ typingUsers: any[] }> = ({
+const SimpleTypingIndicator: React.FC<{ typingUsers: TypingEvent[] }> = ({
   typingUsers,
 }) => {
   if (typingUsers.length === 0) return null;
@@ -68,10 +70,7 @@ const MessagesArea: React.FC = () => {
   const activeRoom = rooms.find((room) => room.id === activeRoomId);
 
   // Utility functions for MessageDisplay
-  const getFullUrl = (path: string) => {
-    if (path.startsWith("http")) return path;
-    return `${import.meta.env.VITE_API_BASE_URL || "/api"}/files/${path}`;
-  };
+  const getFullUrl = (path: string) => fileUrl(path);
 
   const getFileIcon = (fileType: string) => {
     if (fileType.startsWith("image/")) {
