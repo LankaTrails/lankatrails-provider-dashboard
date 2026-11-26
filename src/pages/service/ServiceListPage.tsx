@@ -52,10 +52,6 @@ const ServiceListPage = () => {
     if (selectedServiceId != null && serviceType) {
       try {
         const isCurrentlyActive = selectedServiceStatus === "ACTIVE";
-        console.log(
-          `${isCurrentlyActive ? "Deactivating" : "Activating"} service:`,
-          selectedServiceId
-        );
 
         if (isCurrentlyActive) {
           await deactivateService(serviceType, selectedServiceId);
@@ -75,13 +71,7 @@ const ServiceListPage = () => {
           )
         );
 
-        console.log(
-          `Service ${
-            isCurrentlyActive ? "deactivated" : "activated"
-          } successfully`
-        );
       } catch (error) {
-        console.error("Error toggling service status:", error);
         setError(
           `Failed to ${
             selectedServiceStatus === "ACTIVE" ? "deactivate" : "activate"
@@ -105,7 +95,6 @@ const ServiceListPage = () => {
         setError(null);
 
         const result = await fetchAllServices(serviceType, 0, 50); // Increased page size
-        console.log(`Fetched ${serviceType}:`, result);
 
         // Filter out services without serviceId and ensure serviceId is not null
         const validServices = result.filter(
@@ -115,7 +104,6 @@ const ServiceListPage = () => {
 
         setServices(validServices);
       } catch (error) {
-        console.error(`Error fetching ${serviceType}:`, error);
         setError(
           `Failed to load ${title.toLowerCase()} services. Please try again.`
         );

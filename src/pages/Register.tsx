@@ -13,6 +13,7 @@ import {
   Eye,
   EyeOff,
 } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 
 // Form components
 import InputField from "@/components/forms/InputField";
@@ -47,7 +48,7 @@ interface StepTitles {
 }
 
 interface StepIcons {
-  [key: number]: React.ComponentType<any>;
+  [key: number]: LucideIcon;
 }
 
 const businessTypes: BusinessType[] = [
@@ -138,7 +139,7 @@ const RegisterProvider: React.FC = () => {
   const [profilePreview, setProfilePreview] = useState<string | null>(null);
   const [coverPreview, setCoverPreview] = useState<string | null>(null);
 
-  const validateField = (key: keyof typeof formData, value: any): string => {
+  const validateField = (key: keyof typeof formData, value: unknown): string => {
     switch (key) {
       case "email":
       case "contactPersonEmail":
@@ -191,7 +192,7 @@ const RegisterProvider: React.FC = () => {
     }
   };
 
-  const updateField = (key: keyof typeof formData, value: any) => {
+  const updateField = (key: keyof typeof formData, value: unknown) => {
     setFormData((prev) => ({ ...prev, [key]: value }));
 
     // Clear error when user starts typing
@@ -403,9 +404,6 @@ const RegisterProvider: React.FC = () => {
       // Call API with the structured data
       await registerProvider(requestBody, files);
 
-      console.log("Registration submitted successfully");
-      console.log("Request body:", requestBody);
-      console.log("Files:", files);
 
       // Redirect to success page or login
       navigate("/login", {
@@ -414,7 +412,6 @@ const RegisterProvider: React.FC = () => {
         },
       });
     } catch (error) {
-      console.error("Registration failed:", error);
       setErrors({ general: "Registration failed. Please try again." });
     } finally {
       setIsSubmitting(false);

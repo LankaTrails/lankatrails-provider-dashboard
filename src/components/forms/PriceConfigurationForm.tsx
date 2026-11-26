@@ -24,7 +24,7 @@ const PriceConfigurationForm: React.FC<PriceConfigurationFormProps> = ({
   serviceType,
   onChange,
 }) => {
-  const handleConfigChange = (field: keyof PriceConfigDTO, value: any) => {
+  const handleConfigChange = (field: keyof PriceConfigDTO, value: unknown) => {
     const updatedConfig = {
       ...priceConfig,
       [field]: value,
@@ -33,9 +33,9 @@ const PriceConfigurationForm: React.FC<PriceConfigurationFormProps> = ({
     // Auto-sync child prices with adult prices when separate pricing is disabled
     if (!bookingConfig?.requireChildInfo) {
       if (field === "pricePerAdult") {
-        updatedConfig.pricePerChild = value;
+        updatedConfig.pricePerChild = updatedConfig.pricePerAdult;
       } else if (field === "extraPerAdult") {
-        updatedConfig.extraPerChild = value;
+        updatedConfig.extraPerChild = updatedConfig.extraPerAdult;
       }
     }
 

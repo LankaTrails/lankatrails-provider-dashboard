@@ -7,11 +7,6 @@ import { useAuth } from "@/hooks/useAuth";
 const googleMapsApiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
 const googleMapsId = import.meta.env.VITE_GOOGLE_MAPS_ID;
 
-// Verify Map ID is loaded
-if (!googleMapsId) {
-  console.warn("VITE_GOOGLE_MAPS_ID is not set in environment variables");
-}
-
 // Configuration constants
 const libraries: ("places" | "geocoding" | "marker")[] = [
   "places",
@@ -114,8 +109,7 @@ const MapSelectorComponent: React.FC<MapSelectorProps> = ({
             onLocationSelect?.(locationData);
           }
         })
-        .catch((error) => {
-          console.error("Reverse geocoding failed:", error);
+        .catch(() => {
           const fallbackAddress = `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
           onLocationChange(fallbackAddress);
           onLocationSelect?.({
@@ -132,7 +126,6 @@ const MapSelectorComponent: React.FC<MapSelectorProps> = ({
   const onPlaceSelected = useCallback(
     async (place: google.maps.places.Place) => {
       if (!place.location) {
-        console.warn("No location data for this place");
         return;
       }
       if (mapRef.current) {
@@ -162,8 +155,8 @@ const MapSelectorComponent: React.FC<MapSelectorProps> = ({
       setAdvancedMarker(marker);
       await google.maps.importLibrary("places") as google.maps.PlacesLibrary;
       setMapLoaded(true);
-    } catch (error) {
-      console.error("Error loading Google Maps libraries:", error);
+    } catch {
+      // the map stays hidden; the address can still be typed
     }
   }, []);
 
@@ -202,8 +195,9 @@ const MapSelectorComponent: React.FC<MapSelectorProps> = ({
       try {
         const placeAutocomplete = new google.maps.places.PlaceAutocompleteElement({});
         placeAutocomplete.setAttribute("class", "w-full");
-        placeAutocomplete.addEventListener("gmp-select", async (event: any) => {
-          const place = await event.placePrediction.toPlace();
+        placeAutocomplete.addEventListener("gmp-select", async (event: Event) => {
+          const { placePrediction } = event as Event & { placePrediction: google.maps.places.PlacePrediction };
+          const place = placePrediction.toPlace();
           await place.fetchFields({ fields: ["location", "formattedAddress"] });
           onPlaceSelected(place);
         });
@@ -212,8 +206,8 @@ const MapSelectorComponent: React.FC<MapSelectorProps> = ({
           autocompleteRef.current.appendChild(placeAutocomplete);
         }
         setPlaceAutocompleteElement(placeAutocomplete);
-      } catch (error) {
-        console.error("Error setting up PlaceAutocompleteElement:", error);
+      } catch {
+        // autocomplete is optional; clicking the map still sets the location
       }
     };
     setupAutocomplete();
@@ -287,7 +281,7 @@ const MapSelectorComponent: React.FC<MapSelectorProps> = ({
                       const checked = e.target.checked;
                       setUseBusinessLocation(checked);
                       if (checked && user?.location) {
-                        const businessLocation = user.location as any;
+                        const businessLocation = user.location;
                         onLocationChange(businessLocation.formattedAddress || "");
                         onLocationIdSelect?.(businessLocation.locationId || 0);
                         const businessPosition = {
@@ -311,7 +305,7 @@ const MapSelectorComponent: React.FC<MapSelectorProps> = ({
                       <MapPin className="h-4 w-4" /> Use same as business location
                     </div>
                     <p className="text-xs text-blue-700 mt-1">
-                      {(user.location as any).formattedAddress || "Business location"}
+                      {user.location.formattedAddress || "Business location"}
                     </p>
                   </div>
                 </label>

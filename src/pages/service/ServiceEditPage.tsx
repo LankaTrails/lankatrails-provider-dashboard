@@ -83,7 +83,7 @@ const ServiceEditPage: React.FC = () => {
           if (data.images && Array.isArray(data.images)) {
             // Set existing images for deletion tracking
             setExistingImages(
-              data.images.map((img: any) => ({
+              data.images.map((img: { id: number; imageUrl: string }) => ({
                 id: img.id,
                 imageUrl: img.imageUrl,
               }))
@@ -91,7 +91,7 @@ const ServiceEditPage: React.FC = () => {
 
             // Set initial images for preview (these will be shown as existing)
             setInitialImages(
-              data.images.map((img: any, index: number) => ({
+              data.images.map((img: { imageUrl: string }, index: number) => ({
                 id: `img-${index}`, // Generate unique string ID
                 url: img.imageUrl, // Map imageUrl to url
                 name: `Image ${index + 1}`, // Optional but helpful
@@ -103,7 +103,6 @@ const ServiceEditPage: React.FC = () => {
           setInitialData(mappedData);
         }
       } catch (error) {
-        console.error("Error fetching service data:", error);
         setToast({
           message: "Error loading service data.",
           type: "error",
@@ -125,9 +124,7 @@ const ServiceEditPage: React.FC = () => {
 
     setIsSubmitting(true);
     try {
-      console.log("Updating service with data:", data);
-      const result = await updateService(serviceType, Number(id), data as any, images);
-      console.log("Update result:", result);
+      await updateService(serviceType, Number(id), data as Parameters<typeof updateService>[2], images);
 
       // Show success toast
       setToast({
@@ -140,7 +137,6 @@ const ServiceEditPage: React.FC = () => {
         navigate(`/provider/${serviceType}/${id}/view`);
       }, 1500);
     } catch (error) {
-      console.error("Error updating service:", error);
       setToast({
         message: "Error updating service. Please try again.",
         type: "error",

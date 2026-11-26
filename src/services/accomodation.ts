@@ -1,5 +1,6 @@
 import api from "@/api/axiosInstance";
 import type { AccommodationFormData, ImageFiles, PolicySection, ServiceFormData } from "@/types/serviceTypes";
+import { toApiError } from "@/lib/apiError";
 
 
 //Add new accommodation policy
@@ -7,29 +8,14 @@ export async function createAccommodationPolicy(policyData: PolicySection): Prom
   try {
     policyData.id = null;
     const response = await api.post("/provider/policy/accommodation", policyData);
-    console.log("Accommodation policy created successfully:", response.data);
     return response.data;
-  } catch (error :any) {
-    if (error.response && error.response.data) {
-      const { code, message, details, userMessage } = error.response.data;
-      throw {
-        code,
-        message,
-        details,
-        userMessage,
-      };
-    }
-
-    throw {
-      message: 'Failed to add new policy',
-      code: 'UNKNOWN_ERROR',
-    };
+  } catch (error) {
+    throw toApiError(error, 'Failed to add new policy');
   }
 }
 //fetch all accommodation service policies by serviceType
-export const fetchAllAccommodationPolicies = async (): Promise<any> => {
+export const fetchAllAccommodationPolicies = async (): Promise<PolicySection[]> => {
   const response = await api.get(`/provider/policy/accommodation`);
-  console.log("fetch all accommodation policies", response.data.data);
   return response.data.data; // Assuming the response contains an array of activities
 }
 
@@ -44,7 +30,6 @@ export const fetchAllAccommodations = async (
       pageSize,
     },
   });
-  console.log("fetch all", response.data.data.content);
   return response.data.data.content; // Assuming the response contains an array of activities
 }
 
@@ -56,24 +41,20 @@ export const addNewAccommodation = async (
 ): Promise<string> => {
   try {
     const formData = new FormData();
-    console.log("📄 Payload:", payload);
 
     // JSON blob for 'service'
     const serviceBlob = new Blob([JSON.stringify(payload)], {
       type: 'application/json',
     });
-    console.log("📄 Service Blob:", serviceBlob);
     formData.append('service', serviceBlob);
 
     // Append all images under 'images' key with proper type checking
     images.serviceImages.forEach((item) => {
       if (item.file) {
-        console.log("📸 File name:", item.file.name);
         formData.append(`images`, item.file);
       }
     });
 
-    console.log('Adding new accommodation with formData:', formData);
 
     const response = await api.post('/provider/accommodation/add', formData, {
       headers: {
@@ -82,22 +63,8 @@ export const addNewAccommodation = async (
     });
 
     return response.data.message;
-  } catch (error: any) {
-    console.error('❌ addNewAccommodation error:', error);
-    if (error.response && error.response.data) {
-      const { code, message, details, userMessage } = error.response.data;
-      throw {
-        code,
-        message,
-        details,
-        userMessage,
-      };
-    }
-
-    throw {
-      message: 'Failed to add new transport service',
-      code: 'UNKNOWN_ERROR',
-    };
+  } catch (error) {
+    throw toApiError(error, 'Failed to add new transport service');
   }
 };
 
@@ -109,22 +76,18 @@ export const updateAccommodation = async (
 ): Promise<string> => {
   try {
     const formData = new FormData();
-    console.log("📄 Update Payload:", payload)
     // JSON blob for 'service'
     const serviceBlob = new Blob([JSON.stringify(payload)], {
       type: 'application/json',
       });
-    console.log("📄 Update Service Blob:", serviceBlob)
     formData.append('service', serviceBlob)
     // Append all images under 'images' key with proper type checking
     images.serviceImages.forEach((item) => {
       if (item.file) {
-        console.log("📸 Update File name:", item.file.name);
         formData.append(`images`, item.file);
       }
     });
 
-    console.log('Updating accommodation with formData:', formData);
 
     const response = await api.put(`/provider/accommodation/update/${id}`, formData, {
       headers: {
@@ -133,47 +96,29 @@ export const updateAccommodation = async (
     });
 
     return response.data.message;
-  } catch (error: any) {
-    console.error('❌ updateAccommodation error:', error);
-    if (error.response && error.response.data) {
-      const { code, message, details, userMessage } = error.response.data;
-      throw {
-        code,
-        message,
-        details,
-        userMessage,
-      };
-    }
-
-    throw {
-      message: 'Failed to update accommodation service',
-      code: 'UNKNOWN_ERROR',
-    };
+  } catch (error) {
+    throw toApiError(error, 'Failed to update accommodation service');
   }
 };
 
 //find an accommodation service by the Id
-export const findAccommodationById = async (id : any): Promise<AccommodationFormData> =>{
+export const findAccommodationById = async (id: number): Promise<AccommodationFormData> =>{
   try {
     const response = await api.get(`/provider/accommodation/${id}`);
-    console.log('findAccommodationById response: ',response);
     return response.data.data;
   } catch (error) {
-    console.error('Error fetch accommodation by ID: ',error);
     throw new Error('Failed to fetch accommodation by ID');
   }
 }
 
 // deactivate accommodation service
-export const deactivateAccommodation = async (id: number): Promise<any> => {
+export const deactivateAccommodation = async (id: number): Promise<unknown> => {
   const response = await api.put(`/provider/accommodation/deactivate/${id}`);
-  console.log("Deactivating accommodation service with ID:", response);
   return response.data.data;
 }
 
 // activate accommodation service
-export const activateAccommodation = async (id: number): Promise<any> => {
+export const activateAccommodation = async (id: number): Promise<unknown> => {
   const response = await api.put(`/provider/accommodation/activate/${id}`);
-  console.log("Activating accommodation service with ID:", response);
   return response.data.data;
 }

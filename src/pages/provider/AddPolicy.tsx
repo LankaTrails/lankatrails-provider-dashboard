@@ -1,3 +1,4 @@
+import { errorMessage } from "@/lib/apiError";
 import { useEffect, useState } from "react";
 import ExpandableSectionComponent from "@/components/forms/ExpandableSectionComponent";
 import { createPolicy } from "@/services/policyService";
@@ -14,7 +15,8 @@ import { createAccommodationPolicy } from "@/services/accomodation";
 interface AddPolicyProps {
   serviceType?: string;
   onSuccess?: () => void;
-  resetTrigger?: any; // Add resetTrigger prop, type as needed
+  /** Changing this value clears the form. */
+  resetTrigger?: number;
 }
 
 interface ToastState {
@@ -52,7 +54,6 @@ const AddPolicy: React.FC<AddPolicyProps> = ({ serviceType, onSuccess, resetTrig
           navigate("/provider/policy/all");
           break;
         case "activity":
-          console.log("Creating activity policy with data:", policySection);
           await createActivityPolicy(policySection);
           navigate("/provider/policy/activity");
           break;
@@ -71,10 +72,8 @@ const AddPolicy: React.FC<AddPolicyProps> = ({ serviceType, onSuccess, resetTrig
       }
       if (onSuccess) onSuccess(); // Call the callback after success
      
-    } catch (error: any) {
-      let rawMessage = error.message;
-      let cleanedMessage = rawMessage.replace(/"[^"]*"/g, "");
-      let message = cleanedMessage.split(":")[0].trim();
+    } catch (error) {
+      const message = errorMessage(error, "Could not save the policy");
       setToast({
         message,
         type: "error",

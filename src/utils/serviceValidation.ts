@@ -1,8 +1,6 @@
 import type {
     BookingConfigDTO,
     PriceConfigDTO,
-    BookingType,
-    PriceType,
     ServiceType,
 } from "@/types/serviceTypes";
 

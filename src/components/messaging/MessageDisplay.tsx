@@ -121,7 +121,6 @@ const MessageDisplay: React.FC<MessageDisplayProps> = ({
                         document.body.removeChild(link);
                         window.URL.revokeObjectURL(url);
                       } catch (error) {
-                        console.error("Download failed:", error);
                         const link = document.createElement("a");
                         link.href = getFullUrl(message.files!.fileUrl);
                         link.download = message.files!.fileName;

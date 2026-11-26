@@ -1,10 +1,8 @@
-import { Button } from "@/components/ui/button";
-import { Phone, Video, MoreVertical, CaseUpper } from "lucide-react";
 import { useChat } from "@/contexts/ChatContext";
 
 const ChatHeader: React.FC = () => {
   const { state } = useChat();
-  const { rooms, activeRoomId, connectionStatus } = state;
+  const { rooms, activeRoomId } = state;
 
   // Get active room
   const selectedRoom = rooms.find((room) => room.id === activeRoomId);

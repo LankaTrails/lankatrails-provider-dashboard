@@ -23,7 +23,15 @@ export default tseslint.config(
         "warn",
         { allowConstantExport: true },
       ],
+      // tsc (noUnusedLocals / noUnusedParameters) already reports these
       "@typescript-eslint/no-unused-vars": "off",
+    },
+  },
+  {
+    // Vendored shadcn/ui primitives export variant helpers next to components by design
+    files: ["src/components/ui/**/*.{ts,tsx}"],
+    rules: {
+      "react-refresh/only-export-components": "off",
     },
   }
 );
