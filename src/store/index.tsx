@@ -1,19 +1,21 @@
-import { configureStore } from '@reduxjs/toolkit';
-import { useDispatch, useSelector } from 'react-redux';
-import type { TypedUseSelectorHook } from 'react-redux';
-import authReducer from './authSlice';
+import { configureStore } from "@reduxjs/toolkit";
+import { useDispatch, useSelector } from "react-redux";
+import type { TypedUseSelectorHook } from "react-redux";
+import authReducer, { sessionExpired } from "./authSlice";
+import { setSessionExpiredHandler } from "@/api/axiosInstance";
 
 const store = configureStore({
   reducer: {
     auth: authReducer,
-  }
+  },
 });
 
-// Infer types
+// A failed token refresh ends the session; ProtectedRoute then redirects to /login.
+setSessionExpiredHandler(() => store.dispatch(sessionExpired()));
+
 export type RootState = ReturnType<typeof store.getState>;
 export type AppDispatch = typeof store.dispatch;
 
-// Typed hooks
 export const useAppDispatch: () => AppDispatch = useDispatch;
 export const useAppSelector: TypedUseSelectorHook<RootState> = useSelector;
 
