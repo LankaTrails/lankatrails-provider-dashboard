@@ -11,30 +11,70 @@ import ChangePasswordModal, {
   type ChangePasswordFormData,
 } from "@/components/provider/ChangePasswordModal";
 import DeactivateAccountModal from "@/components/provider/DeactivateAccountModal";
+import { useNavigate } from "react-router-dom";
+import { useToast } from "@/hooks/use-toast";
+import { changePassword, deactivateAccount, updateProfile } from "@/services/account";
+import { errorMessage } from "@/lib/apiError";
+import { fileUrl, GOOGLE_MAPS_API_KEY } from "@/lib/config";
 
 const Profile = () => {
-  const baseUrl = import.meta.env.VITE_BASE_URL;
-  const { user } = useAuth();
+  const { user, refreshProfile, logout } = useAuth();
+  const navigate = useNavigate();
+  const { toast } = useToast();
   const [editOpen, setEditOpen] = useState(false);
   const [changePasswordOpen, setChangePasswordOpen] = useState(false);
   const [deactivateAccountOpen, setDeactivateAccountOpen] = useState(false);
 
-  const handleSaveProfile = (formData: EditProfileFormData) => {
-    // TODO: Implement actual API call to update user
-    console.log("Saving user data:", formData);
-    // updateUser(formData);
+  const handleSaveProfile = async (formData: EditProfileFormData): Promise<string | null> => {
+    try {
+      const picked = formData.selectedLocation;
+      await updateProfile(
+        {
+          businessName: formData.businessName,
+          businessDescription: formData.businessDescription,
+          location: picked
+            ? {
+                formattedAddress: picked.formattedAddress,
+                city: picked.city,
+                district: picked.district,
+                province: picked.province,
+                country: picked.country,
+                postalCode: picked.postalCode,
+                latitude: picked.latitude,
+                longitude: picked.longitude,
+              }
+            : undefined,
+        },
+        formData.profileImage,
+        formData.coverImage,
+      );
+      await refreshProfile();
+      toast({ description: "Profile updated" });
+      return null;
+    } catch (error) {
+      return errorMessage(error, "Could not save your profile");
+    }
   };
 
-  const handleChangePassword = (passwordData: ChangePasswordFormData) => {
-    // TODO: Implement actual API call to change password
-    console.log("Changing password:", passwordData);
-    // changePassword(passwordData);
+  const handleChangePassword = async (passwordData: ChangePasswordFormData): Promise<string | null> => {
+    try {
+      await changePassword(passwordData.currentPassword, passwordData.newPassword);
+      toast({ description: "Password changed" });
+      return null;
+    } catch (error) {
+      return errorMessage(error, "Could not change your password");
+    }
   };
 
-  const handleDeactivateAccount = (password: string, reason: string) => {
-    // TODO: Implement actual API call to deactivate account
-    console.log("Deactivating account:", { password, reason });
-    // deactivateAccount(password, reason);
+  const handleDeactivateAccount = async (password: string, reason: string): Promise<string | null> => {
+    try {
+      await deactivateAccount(password, reason);
+      await logout();
+      navigate("/login", { replace: true });
+      return null;
+    } catch (error) {
+      return errorMessage(error, "Could not deactivate the account");
+    }
   };
 
   if (!user) {
@@ -61,7 +101,7 @@ const Profile = () => {
               <img
                 src={
                   user.coverImageUrl
-                    ? `${baseUrl}${user.coverImageUrl}`
+                    ? fileUrl(user.coverImageUrl)
                     : "/background.png"
                 }
                 alt="Cover"
@@ -76,7 +116,7 @@ const Profile = () => {
                   <img
                     src={
                       user.profilePictureUrl
-                        ? `${baseUrl}${user.profilePictureUrl}`
+                        ? fileUrl(user.profilePictureUrl)
                         : "/default-avatar.png"
                     }
                     alt="Profile"
@@ -130,16 +170,19 @@ const Profile = () => {
                       </p>
                     )}
                   </div> */}
-                  <div className="h-48 lg:h-64 rounded-lg overflow-hidden border">
-                    <iframe
-                      width="100%"
-                      height="100%"
-                      frameBorder="0"
-                      src={`https://www.google.com/maps/embed/v1/place?key=AIzaSyAFJ8_eIjeXNhtS5TeuDWwswREqxO4FsGU&q=${user.location.latitude},${user.location.longitude}`}
-                      allowFullScreen
-                      className="w-full h-full"
-                    />
-                  </div>
+                  {GOOGLE_MAPS_API_KEY && (
+                    <div className="h-48 lg:h-64 rounded-lg overflow-hidden border">
+                      <iframe
+                        title="Business location"
+                        width="100%"
+                        height="100%"
+                        frameBorder="0"
+                        src={`https://www.google.com/maps/embed/v1/place?key=${GOOGLE_MAPS_API_KEY}&q=${user.location.latitude},${user.location.longitude}`}
+                        allowFullScreen
+                        className="w-full h-full"
+                      />
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             )}

@@ -14,12 +14,14 @@ import MapSelectorComponent from "@/components/forms/MapSelectorComponent";
 import ProfileAndCoverUploader from "@/components/forms/ProfileAndCoverUploader";
 import type { LocationData } from "@/types/serviceTypes";
 import type { User } from "@/types/authTypes";
+import { fileUrl } from "@/lib/config";
 
 interface EditProfileModalProps {
   isOpen: boolean;
   onClose: () => void;
   user: User;
-  onSave: (formData: EditProfileFormData) => void;
+  /** Resolves to null on success or an error message; the modal stays open on error. */
+  onSave: (formData: EditProfileFormData) => Promise<string | null>;
 }
 
 export interface EditProfileFormData {
@@ -29,6 +31,8 @@ export interface EditProfileFormData {
   profileImage: File | null;
   coverImage: File | null;
   location: string;
+  /** Full place picked on the map (city, district, ...), when the location changed. */
+  selectedLocation?: LocationData;
   selectedCoordinates?: {
     latitude: number;
     longitude: number;
@@ -57,16 +61,15 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const baseUrl = import.meta.env.VITE_BASE_URL;
 
   // Image preview states
   const [profilePreview, setProfilePreview] = useState<string | null>(
     user?.profilePictureUrl
-      ? `${baseUrl}${user.profilePictureUrl}`
+      ? fileUrl(user.profilePictureUrl)
       : null
   );
   const [coverPreview, setCoverPreview] = useState<string | null>(
-    user?.coverImageUrl ? `${baseUrl}${user.coverImageUrl}` : null
+    user?.coverImageUrl ? fileUrl(user.coverImageUrl) : null
   );
 
   const handleChange = (field: string, value: string) => {
@@ -82,6 +85,7 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
     setForm((prev) => ({
       ...prev,
       location: locationData.formattedAddress,
+      selectedLocation: locationData,
       selectedCoordinates: {
         latitude: locationData.latitude,
         longitude: locationData.longitude,
@@ -106,9 +110,16 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSave = () => {
-    if (validateForm()) {
-      onSave(form);
+  const [saving, setSaving] = useState(false);
+
+  const handleSave = async () => {
+    if (!validateForm()) return;
+    setSaving(true);
+    const error = await onSave(form);
+    setSaving(false);
+    if (error) {
+      setErrors((prev) => ({ ...prev, form: error }));
+    } else {
       onClose();
     }
   };
@@ -131,11 +142,11 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
     });
     setProfilePreview(
       user?.profilePictureUrl
-        ? `${baseUrl}${user.profilePictureUrl}`
+        ? fileUrl(user.profilePictureUrl)
         : null
     );
     setCoverPreview(
-      user?.coverImageUrl ? `${baseUrl}${user.coverImageUrl}` : null
+      user?.coverImageUrl ? fileUrl(user.coverImageUrl) : null
     );
     setErrors({});
     onClose();
@@ -214,8 +225,11 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
             />
           </div>
         </ScrollArea>
+        {errors.form && (
+          <p role="alert" className="mt-2 rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">{errors.form}</p>
+        )}
         <DialogFooter className="mt-4">
-          <Button onClick={handleSave}>Save Changes</Button>
+          <Button onClick={handleSave} disabled={saving}>{saving ? "Saving..." : "Save Changes"}</Button>
           <Button variant="outline" onClick={handleClose}>
             Cancel
           </Button>

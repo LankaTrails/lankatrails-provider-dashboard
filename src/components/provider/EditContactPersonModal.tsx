@@ -64,7 +64,7 @@ const EditContactPersonModal: React.FC<EditContactPersonModalProps> = ({
 
   const validateField = (
     key: keyof ContactPersonFormData,
-    value: any
+    value: unknown
   ): string => {
     switch (key) {
       case "contactPersonEmail":
@@ -113,7 +113,7 @@ const EditContactPersonModal: React.FC<EditContactPersonModalProps> = ({
     }
   };
 
-  const updateField = (key: keyof ContactPersonFormData, value: any) => {
+  const updateField = (key: keyof ContactPersonFormData, value: unknown) => {
     // Trim string values for consistent validation
     const processedValue = typeof value === "string" ? value.trim() : value;
 
@@ -204,7 +204,6 @@ const EditContactPersonModal: React.FC<EditContactPersonModalProps> = ({
       await onSave(formData, formData.contactPersonIdentityFile);
       onClose();
     } catch (error) {
-      console.error("Error saving contact person details:", error);
       setErrors({
         general: "Failed to save contact person details. Please try again.",
       });

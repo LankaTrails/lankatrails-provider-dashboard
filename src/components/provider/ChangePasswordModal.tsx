@@ -13,7 +13,8 @@ import { Eye, EyeOff, Lock } from "lucide-react";
 interface ChangePasswordModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (passwordData: ChangePasswordFormData) => void;
+  /** Resolves to null on success or an error message; the modal stays open on error. */
+  onSave: (passwordData: ChangePasswordFormData) => Promise<string | null>;
 }
 
 export interface ChangePasswordFormData {
@@ -77,9 +78,16 @@ const ChangePasswordModal: React.FC<ChangePasswordModalProps> = ({
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSave = () => {
-    if (validateForm()) {
-      onSave(form);
+  const [saving, setSaving] = useState(false);
+
+  const handleSave = async () => {
+    if (!validateForm()) return;
+    setSaving(true);
+    const error = await onSave(form);
+    setSaving(false);
+    if (error) {
+      setErrors((prev) => ({ ...prev, form: error }));
+    } else {
       handleClose();
     }
   };
@@ -177,8 +185,11 @@ const ChangePasswordModal: React.FC<ChangePasswordModalProps> = ({
           </div>
         </div>
 
+        {errors.form && (
+          <p role="alert" className="mt-2 rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">{errors.form}</p>
+        )}
         <DialogFooter className="mt-6">
-          <Button onClick={handleSave} className="w-full">
+          <Button onClick={handleSave} className="w-full" disabled={saving}>
             Update Password
           </Button>
           <Button variant="outline" onClick={handleClose} className="w-full">

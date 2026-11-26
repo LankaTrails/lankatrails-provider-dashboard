@@ -1,3 +1,4 @@
+import { errorMessage } from "@/lib/apiError";
 import { useState, useEffect } from "react";
 import {
   Card,
@@ -15,6 +16,7 @@ import {
   updateContactPerson,
 } from "@/services/providerService";
 import type { BusinessDetails } from "@/types/registration";
+import { fileUrl } from "@/lib/config";
 import {
   User,
   Mail,
@@ -51,26 +53,9 @@ const ContactPerson = () => {
         setError(null);
 
         const response = await getBusinessDetails();
-        console.log("📦 ContactPerson received business details:", {
-          hasResponse: !!response,
-          hasContactPerson: !!response?.contactPerson,
-          contactPersonData: response?.contactPerson,
-          responseKeys: response ? Object.keys(response) : [],
-          fullResponse: response,
-        });
         setBusinessDetails(response);
-      } catch (err: any) {
-        console.error("Error fetching business details:", err);
-
-        // Extract meaningful error message
-        let errorMessage = "Failed to load business details.";
-        if (err.response?.data?.message) {
-          errorMessage = err.response.data.message;
-        } else if (err.message) {
-          errorMessage = err.message;
-        }
-
-        setError(errorMessage);
+      } catch (err) {
+        setError(errorMessage(err, "Failed to load business details."));
       } finally {
         setLoading(false);
       }
@@ -85,8 +70,7 @@ const ContactPerson = () => {
     if (url.startsWith("http://") || url.startsWith("https://")) {
       return url;
     }
-    const baseUrl = import.meta.env.VITE_BASE_URL || "http://localhost:8080";
-    return `${baseUrl}${url}`;
+    return fileUrl(url);
   };
 
   //business type labels and values
@@ -109,8 +93,6 @@ const ContactPerson = () => {
         phoneNumber: data.contactPersonPhone,
       };
 
-      console.log("Updating contact person details:", contactPersonData);
-      console.log("Identity document:", identityFile);
 
       // Call the API to update contact person
       const updatedBusinessDetails = await updateContactPerson(
@@ -127,20 +109,8 @@ const ContactPerson = () => {
       // Clear success message after 5 seconds
       setTimeout(() => setSuccessMessage(null), 5000);
 
-      console.log("✅ Contact person updated successfully");
-    } catch (error: any) {
-      console.error("Error saving contact person details:", error);
-
-      // Extract meaningful error message
-      let errorMessage =
-        "Failed to save contact person details. Please try again.";
-      if (error.response?.data?.message) {
-        errorMessage = error.response.data.message;
-      } else if (error.message) {
-        errorMessage = error.message;
-      }
-
-      throw new Error(errorMessage);
+    } catch (error) {
+      throw new Error(errorMessage(error, "Failed to save contact person details. Please try again."));
     }
   };
 

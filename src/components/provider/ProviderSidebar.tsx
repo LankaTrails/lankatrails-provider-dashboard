@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "@/hooks/useAuth";
+import { fileUrl } from "@/lib/config";
 import { useNavigate, useLocation } from "react-router-dom";
 
 const tabs = [
@@ -13,10 +14,10 @@ const tabs = [
   { label: "Messages", slug: "messages" },
   { label: "Policy Management", slug: "policy" },
   { label: "Analytics", slug: "analytics" },
+  { label: "Payments", slug: "onboarding" },
 ];
 
 const ProviderSidebar = () => {
-  const baseUrl = import.meta.env.VITE_BASE_URL;
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
@@ -47,7 +48,7 @@ const ProviderSidebar = () => {
           <img
             src={
               user && user.profilePictureUrl
-                ? `${baseUrl}${user.profilePictureUrl}`
+                ? fileUrl(user.profilePictureUrl)
                 : "/default-avatar.png"
             }
             alt="avatar"
