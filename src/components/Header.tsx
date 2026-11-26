@@ -3,120 +3,99 @@ import { Button } from "@/components/ui/button";
 import { Menu, X, LogOut } from "lucide-react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
+import Notifications from "@/components/Notifications";
+import { fileUrl } from "@/lib/config";
 
 const Header = () => {
-  const { user, logout } = useAuth();
+  const { user, isProvider, logout } = useAuth();
   const location = useLocation();
-  const baseUrl = import.meta.env.VITE_BASE_URL;
-  const showUser =
-    !!user && !["/login", "/register"].includes(location.pathname);
-
   const navigate = useNavigate();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const showUser = isProvider && !["/login", "/register"].includes(location.pathname);
+
   const handleLogout = async () => {
+    setIsMenuOpen(false);
     await logout();
-    navigate("/login");
+    navigate("/login", { replace: true });
   };
 
   return (
-    <header className="bg-white/95 backdrop-blur-sm shadow-sm sticky top-0 z-50">
+    <header className="sticky top-0 z-50 bg-white/95 shadow-sm backdrop-blur-sm">
       <div className="container mx-auto px-4 py-3">
         <div className="flex items-center justify-between">
-          {/* Logo */}
-          <Link to="/" className="flex items-center">
-            <img src="/logo.png" alt="LankaTrails" className="w-10 h-10" />
-            <span className="text-2xl ml-0 font-bold text-primary-500">
+          <Link to={showUser ? "/provider" : "/"} className="flex items-center">
+            <img src="/logo.png" alt="LankaTrails" className="h-10 w-10" />
+            <span className="ml-0 text-2xl font-bold text-primary-500">
               Lanka
               <span className="text-2xl font-bold text-[#ff6600]">Trails</span>
             </span>
           </Link>
 
-          {/* Desktop User / Auth */}
-          <div className="hidden md:flex items-center space-x-4">
+          <div className="hidden items-center space-x-3 md:flex">
             {showUser ? (
               <>
+                <Notifications />
                 <button
                   onClick={() => navigate("/provider/profile")}
                   className="flex items-center space-x-2 hover:opacity-80"
+                  title="Profile"
                 >
                   <img
-                    src={
-                      user && user.profilePictureUrl
-                        ? `${baseUrl}${user.profilePictureUrl}`
-                        : "/default-avatar.png"
-                    }
-                    alt="avatar"
-                    className="w-10 h-10 rounded-full object-cover border"
+                    src={user?.profilePictureUrl ? fileUrl(user.profilePictureUrl) : "/default-avatar.png"}
+                    alt="Profile"
+                    className="h-10 w-10 rounded-full border object-cover"
                   />
-                  {/* <span className="font-medium text-gray-700 hidden lg:inline">
-                    {(user?.businessName && user.businessName) || "Provider"}
-                  </span> */}
                 </button>
-                {/* <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={handleLogout}
-                  className="flex items-center gap-1"
-                >
-                  <LogOut className="w-4 h-4" /> Logout
-                </Button> */}
+                <Button size="icon" variant="outline" onClick={handleLogout} aria-label="Sign out" title="Sign out">
+                  <LogOut className="h-4 w-4" />
+                </Button>
               </>
             ) : (
               <>
-                <Button
-                  variant="outline"
-                  className="border-primary-500 text-primary-500 hover:bg-primary-50"
-                  asChild
-                >
+                <Button variant="outline" className="border-primary-500 text-primary-500 hover:bg-primary-50" asChild>
                   <Link to="/login">Login</Link>
                 </Button>
-                <Button
-                  className="bg-primary-500 hover:bg-primary-600 text-white"
-                  asChild
-                >
+                <Button className="bg-primary-500 text-white hover:bg-primary-600" asChild>
                   <Link to="/register">Get Started</Link>
                 </Button>
               </>
             )}
           </div>
 
-          {/* Mobile Menu Button */}
           <button
             onClick={() => setIsMenuOpen(!isMenuOpen)}
-            className="md:hidden p-2 rounded-lg hover:bg-gray-100 transition-colors"
+            aria-label={isMenuOpen ? "Close menu" : "Open menu"}
+            aria-expanded={isMenuOpen}
+            className="rounded-lg p-2 transition-colors hover:bg-gray-100 md:hidden"
           >
             {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
           </button>
         </div>
 
-        {/* Mobile Navigation & auth */}
         {isMenuOpen && (
-          <div className="md:hidden mt-4 pb-4 border-t pt-4 animate-fade-in">
-            <nav className="flex flex-col space-y-4">
+          <div className="mt-4 border-t pb-4 pt-4 md:hidden">
+            <nav className="flex flex-col space-y-2">
               {showUser ? (
-                <Button
-                  variant="outline"
-                  className="flex gap-2"
-                  onClick={logout}
-                >
-                  <LogOut className="w-4 h-4" /> Logout
-                </Button>
+                <>
+                  <Button variant="ghost" className="justify-start" onClick={() => { setIsMenuOpen(false); navigate("/provider"); }}>
+                    Dashboard
+                  </Button>
+                  <Button variant="ghost" className="justify-start" onClick={() => { setIsMenuOpen(false); navigate("/provider/profile"); }}>
+                    Profile
+                  </Button>
+                  <Button variant="outline" className="flex gap-2" onClick={handleLogout}>
+                    <LogOut className="h-4 w-4" /> Logout
+                  </Button>
+                </>
               ) : (
-                <div className="flex flex-col space-y-2 pt-4">
-                  <Button
-                    variant="outline"
-                    className="w-full border-primary-500 text-primary-500 hover:bg-primary-50"
-                    asChild
-                  >
-                    <Link to="/login">Login</Link>
+                <>
+                  <Button variant="outline" className="w-full border-primary-500 text-primary-500 hover:bg-primary-50" asChild>
+                    <Link to="/login" onClick={() => setIsMenuOpen(false)}>Login</Link>
                   </Button>
-                  <Button
-                    className="w-full bg-primary-500 hover:bg-primary-600 text-white"
-                    asChild
-                  >
-                    <Link to="/register">Get Started</Link>
+                  <Button className="w-full bg-primary-500 text-white hover:bg-primary-600" asChild>
+                    <Link to="/register" onClick={() => setIsMenuOpen(false)}>Get Started</Link>
                   </Button>
-                </div>
+                </>
               )}
             </nav>
           </div>
