@@ -1,54 +1,60 @@
-import { useEffect, useState } from "react";
-import { Routes, Route } from "react-router-dom";
+import { lazy, Suspense, useEffect, useState } from "react";
+import { Navigate, Routes, Route } from "react-router-dom";
+import { Loader2 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import Index from "@/pages/Index";
 import Login from "@/pages/Login";
-import Register from "@/pages/Register";
+import NotFound from "@/pages/NotFound";
 import ProtectedRoute from "@/components/ProtectedRoutes";
 import DashboardLayout from "@/components/provider/ProviderDashboard";
-import ServiceListPage from "@/pages/service/ServiceListPage";
-import AddServicePage from "./pages/service/AddServicePage";
-import ServiceBookingsPage from "@/pages/service/ServiceBookingsPage";
-import ServiceReviewsPage from "@/pages/service/ServiceReviewsPage";
-import ServiceAnalyticsPage from "@/pages/service/ServiceAnalyticsPage";
-import ProviderDashboardPage from "@/pages/provider/ProviderDashboardPage";
-import ServiceEditPage from "@/pages/service/ServiceEditPage";
-import ServiceViewPage from "@/pages/service/ServiceViewPage";
-import MessagesPage from "@/pages/provider/MessagePage";
-import AnalyticsPage from "@/pages/provider/AnalyticsPage";
-import Profile from "@/pages/provider/Profile";
-import NotFound from "@/pages/NotFound";
-import ContactPerson from "./pages/provider/ContactPerson";
-import License from "./pages/provider/License";
-import AllPolicy from "./pages/provider/AllPolicy";
-import AddActivityPolicy from "./pages/provider/AddActivityPolicy";
-import AddTransportPolicy from "./pages/provider/AddTransportPolicy";
-import AddTourGuidePolicy from "./pages/provider/AddTourGuidePolicy";
-import AddFoodBeveragePolicy from "./pages/provider/AddFoodBeveragePolicy";
-import AddAccommodationPolicy from "./pages/provider/AddAccommodationPolicy";
+
+// Pages load on demand (the service forms, maps and charts are large).
+const ServiceListPage = lazy(() => import("@/pages/service/ServiceListPage"));
+const AddServicePage = lazy(() => import("@/pages/service/AddServicePage"));
+const ServiceBookingsPage = lazy(() => import("@/pages/service/ServiceBookingsPage"));
+const ServiceReviewsPage = lazy(() => import("@/pages/service/ServiceReviewsPage"));
+const ServiceAnalyticsPage = lazy(() => import("@/pages/service/ServiceAnalyticsPage"));
+const ProviderDashboardPage = lazy(() => import("@/pages/provider/ProviderDashboardPage"));
+const ServiceEditPage = lazy(() => import("@/pages/service/ServiceEditPage"));
+const ServiceViewPage = lazy(() => import("@/pages/service/ServiceViewPage"));
+const MessagesPage = lazy(() => import("@/pages/provider/MessagePage"));
+const AnalyticsPage = lazy(() => import("@/pages/provider/AnalyticsPage"));
+const Profile = lazy(() => import("@/pages/provider/Profile"));
+const ContactPerson = lazy(() => import("@/pages/provider/ContactPerson"));
+const License = lazy(() => import("@/pages/provider/License"));
+const AllPolicy = lazy(() => import("@/pages/provider/AllPolicy"));
+const AddActivityPolicy = lazy(() => import("@/pages/provider/AddActivityPolicy"));
+const AddTransportPolicy = lazy(() => import("@/pages/provider/AddTransportPolicy"));
+const AddTourGuidePolicy = lazy(() => import("@/pages/provider/AddTourGuidePolicy"));
+const AddFoodBeveragePolicy = lazy(() => import("@/pages/provider/AddFoodBeveragePolicy"));
+const AddAccommodationPolicy = lazy(() => import("@/pages/provider/AddAccommodationPolicy"));
+const PaymentsPage = lazy(() => import("@/pages/provider/PaymentsPage"));
+const Register = lazy(() => import("@/pages/Register"));
+
+const FullPageLoader = () => (
+  <div className="flex min-h-[50vh] items-center justify-center gap-2 text-gray-500">
+    <Loader2 className="h-6 w-6 animate-spin" /> Loading...
+  </div>
+);
 
 const AppRoutes = () => {
-  const { isLoading, restoreSession } = useAuth();
-  const [initialized, setInitialized] = useState(false);
+  const { isProvider, restoreSession } = useAuth();
+  const [sessionChecked, setSessionChecked] = useState(false);
 
+  // Resume an existing session (refresh cookie) before deciding where to route.
   useEffect(() => {
-    if (!initialized) {
-      restoreSession().finally(() => setInitialized(true));
-    }
-  }, [initialized, restoreSession]);
+    restoreSession().finally(() => setSessionChecked(true));
+  }, [restoreSession]);
 
-  if (!initialized || isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        Loading...
-      </div>
-    );
+  if (!sessionChecked) {
+    return <FullPageLoader />;
   }
 
   return (
+    <Suspense fallback={<FullPageLoader />}>
     <Routes>
       <Route path="/" element={<Index />} />
-      <Route path="/login" element={<Login />} />
+      <Route path="/login" element={isProvider ? <Navigate to="/provider" replace /> : <Login />} />
       <Route path="/register" element={<Register />} />
 
       <Route
@@ -77,6 +83,11 @@ const AppRoutes = () => {
           </Route>
         </Route>
         <Route path="messages" element={<MessagesPage />} />
+        <Route path="onboarding">
+          <Route index element={<PaymentsPage />} />
+          <Route path="return" element={<PaymentsPage mode="return" />} />
+          <Route path="refresh" element={<PaymentsPage mode="refresh" />} />
+        </Route>
         <Route path="analytics" element={<AnalyticsPage />} />
         <Route path="profile">
           <Route index element={<Profile />} />
@@ -87,7 +98,6 @@ const AppRoutes = () => {
         <Route path="policy">
           <Route index element={<AllPolicy />} />
           <Route path="all" element={<AllPolicy />} />
-          {/* <Route path="add" element={<AddPolicy />} /> */}
           <Route path="activity" element={<AddActivityPolicy />} />
           <Route path="tour-guide" element={<AddTourGuidePolicy />} />
           <Route path="transport" element={<AddTransportPolicy />} />
@@ -96,17 +106,10 @@ const AppRoutes = () => {
         </Route>
       </Route>
 
-      <Route
-        path="/profile"
-        element={
-          <ProtectedRoute>
-            <Profile />
-          </ProtectedRoute>
-        }
-      />
 
       <Route path="*" element={<NotFound />} />
     </Routes>
+    </Suspense>
   );
 };
 

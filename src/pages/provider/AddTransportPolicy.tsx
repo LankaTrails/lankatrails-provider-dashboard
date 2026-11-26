@@ -2,8 +2,7 @@ import { useEffect, useState } from "react";
 import ExpandableSectionComponent from "@/components/forms/ExpandableSectionComponent";
 import type { PolicySection, PolicyData } from "@/types/serviceTypes";
 import ProviderTopBar from "@/components/provider/ProviderTopBar";
-import AddPolicy from "./AddPolicy"; // <-- Import AddPolicy
-import { useParams } from "react-router-dom";
+import AddPolicy from "./AddPolicy";
 import AlertToast from "@/components/forms/AlertToast";
 import { fetchAllTransportPolicies } from "@/services/transportationService";
 
@@ -12,15 +11,14 @@ const AddTransportPolicy = () => {
   const [structuredPolicies, setStructuredPolicies] = useState<PolicyData[]>([]);
   const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
   const [resetTrigger, setResetTrigger] = useState<number>(0); // For resetting AddPolicy
-  const { serviceType } = useParams();
 
   // Move loadPolicies outside useEffect
   const loadPolicies = async () => {
     try {
       const response = await fetchAllTransportPolicies();
-      if (response.totalElements != 0) {
-        const structured = response.map((policy: PolicySection, index: number) => ({
-          id: `policy-${index}`,
+      if (response.length > 0) {
+        const structured = response.map((policy: PolicySection) => ({
+          id: policy.id,
           heading: policy.heading,
           description: policy.policy,
           isExpanded: false,
@@ -29,8 +27,8 @@ const AddTransportPolicy = () => {
       } else {
         setStructuredPolicies([]);
       }
-    } catch (error) {
-      console.error("Error fetching policies:", error);
+    } catch {
+      // no existing policies to show; the form still works
     }
   };
 

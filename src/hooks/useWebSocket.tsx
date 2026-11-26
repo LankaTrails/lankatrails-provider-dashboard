@@ -1,8 +1,9 @@
-import { useRef, useCallback, useState } from "react";
+import { useRef, useCallback, useEffect, useState } from "react";
 import { Client } from "@stomp/stompjs";
 import type { StompSubscription } from "@stomp/stompjs";
 import SockJS from "sockjs-client";
 import { getCurrentToken } from "@/services/tokenService";
+import { WS_URL } from "@/lib/config";
 import type {
   ChatMessage,
   ConnectionStatus,
@@ -31,21 +32,6 @@ interface UseWebSocketReturn {
   unsubscribeFromRoom: (roomId: number) => void;
 }
 
-function resolveWsUrl(): string {
-  // Prefer env value if provided
-  //   const envUrl = typeof window !== "undefined" ? (window as any)?.env?.NEXT_PUBLIC_WS_BASE_URL || process.env.NEXT_PUBLIC_WS_BASE_URL : process.env.NEXT_PUBLIC_WS_BASE_URL;
-  //   if (envUrl) return envUrl;
-
-  //   // Fallback to same-origin path if available, else localhost for SSR
-  //   if (typeof window !== "undefined") {
-  //     const { protocol, host } = window.location;
-  //     const httpProtocol = protocol === "https:" ? "https" : "http";
-  //     return `${httpProtocol}://${host}/ws`;
-  //   }
-
-  return "http://localhost:8080/ws";
-}
-
 export const useWebSocket = ({
   onMessageReceived,
   onTypingEvent,
@@ -59,6 +45,12 @@ export const useWebSocket = ({
   // roomId -> unsubscribe function
   const subscriptionsRef = useRef<Map<number, () => void>>(new Map());
 
+  // Latest handlers, so room subscriptions keep a stable identity while the callers re-render
+  const handlersRef = useRef({ onMessageReceived, onTypingEvent });
+  useEffect(() => {
+    handlersRef.current = { onMessageReceived, onTypingEvent };
+  }, [onMessageReceived, onTypingEvent]);
+
   const updateConnectionStatus = useCallback(
     (status: ConnectionStatus) => {
       setConnectionStatus(status);
@@ -70,14 +62,12 @@ export const useWebSocket = ({
   const connect = useCallback(() => {
     const token = getCurrentToken();
     if (!token) {
-      console.error("[WebSocket] No authentication token available");
       updateConnectionStatus("error");
       return;
     }
 
     // Avoid duplicate activation
     if (clientRef.current?.active || clientRef.current?.connected) {
-      console.log("[WebSocket] Client already active/connected");
       return;
     }
 
@@ -87,8 +77,7 @@ export const useWebSocket = ({
       clientRef.current = null;
     }
 
-    const wsBaseUrl = resolveWsUrl();
-    const socketFactory = () => new SockJS(wsBaseUrl);
+    const socketFactory = () => new SockJS(WS_URL);
     updateConnectionStatus("connecting");
 
     const client = new Client({
@@ -96,27 +85,27 @@ export const useWebSocket = ({
       connectHeaders: {
         Authorization: `Bearer ${token}`,
       },
-      debug: (str) => {
-        // Useful while diagnosing
-        console.log("[WebSocket Debug]", str);
+      // Re-read the token before every (re)connect so automatic reconnects never use an expired one
+      beforeConnect: () => {
+        const latest = getCurrentToken();
+        if (latest) {
+          client.connectHeaders = { Authorization: `Bearer ${latest}` };
+        }
       },
       // Let the library handle reconnection
       reconnectDelay: 5000,
       heartbeatIncoming: 4000,
       heartbeatOutgoing: 4000,
 
-      onConnect: (frame) => {
-        console.log("[WebSocket] Connected:", frame);
+      onConnect: () => {
         updateConnectionStatus("connected");
 
         // Subscribe to server-side error queue (authorized by backend)
         client.subscribe("/user/queue/errors", (message) => {
           try {
             const error: WebSocketError = JSON.parse(message.body);
-            console.error("[WebSocket] Server error:", error);
             onError(error);
           } catch (e) {
-            console.error("[WebSocket] Failed to parse error message:", e);
             onError({
               code: "PARSE_ERROR",
               message: "Failed to parse server error",
@@ -126,15 +115,13 @@ export const useWebSocket = ({
         });
       },
 
-      onDisconnect: (frame) => {
-        console.log("[WebSocket] Disconnected:", frame);
+      onDisconnect: () => {
         updateConnectionStatus("disconnected");
         // Clear all stored unsubscribe functions
         subscriptionsRef.current.clear();
       },
 
       onStompError: (frame) => {
-        console.error("[WebSocket] STOMP error:", frame);
         updateConnectionStatus("error");
         onError({
           code: "STOMP_ERROR",
@@ -144,8 +131,7 @@ export const useWebSocket = ({
         // Reconnect handled by reconnectDelay
       },
 
-      onWebSocketError: (error) => {
-        console.error("[WebSocket] WebSocket error:", error);
+      onWebSocketError: () => {
         updateConnectionStatus("error");
         onError({
           code: "WEBSOCKET_ERROR",
@@ -191,7 +177,6 @@ export const useWebSocket = ({
   const sendMessage = useCallback(
     (message: OutgoingMessage) => {
       if (!clientRef.current?.connected) {
-        console.error("[WebSocket] Cannot send message: not connected");
         onError({
           code: "NOT_CONNECTED",
           message: "Cannot send message: WebSocket not connected",
@@ -205,9 +190,7 @@ export const useWebSocket = ({
           destination: "/app/sendMessage",
           body: JSON.stringify(message),
         });
-        console.log("[WebSocket] Message sent:", message);
       } catch (error) {
-        console.error("[WebSocket] Failed to send message:", error);
         onError({
           code: "SEND_ERROR",
           message: "Failed to send message",
@@ -226,9 +209,8 @@ export const useWebSocket = ({
         destination: `/app/typing/start/room/${roomId}`,
         body: JSON.stringify({}),
       });
-      console.log("[WebSocket] Started typing in room:", roomId);
-    } catch (error) {
-      console.error("[WebSocket] Failed to send typing start:", error);
+    } catch {
+      // typing indicators are best effort
     }
   }, []);
 
@@ -240,9 +222,8 @@ export const useWebSocket = ({
         destination: `/app/typing/stop/room/${roomId}`,
         body: JSON.stringify({}),
       });
-      console.log("[WebSocket] Stopped typing in room:", roomId);
-    } catch (error) {
-      console.error("[WebSocket] Failed to send typing stop:", error);
+    } catch {
+      // typing indicators are best effort
     }
   }, []);
 
@@ -254,52 +235,37 @@ export const useWebSocket = ({
         destination: "/app/markAsRead",
         body: JSON.stringify(payload),
       });
-      // console.log("[WebSocket] Mark as read sent:", payload);
-    } catch (error) {
-      console.error("[WebSocket] Failed to send mark as read:", error);
+    } catch {
+      // read receipts are retried on the next mark-as-read
     }
   }, []);
 
   const subscribeToRoom = useCallback(
     (roomId: number): (() => void) => {
       if (!clientRef.current?.connected) {
-        console.warn("[WebSocket] Cannot subscribe: not connected");
         return () => {};
       }
 
       // Unsubscribe existing, if present
       const existingUnsubscribe = subscriptionsRef.current.get(roomId);
       if (existingUnsubscribe) {
-        console.log(
-          "[WebSocket] Cleaning up existing subscription for room:",
-          roomId
-        );
         try {
           existingUnsubscribe();
-        } catch (error) {
-          console.warn(
-            "[WebSocket] Error cleaning up existing subscription:",
-            error
-          );
+        } catch {
+          // the previous subscription is already closed
         }
       }
 
       try {
-        console.log("[WebSocket] Creating new subscriptions for room:", roomId);
 
         const messageSub: StompSubscription = clientRef.current.subscribe(
           `/topic/room.${roomId}`,
           (message) => {
             try {
-              console.log(
-                "[WebSocket] Received message for room:",
-                roomId,
-                message.body
-              );
               const chatMessage: ChatMessage = JSON.parse(message.body);
-              onMessageReceived(chatMessage);
-            } catch (error) {
-              console.error("[WebSocket] Failed to parse message:", error);
+              handlersRef.current.onMessageReceived(chatMessage);
+            } catch {
+              // ignore malformed frames
             }
           }
         );
@@ -308,54 +274,40 @@ export const useWebSocket = ({
           `/topic/typing.${roomId}`,
           (message) => {
             try {
-              console.log(
-                "[WebSocket] Received typing event for room:",
-                roomId,
-                "Raw message:",
-                message.body
-              );
               const typingEvent: TypingEvent = JSON.parse(message.body);
-              console.log("[WebSocket] Parsed typing event:", typingEvent);
-              onTypingEvent(typingEvent);
-            } catch (error) {
-              console.error("[WebSocket] Failed to parse typing event:", error);
+              handlersRef.current.onTypingEvent(typingEvent);
+            } catch {
+              // ignore malformed frames
             }
           }
         );
 
         const unsubscribe = () => {
-          console.log("[WebSocket] Unsubscribing from room:", roomId);
           try {
             if (messageSub) {
               messageSub.unsubscribe();
             }
-          } catch (error) {
-            console.warn(
-              "[WebSocket] Error unsubscribing from messages:",
-              error
-            );
+          } catch {
+            // already unsubscribed
           }
           try {
             if (typingSub) {
               typingSub.unsubscribe();
             }
-          } catch (error) {
-            console.warn("[WebSocket] Error unsubscribing from typing:", error);
+          } catch {
+            // already unsubscribed
           }
           subscriptionsRef.current.delete(roomId);
-          console.log("[WebSocket] Unsubscribed from room:", roomId);
         };
 
         subscriptionsRef.current.set(roomId, unsubscribe);
-        console.log("[WebSocket] Subscribed to room:", roomId);
 
         return unsubscribe;
       } catch (error) {
-        console.error("[WebSocket] Failed to subscribe to room:", error);
         return () => {};
       }
     },
-    [onMessageReceived, onTypingEvent]
+    []
   );
 
   const unsubscribeFromRoom = useCallback((roomId: number) => {

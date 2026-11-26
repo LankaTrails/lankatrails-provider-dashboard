@@ -50,7 +50,7 @@ const MessageInputWithTyping: React.FC<MessageInputWithTypingProps> = ({
         stopTyping();
       }
     },
-    [isTyping, startTyping, handleTypingTimeout]
+    [isTyping, startTyping, stopTyping, handleTypingTimeout]
   );
 
   const handleSendMessage = useCallback(() => {
@@ -209,7 +209,7 @@ const MessageInputWithTyping: React.FC<MessageInputWithTypingProps> = ({
           )}
 
           {/* Typing Indicator for Self (debug) */}
-          {isTyping && process.env.NODE_ENV === "development" && (
+          {isTyping && import.meta.env.DEV && (
             <div className="mt-2 text-xs text-blue-600">You are typing...</div>
           )}
         </div>

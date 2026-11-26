@@ -1,4 +1,4 @@
-import type { ImageFiles, TourGuideFormData, TransportFormData, AccommodationFormData, ActivityFormData, FoodBeverageFormData, ServiceFormData } from "@/types/serviceTypes";
+import type { ImageFiles, TourGuideFormData, TransportFormData, AccommodationFormData, ActivityFormData, FoodBeverageFormData, PolicySection, ServiceFormData } from "@/types/serviceTypes";
 import { addNewTourGuide, updateTourGuide, findTourGuideById, fetchAllTourGuides, deactivateTourGuide, activateTourGuide } from "@/services/guideService";
 import { addNewTransport, findTransportationById, fetchAllTransports, updateTransport, deactivateTransportation, activateTransportation } from "@/services/transportationService";
 import { addNewAccommodation, findAccommodationById, fetchAllAccommodations, updateAccommodation, deactivateAccommodation, activateAccommodation } from "@/services/accomodation";
@@ -10,13 +10,13 @@ import api from "@/api/axiosInstance";
 
 
 //Fetch all the provider policies
-export const fetchAllPolicies = async (): Promise<any[]> => {
+export const fetchAllPolicies = async (): Promise<PolicySection[]> => {
   const response = await api.get('/provider/policies');
   return response.data.data; // Assuming the response contains an array of policies
 };
 
 //Fetch all policies relating to the provider and for a particular service type
-export const fetchPoliciesByServiceType = async (serviceType: string): Promise<any[]> => {
+export const fetchPoliciesByServiceType = async (serviceType: string): Promise<PolicySection[]> => {
   let typeId: number;
   switch (serviceType) {
     case 'tour-guides':
@@ -130,7 +130,7 @@ export const fetchAllServices = async (
 export const deactivateService = async (
   serviceType: string,
   id: number
-): Promise<any> => {
+): Promise<unknown> => {
   if (serviceType === 'activity') {
     return await deactivateActivityService(id);
   } else if (serviceType === 'transportation') {
@@ -150,7 +150,7 @@ export const deactivateService = async (
 export const activateService = async (
   serviceType: string,
   id: number
-): Promise<any> => {
+): Promise<unknown> => {
   if (serviceType === 'activity') {
     return await activateActivityService(id);
   } else if (serviceType === 'transportation') {

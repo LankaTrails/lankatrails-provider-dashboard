@@ -143,11 +143,7 @@ export interface ImageData {
   imageUrl: string;
 }
 
-export interface ImageUploadItem extends ImageFile {
-  // id: number;
-  // file: File;
-  // url: string;
-}
+export type ImageUploadItem = ImageFile;
 
 export interface ImageFiles {
   serviceImages: ImageFile[];
@@ -268,7 +264,7 @@ export type BookingConfigByType = {
   [K in BookingType]: BookingConfigDTO & (
     K extends 'TIME_SLOTS' | 'FIXED_TIME' ? { slotDuration: number } :
     K extends 'MULTI_DAY' ? { minimumBookingDays: number; defaultCheckInTime: string; defaultCheckOutTime: string } :
-    {}
+    unknown
   );
 };
 
@@ -279,7 +275,7 @@ export type PriceConfigValidation = {
     K extends 'PER_PERSON' ? { pricePerAdult: number } :
     K extends 'PER_UNIT' ? { pricePerUnit: number } :
     K extends 'HYBRID' ? { fixedPrice: number; pricePerAdult: number } :
-    {}
+    unknown
   );
 };
 

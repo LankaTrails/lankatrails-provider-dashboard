@@ -121,7 +121,6 @@ const MessageDisplay: React.FC<MessageDisplayProps> = ({
                         document.body.removeChild(link);
                         window.URL.revokeObjectURL(url);
                       } catch (error) {
-                        console.error("Download failed:", error);
                         const link = document.createElement("a");
                         link.href = getFullUrl(message.files!.fileUrl);
                         link.download = message.files!.fileName;
@@ -200,7 +199,7 @@ const MessageDisplay: React.FC<MessageDisplayProps> = ({
                   <div className="flex items-center gap-2">
                     <div className="flex items-center gap-1 text-xs">
                       <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
-                      <span className="font-medium">4.5</span>
+                      <span className="font-medium">4.8</span>
                       <span className="text-muted-foreground">
                         (24 reviews)
                       </span>

@@ -3,7 +3,9 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Eye, Edit, Star, Phone, PowerOff, Power } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { formatRating } from "@/lib/utils";
 import type { ServiceFormData } from "@/types/serviceTypes";
+import { fileUrl } from "@/lib/config";
 
 interface ServiceCardProps {
   service: ServiceFormData;
@@ -20,7 +22,7 @@ const ServiceCard: React.FC<ServiceCardProps> = ({
 
   // Get the main image
   const mainImage = service.images?.[0]?.imageUrl
-    ? `http://localhost:8080${service.images[0].imageUrl}`
+    ? fileUrl(service.images[0].imageUrl)
     : null;
 
   // Check if service is active
@@ -119,7 +121,7 @@ const ServiceCard: React.FC<ServiceCardProps> = ({
                 <div className="flex items-center">
                   <Star className="w-4 h-4 text-yellow-400 fill-current mr-1" />
                   <span className="font-semibold">
-                    {service.averageRating ?? 0}
+                    {formatRating(service.averageRating)}
                   </span>
                   <span className="text-sm text-gray-500 ml-1">
                     ({service.reviewCount})

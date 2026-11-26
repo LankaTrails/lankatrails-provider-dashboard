@@ -1,26 +1,25 @@
-// Polyfills for Node.js globals in browser environment
-// This ensures compatibility with libraries like @stomp/stompjs and react-quill
+// Node.js globals that @stomp/stompjs, sockjs-client and react-quill expect in the browser.
+import { Buffer } from "buffer";
 
-import { Buffer } from 'buffer';
+const g = globalThis as typeof globalThis & Record<string, unknown>;
 
-// Define global if it doesn't exist
-if (typeof global === 'undefined') {
-    (globalThis as any).global = globalThis;
+if (typeof g.global === "undefined") {
+  g.global = globalThis;
 }
 
-// Define process if it doesn't exist
-if (typeof process === 'undefined') {
-    (globalThis as any).process = {
-        env: {},
-        nextTick: (callback: Function) => setTimeout(callback, 0),
-        version: '',
-        versions: {},
-        argv: [],
-        platform: 'browser',
-    };
+if (typeof g.process === "undefined") {
+  g.process = {
+    env: {},
+    nextTick: (callback: () => void) => setTimeout(callback, 0),
+    version: "",
+    versions: {},
+    argv: [],
+    platform: "browser",
+  };
 }
 
-// Define Buffer globally for libraries that expect it (like react-quill)
-if (typeof (globalThis as any).Buffer === 'undefined') {
-    (globalThis as any).Buffer = Buffer;
-} export { };
+if (typeof g.Buffer === "undefined") {
+  g.Buffer = Buffer;
+}
+
+export {};

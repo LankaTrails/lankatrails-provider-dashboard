@@ -41,7 +41,6 @@ const ServiceReviewsPage = () => {
         const data = await getReviews(serviceId);
         setReviewData(data);
       } catch (err) {
-        console.error("Failed to fetch reviews:", err);
         setError(err instanceof Error ? err.message : "Failed to load reviews");
       } finally {
         setIsLoading(false);

@@ -52,16 +52,6 @@ const ProviderTopBar = () => {
       { to: `/provider/${base}/add`, label: "Add New" },
       { to: `/provider/${base}/analytics`, label: "Analytics" },
     ];
-  } else if (base === "messages") {
-    links = [
-      { to: `/provider/messages/inbox`, label: "Inbox" },
-      { to: `/provider/messages/sent`, label: "Sent" },
-    ];
-  } else if (base === "analytics") {
-    links = [
-      { to: `/provider/analytics/overview`, label: "Overview" },
-      { to: `/provider/analytics/performance`, label: "Performance" },
-    ];
   } else if (base === "profile") {
     links = [
       { to: `/provider/profile/details`, label: "Profile" },
@@ -71,7 +61,6 @@ const ProviderTopBar = () => {
   } else if (base === "policy") {
     links = [
       { to: `/provider/policy/all`, label: "All Policies" },
-      // { to: `/provider/policy/add`, label: "New Policy" },
       { to: `/provider/policy/activity`, label: "Activity" },
       { to: `/provider/policy/tour-guide`, label: "Tour Guide" },
       { to: `/provider/policy/transport`, label: "Transportation" },

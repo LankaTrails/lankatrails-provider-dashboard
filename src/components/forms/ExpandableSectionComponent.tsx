@@ -14,6 +14,8 @@ interface ExpandableSectionProps {
   canAddItems?: boolean;
   showSubmitButton?: boolean;
   onSave?: (items: TabData[] | PolicyData[]) => Promise<void>;
+  /** Persists a removal of an already-saved item; resolve false to keep the item. */
+  onRemove?: (item: TabData | PolicyData) => Promise<boolean>;
 }
 
 const ExpandableSectionComponent: React.FC<ExpandableSectionProps> = ({
@@ -25,6 +27,7 @@ const ExpandableSectionComponent: React.FC<ExpandableSectionProps> = ({
   canAddItems = true,
   showSubmitButton = false,
   onSave,
+  onRemove,
 }) => {
   const handleItemChange = (
     id: number | null,
@@ -54,13 +57,18 @@ const ExpandableSectionComponent: React.FC<ExpandableSectionProps> = ({
     onItemsChange([...items, newItem]);
   };
 
-  const removeItem = (id: number | null) => {
-    console.log("Removing item with id:", id);
-    if (items.length > 1) {
-      onItemsChange(items.filter((item) => item.id !== id));
+  const removeItem = async (id: number | null) => {
+    const item = items.find((candidate) => candidate.id === id);
+    if (onRemove && item && id !== null) {
+      if (await onRemove(item)) {
+        onItemsChange(items.filter((candidate) => candidate.id !== id));
+      }
+      return;
     }
-    //delete - only call deletePolicy if id is not null (existing item)
-    
+    // Form usage: keep at least one (possibly empty) entry
+    if (items.length > 1) {
+      onItemsChange(items.filter((candidate) => candidate.id !== id));
+    }
   };
 
   const handleSaveClick = async () => {

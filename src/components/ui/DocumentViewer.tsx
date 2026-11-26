@@ -8,6 +8,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Eye, Download, FileText, FileImage, AlertCircle } from "lucide-react";
+import { fileUrl } from "@/lib/config";
 
 interface DocumentViewerProps {
   url: string;
@@ -33,17 +34,7 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
       return url;
     }
 
-    // Use VITE_BASE_URL as the primary base URL for documents
-    const baseUrl = import.meta.env.VITE_BASE_URL || "http://localhost:8080";
-
-    console.log("🔗 Building file URL:", {
-      originalUrl: url,
-      baseUrl,
-      finalUrl: `${baseUrl}${url}`,
-    });
-
-    // Construct the full URL in the format: http://localhost:8080/path/to/file
-    return `${baseUrl}${url}`;
+    return fileUrl(url);
   };
 
   const getFileIcon = (url: string) => {

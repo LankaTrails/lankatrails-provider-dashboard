@@ -70,15 +70,10 @@ const ServiceBookingsPage = () => {
         const from = fromDate.toISOString().slice(0, 19); // Remove .sssZ
         const to = toDate.toISOString().slice(0, 19); // Remove .sssZ
 
-        console.log("Fetching bookings with LocalDateTime format:", {
-          from,
-          to,
-        });
 
         const fetchedBookings = await getBookings(serviceId, from, to);
         setBookings(fetchedBookings);
       } catch (err) {
-        console.error("Error fetching bookings:", err);
         setError("Failed to load bookings");
       } finally {
         setLoading(false);

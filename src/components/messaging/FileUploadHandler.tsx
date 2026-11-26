@@ -136,7 +136,6 @@ const FileUploadHandler: React.FC<FileUploadHandlerProps> = ({ children }) => {
           };
           reader.readAsDataURL(file);
         } catch (error) {
-          console.warn("Could not create image preview:", error);
           setStagedFile(newStagedFile);
         }
       } else {
@@ -178,7 +177,6 @@ const FileUploadHandler: React.FC<FileUploadHandlerProps> = ({ children }) => {
           throw new Error(response.message || "Failed to send file");
         }
       } catch (error) {
-        console.error("File upload error:", error);
         toast({
           title: "Upload failed",
           description: "Failed to upload file. Please try again.",

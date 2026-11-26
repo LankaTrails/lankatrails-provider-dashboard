@@ -43,7 +43,7 @@ const ConfirmActionModal: React.FC<ConfirmActionModalProps> = ({
     }
   };
 
-  const getButtonVariant = () => {
+  const getButtonVariant = (): "default" | "destructive" => {
     switch (actionType) {
       case "deactivate":
         return "default";
@@ -73,7 +73,7 @@ const ConfirmActionModal: React.FC<ConfirmActionModalProps> = ({
             <Button variant="ghost" onClick={onClose}>
               Cancel
             </Button>
-            <Button variant={getButtonVariant() as any} onClick={onConfirm}>
+            <Button variant={getButtonVariant()} onClick={onConfirm}>
               {getButtonText()}
             </Button>
           </div>

@@ -27,7 +27,7 @@ const BookingConfigurationForm: React.FC<BookingConfigurationFormProps> = ({
   priceConfig,
   onPriceConfigChange,
 }) => {
-  const handleConfigChange = (field: keyof BookingConfigDTO, value: any) => {
+  const handleConfigChange = (field: keyof BookingConfigDTO, value: unknown) => {
     const updatedConfig = {
       ...bookingConfig,
       [field]: value,

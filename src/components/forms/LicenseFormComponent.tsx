@@ -30,7 +30,7 @@ export const LicenseFormComponent: React.FC<LicenseFormComponentProps> = ({
   const updateLicense = (
     index: number,
     field: keyof LicenseFormData,
-    value: any
+    value: LicenseFormData[keyof LicenseFormData]
   ) => {
     if (readOnly) return;
     const updatedLicenses = [...licenses];

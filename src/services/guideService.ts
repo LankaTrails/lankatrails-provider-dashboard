@@ -1,5 +1,6 @@
 import api from "@/api/axiosInstance";
 import type { ImageFiles, ServiceFormData, LocationData, PolicySection, TourGuideFormData } from "@/types/serviceTypes";
+import { toApiError } from "@/lib/apiError";
 
 
 //Add new policy for tour guide
@@ -7,29 +8,14 @@ export async function createGuidePolicy(policyData: PolicySection): Promise<Poli
   try {
     policyData.id = null;
     const response = await api.post("/provider/policy/tour-guide", policyData);
-    console.log("Guide policy created successfully:", response.data);
     return response.data;
-  } catch (error :any) {
-    if (error.response && error.response.data) {
-      const { code, message, details, userMessage } = error.response.data;
-      throw {
-        code,
-        message,
-        details,
-        userMessage,
-      };
-    }
-
-    throw {
-      message: 'Failed to add new activity',
-      code: 'UNKNOWN_ERROR',
-    };
+  } catch (error) {
+    throw toApiError(error, 'Failed to add new activity');
   }
 }
 //fetch all guide service policies by serviceType
-export const fetchAllAGuidePolicies = async (): Promise<any> => {
+export const fetchAllAGuidePolicies = async (): Promise<PolicySection[]> => {
   const response = await api.get(`/provider/policy/tour-guide`);
-  console.log("fetch all guide policies", response.data.data);
   return response.data.data; // Assuming the response contains an array of activities
 }
 
@@ -51,12 +37,10 @@ export const addNewTourGuide = async (
     // Append all images under 'images' key with proper type checking
     images.serviceImages.forEach((item) => {
       if (item.file) {
-        console.log("📸 File name:", item.file.name);
         formData.append(`images`, item.file);
       }
     });
 
-    console.log('Adding new tour guide with formData:', formData);
 
     const response = await api.post('/provider/tour-guide/add', formData, {
       headers: {
@@ -65,22 +49,8 @@ export const addNewTourGuide = async (
     });
 
     return response.data.message;
-  } catch (error: any) {
-    console.error('❌ addNewTourGuide error:', error);
-    if (error.response && error.response.data) {
-      const { code, message, details, userMessage } = error.response.data;
-      throw {
-        code,
-        message,
-        details,
-        userMessage,
-      };
-    }
-
-    throw {
-      message: 'Failed to add new tour guide',
-      code: 'UNKNOWN_ERROR',
-    };
+  } catch (error) {
+    throw toApiError(error, 'Failed to add new tour guide');
   }
 };
 
@@ -95,7 +65,6 @@ export const fetchAllTourGuides = async (
       pageSize,
     },
   });
-  console.log("fetch all tour guides", response.data.data.content);
   return response.data.data.content; // Assuming the response contains an array of tour guides
 }
 
@@ -103,7 +72,6 @@ export const fetchAllTourGuides = async (
 export const fetchAllGuidingAreas = async (
 ): Promise<LocationData[]> => {
   const response = await api.get(`/locations/districts`);
-  console.log("fetch all guiding areas", response.data.data);
   return response.data.data; // Assuming the response contains an array of guiding areas
 }
 
@@ -125,12 +93,10 @@ export const updateTourGuide = async (
     // Append all images under 'images' key with proper type checking
     images.serviceImages.forEach((item) => {
       if (item.file) {
-        console.log("📸 File name:", item.file.name);
         formData.append(`images`, item.file);
       }
     });
 
-    console.log('Updating tour guide with formData:', formData);
 
     const response = await api.put(`/provider/tour-guide/update/${id}`, formData, {
       headers: {
@@ -139,49 +105,31 @@ export const updateTourGuide = async (
     });
 
     return response.data.message;
-  } catch (error: any) {
-    console.error('❌ updateTourGuide error:', error);
-    if (error.response && error.response.data) {
-      const { code, message, details, userMessage } = error.response.data;
-      throw {
-        code,
-        message,
-        details,
-        userMessage,
-      };
-    }
-
-    throw {
-      message: 'Failed to update tour guide',
-      code: 'UNKNOWN_ERROR',
-    };
+  } catch (error) {
+    throw toApiError(error, 'Failed to update tour guide');
   }
 };
 
 //find a tourist guide by the serviceId
-export const findTourGuideById = async (id: any): Promise<TourGuideFormData> => {
+export const findTourGuideById = async (id: number): Promise<TourGuideFormData> => {
   try {
     const response = await api.get(`/provider/tour-guide/${id}`);
     // Log response for debugging
-    console.log('findTourGuideById response:', response.data.data);
     return response.data.data;
   } catch (error) {
-    console.error('Error fetching guide by ID:', error);
     throw new Error('Failed to fetch guide by ID');
   }
 }
 
 
 // deactivate a tourist guide
-export const deactivateTourGuide = async (id: number): Promise<any> => {
+export const deactivateTourGuide = async (id: number): Promise<unknown> => {
   const response = await api.put(`/provider/tour-guide/deactivate/${id}`);
-  console.log("Deactivating tour guide with ID:", response);
   return response.data.data;
 }
 
 // activate a tourist guide
-export const activateTourGuide = async (id: number): Promise<any> => {
+export const activateTourGuide = async (id: number): Promise<unknown> => {
   const response = await api.put(`/provider/tour-guide/activate/${id}`);
-  console.log("Activating tour guide with ID:", response);
   return response.data.data;
 }

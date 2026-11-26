@@ -66,7 +66,6 @@ const License: React.FC = () => {
       const response = await getLicense();
       setLicenses(response);
     } catch (err) {
-      console.error("Failed to fetch licenses:", err);
       setError("Failed to load licenses");
     } finally {
       setLoading(false);
@@ -260,15 +259,9 @@ const License: React.FC = () => {
       // Use appropriate API based on current status
       if (currentStatus === "APPROVED") {
         // Use renewLicense for approved licenses
-        console.log("🔄 Using renewLicense API for APPROVED status");
         await renewLicense(licenseDTOs, allFiles);
       } else if (["NOT_REQUESTED", "REJECTED"].includes(currentStatus)) {
         // Use requestApproval for not requested or rejected licenses
-        console.log(
-          "📝 Using requestApproval API for",
-          currentStatus,
-          "status"
-        );
         await requestApproval(licenseDTOs, allFiles);
       } else {
         throw new Error("Action not allowed for current status");
@@ -282,7 +275,6 @@ const License: React.FC = () => {
       setRenewalLicenses([]);
       setError(null);
     } catch (err) {
-      console.error("License submission failed:", err);
       setError("Failed to submit licenses. Please try again.");
     } finally {
       setRenewalSubmitting(false);

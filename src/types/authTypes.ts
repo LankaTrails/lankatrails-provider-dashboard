@@ -22,7 +22,7 @@ export interface BusinessDetails {
 export interface User {
   id: number;
   email: string;
-  role: 'ROLE_PROVIDER';
+  role: 'ROLE_PROVIDER' | 'ROLE_ADMIN' | 'ROLE_TOURIST';
   status?: string;
   profilePictureUrl?: string;
   emailVerified?: boolean;

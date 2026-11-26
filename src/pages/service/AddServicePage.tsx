@@ -12,6 +12,7 @@ import type {
   TransportFormData,
 } from "@/types/serviceTypes";
 import AlertToast from "@/components/forms/AlertToast";
+import { errorMessage } from "@/lib/apiError";
 import StepWizardServiceForm from "@/components/StepWizardServiceForm";
 
 // Helper to prettify the serviceType
@@ -31,7 +32,6 @@ interface ToastState {
 const AddServicePage: React.FC = () => {
   const { serviceType } = useParams<{ serviceType: string }>();
   const navigate = useNavigate();
-  console.log("Service Type:", serviceType);
 
   const title = formatServiceTitle(serviceType);
 
@@ -42,13 +42,10 @@ const AddServicePage: React.FC = () => {
     data: ServiceFormData,
     files: ImageFiles
   ): Promise<void> => {
-    console.log("Submitting data:", data);
     if (isSubmitting) return; // Prevent double submission
 
     setIsSubmitting(true);
     try {
-      console.log("Add Service Data:", data);
-      console.log("Add Service Files:", files);
 
       // Type assertion based on serviceType for better type safety
       let typedData:
@@ -78,9 +75,8 @@ const AddServicePage: React.FC = () => {
           throw new Error(`Unsupported service type: ${serviceType}`);
       }
 
-      const result = await addNewService(serviceType || "", typedData, files);
+      await addNewService(serviceType || "", typedData, files);
 
-      console.log("Response:", result);
 
       setToast({
         message: "Service added successfully!",
@@ -89,28 +85,8 @@ const AddServicePage: React.FC = () => {
 
       // Redirect to the service list page
       navigate(`/provider/${serviceType}/list`);
-    } catch (error: any) {
-      console.error("Error adding service:", error);
-
-      let message = "An unexpected error occurred";
-
-      // Handle different error types
-      if (error.response?.data?.message) {
-        message = error.response.data.message;
-      } else if (error.userMessage) {
-        message = error.userMessage;
-      } else if (error.message) {
-        message = error.message;
-      }
-
-      // Handle validation errors
-      if (error.response?.data?.errors || error.details) {
-        const errorDetails = error.response?.data?.errors || error.details;
-        if (typeof errorDetails === "object") {
-          const errorMessages = Object.values(errorDetails).flat().join(", ");
-          message += `: ${errorMessages}`;
-        }
-      }
+    } catch (error) {
+      const message = errorMessage(error, "Could not add the service. Please try again.");
 
       setToast({
         message,

@@ -1,35 +1,21 @@
 
 import api from "@/api/axiosInstance";
 import type { FoodBeverageFormData, ImageFiles, PolicySection, ServiceFormData } from "@/types/serviceTypes";
+import { toApiError } from "@/lib/apiError";
 
 //Add new activity policy
 export async function createFoodPolicy(policyData: PolicySection): Promise<PolicySection> {
   try {
     policyData.id = null;
     const response = await api.post("/provider/policy/food-beverage", policyData);
-    console.log("Food Beverage policy created successfully:", response.data);
     return response.data;
-  } catch (error :any) {
-    if (error.response && error.response.data) {
-      const { code, message, details, userMessage } = error.response.data;
-      throw {
-        code,
-        message,
-        details,
-        userMessage,
-      };
-    }
-
-    throw {
-      message: 'Failed to add new policy',
-      code: 'UNKNOWN_ERROR',
-    };
+  } catch (error) {
+    throw toApiError(error, 'Failed to add new policy');
   }
 }
 //fetch all activity service policies by serviceType
-export const fetchAllFoodPolicies = async (): Promise<any> => {
+export const fetchAllFoodPolicies = async (): Promise<PolicySection[]> => {
   const response = await api.get(`/provider/policy/food-beverage`);
-  console.log("fetch all food-beverage policies", response.data.data);
   return response.data.data; // Assuming the response contains an array of activities
 }
 
@@ -44,7 +30,6 @@ export const fetchAllFoodAndBeverages = async (
       pageSize,
     },
   });
-  console.log("fetch all", response.data.data.content);
   return response.data.data.content; // Assuming the response contains an array of activities
 }
 
@@ -66,12 +51,10 @@ export const addNewFoodBeverage = async (
     // Append all images under 'images' key with proper type checking
     images.serviceImages.forEach((item) => {
       if (item.file) {
-        console.log("📸 File name:", item.file.name);
         formData.append(`images`, item.file);
       }
     });
 
-    console.log('Adding new food and beverage with formData:', formData);
 
     const response = await api.post('/provider/food-beverage/add', formData, {
       headers: {
@@ -80,33 +63,17 @@ export const addNewFoodBeverage = async (
     });
 
     return response.data.message;
-  } catch (error: any) {
-    console.error('❌ addNewAccommodation error:', error);
-    if (error.response && error.response.data) {
-      const { code, message, details, userMessage } = error.response.data;
-      throw {
-        code,
-        message,
-        details,
-        userMessage,
-      };
-    }
-
-    throw {
-      message: 'Failed to add new transport service',
-      code: 'UNKNOWN_ERROR',
-    };
+  } catch (error) {
+    throw toApiError(error, 'Failed to add new transport service');
   }
 };
 
 //find a food-beverage service by the Id
-export const findFoodBeverageById = async (id : any): Promise<FoodBeverageFormData> =>{
+export const findFoodBeverageById = async (id: number): Promise<FoodBeverageFormData> =>{
   try {
     const response = await api.get(`/provider/food-beverage/${id}`);
-    console.log('findFoodBeverageById response: ',response);
     return response.data.data;
   } catch (error) {
-    console.error('Error fetch food-beverage by ID: ',error);
     throw new Error('Failed to fetch food-beverage by ID');
   }
 }
@@ -129,12 +96,10 @@ export const updateFoodBeverage = async (
     // Append all images under 'images' key with proper type checking
     images.serviceImages.forEach((item) => {
       if (item.file) {
-        console.log("📸 File name:", item.file.name);
         formData.append(`images`, item.file);
       }
     });
 
-    console.log('Updating food and beverage with formData:', formData);
 
     const response = await api.put(`/provider/food-beverage/update/${id}`, formData, {
       headers: {
@@ -143,35 +108,19 @@ export const updateFoodBeverage = async (
     });
 
     return response.data.message;
-  } catch (error: any) {
-    console.error('❌ updateFoodBeverage error:', error);
-    if (error.response && error.response.data) {
-      const { code, message, details, userMessage } = error.response.data;
-      throw {
-        code,
-        message,
-        details,
-        userMessage,
-      };
-    }
-
-    throw {
-      message: 'Failed to update food and beverage',
-      code: 'UNKNOWN_ERROR',
-    };
+  } catch (error) {
+    throw toApiError(error, 'Failed to update food and beverage');
   }
 };
 
 // deactivate food and beverage service
-export const deactivateFoodBeverage = async (id: number): Promise<any> => {
+export const deactivateFoodBeverage = async (id: number): Promise<unknown> => {
   const response = await api.put(`/provider/food-beverage/deactivate/${id}`);
-  console.log("Deactivating food and beverage service with ID:", response);
   return response.data.data;
 };
 
 // activate food and beverage service
-export const activateFoodBeverage = async (id: number): Promise<any> => {
+export const activateFoodBeverage = async (id: number): Promise<unknown> => {
   const response = await api.put(`/provider/food-beverage/activate/${id}`);
-  console.log("Activating food and beverage service with ID:", response);
   return response.data.data;
 };

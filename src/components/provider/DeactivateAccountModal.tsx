@@ -14,7 +14,8 @@ import type { User } from "@/types/authTypes";
 interface DeactivateAccountModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onDeactivate: (password: string, reason: string) => void;
+  /** Resolves to null on success or an error message; the modal stays open on error. */
+  onDeactivate: (password: string, reason: string) => Promise<string | null>;
   user: User;
 }
 
@@ -62,9 +63,16 @@ const DeactivateAccountModal: React.FC<DeactivateAccountModalProps> = ({
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleDeactivate = () => {
-    if (validateForm()) {
-      onDeactivate(password, reason);
+  const [saving, setSaving] = useState(false);
+
+  const handleDeactivate = async () => {
+    if (!validateForm()) return;
+    setSaving(true);
+    const error = await onDeactivate(password, reason);
+    setSaving(false);
+    if (error) {
+      setErrors((prev) => ({ ...prev, form: error }));
+    } else {
       handleClose();
     }
   };
@@ -155,12 +163,15 @@ const DeactivateAccountModal: React.FC<DeactivateAccountModalProps> = ({
           </div>
         </div>
 
+        {errors.form && (
+          <p role="alert" className="mt-2 rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">{errors.form}</p>
+        )}
         <DialogFooter className="mt-6">
           <Button
             onClick={handleDeactivate}
             variant="destructive"
             className="w-full"
-            disabled={confirmText !== expectedConfirmText}
+            disabled={saving || confirmText !== expectedConfirmText}
           >
             <UserX className="w-4 h-4 mr-2" />
             Deactivate Account

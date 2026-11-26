@@ -127,7 +127,7 @@ const StepWizardServiceForm: React.FC<ServiceFormProps> = ({
   const [policyOptions, setPolicyOptions] = useState<
     { label: string; value: string }[]
   >([]);
-  const [fullPolicyData, setFullPolicyData] = useState<any[]>([]);
+  const [fullPolicyData, setFullPolicyData] = useState<PolicySection[]>([]);
   const [preferredPolicies, setPreferredPolicies] = useState<string[]>(() => {
     // Initialize with policy IDs from existing data that have non-null IDs
     if (initialData && initialData.policySection) {
@@ -388,8 +388,8 @@ const StepWizardServiceForm: React.FC<ServiceFormProps> = ({
         try {
           const areas = await fetchAllGuidingAreas();
           setGuidingAreas(areas);
-        } catch (error) {
-          console.error("Error loading guiding areas:", error);
+        } catch {
+          // guiding areas are optional; the selector stays empty
         }
       }
     };
@@ -400,20 +400,17 @@ const StepWizardServiceForm: React.FC<ServiceFormProps> = ({
   useEffect(() => {
     const loadPolicies = async () => {
       try {
-        console.log("Loading policies for service type:", serviceType);
         const policies = await fetchPoliciesByServiceType(
           serviceType || "activity"
         );
-        console.log("Fetched policies:", policies);
-        const policyOptions = policies.map((policy: any) => ({
+        const policyOptions = policies.map((policy) => ({
           label: policy.heading,
           value: policy.id?.toString() || policy.heading,
         }));
-        console.log("Policy options:", policyOptions);
         setPolicyOptions(policyOptions);
         setFullPolicyData(policies); // Store full policy data for later use
-      } catch (error) {
-        console.error("Error loading policies:", error);
+      } catch {
+        // the policy selector stays empty and the provider can add policies later
       }
     };
     if (serviceType) {
@@ -422,7 +419,7 @@ const StepWizardServiceForm: React.FC<ServiceFormProps> = ({
   }, [serviceType]);
 
   // Handler functions
-  const handleInputChange = (field: string, value: any) => {
+  const handleInputChange = (field: string, value: unknown) => {
     setFormData((prev) => ({
       ...prev,
       [field]: value,
@@ -498,12 +495,6 @@ const StepWizardServiceForm: React.FC<ServiceFormProps> = ({
       (originalTab) => originalTab.id && !currentTabIds.includes(originalTab.id)
     );
 
-    console.log("Tab deletion tracking:", {
-      originalTabs: originalTabsSection,
-      currentTabs: currentTabSections,
-      currentTabIds,
-      deletedTabsFromOriginal,
-    });
 
     // Add to deletedTabs if not already there
     setDeletedTabs((prev) => {
@@ -538,12 +529,6 @@ const StepWizardServiceForm: React.FC<ServiceFormProps> = ({
         originalPolicy.id && !currentPolicyIds.includes(originalPolicy.id)
     );
 
-    console.log("Policy deletion tracking:", {
-      originalPolicies: originalPolicySection,
-      currentPolicies: currentPolicySections,
-      currentPolicyIds,
-      deletedPoliciesFromOriginal,
-    });
 
     // Add to deletedPolicies if not already there
     setDeletedPolicies((prev) => {
@@ -582,18 +567,11 @@ const StepWizardServiceForm: React.FC<ServiceFormProps> = ({
       };
     });
 
-    console.log("Multiselect policy deletion tracking:", {
-      originalPreferredPolicies,
-      selectedValues,
-      removedPolicyIds,
-      reselectedPolicyIds,
-      removedPolicies,
-    });
 
     // Update deletedPolicies: add removed ones, remove re-selected ones
     setDeletedPolicies((prev) => {
       // Remove re-selected policies from deleted list
-      let updated = prev.filter(
+      const updated = prev.filter(
         (policy) => !reselectedPolicyIds.includes(policy.id?.toString() || "")
       );
 
@@ -717,7 +695,7 @@ const StepWizardServiceForm: React.FC<ServiceFormProps> = ({
         }
         break;
 
-      case 1: // Booking & Pricing
+      case 1: { // Booking & Pricing
         // Use the new validation utilities
         const serviceTypeEnum = getServiceTypeEnum();
 
@@ -739,13 +717,14 @@ const StepWizardServiceForm: React.FC<ServiceFormProps> = ({
           errors.push(...priceValidation.errors.map((err) => err.message));
         }
         break;
+      }
 
       case 2: // Location, Contact & Schedule
         if (!formData.contactNo.trim()) {
           errors.push("Phone number is required");
         } else {
           // Basic phone number validation
-          const phoneRegex = /^[+]?[\d\s\-\(\)]{10,}$/;
+          const phoneRegex = /^[+]?[\d\s()-]{10,}$/;
           if (!phoneRegex.test(formData.contactNo.trim())) {
             errors.push("Please enter a valid phone number");
           }
@@ -918,13 +897,6 @@ const StepWizardServiceForm: React.FC<ServiceFormProps> = ({
       } as TourGuideFormData;
     }
 
-    console.log("Form submission data:", {
-      selectedPolicies: preferredPolicies,
-      customPolicies: policySection,
-      finalPolicySection: updatedData.policySection,
-      deletedTabs: deletedTabs,
-      deletedPolicies: deletedPolicies,
-    });
 
     onSubmit(updatedData, images);
   };
@@ -1380,7 +1352,7 @@ const StepWizardServiceForm: React.FC<ServiceFormProps> = ({
           </div>
         );
 
-      case 1: // Booking & Pricing Configuration
+      case 1: { // Booking & Pricing Configuration
         const serviceHints = getServiceTypeHints(getServiceTypeEnum());
 
         return (
@@ -1446,6 +1418,7 @@ const StepWizardServiceForm: React.FC<ServiceFormProps> = ({
             </div>
           </div>
         );
+      }
 
       case 2: // Location, Contact & Schedule
         return (
